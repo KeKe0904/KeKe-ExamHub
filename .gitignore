@@ -1,0 +1,56 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies
+node_modules
+dist
+dist-ssr
+*.local
+
+# 环境变量和敏感配置
+.env
+.env.production
+.env.local
+api/.env
+.setup-complete
+
+# 部署和调试脚本（包含服务器密码）
+deploy-all.js
+deploy.js
+redeploy.js
+deploy.sh
+check-logs.js
+check-server.js
+check-git.js
+install-git.js
+fix-db.js
+fix-nginx.js
+test-create.js
+test-login.js
+create-repo.js
+upload-to-github.js
+backup_trae.ps1
+
+# IDE 配置
+.trae/
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

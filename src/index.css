@@ -1,0 +1,135 @@
+@import "react-day-picker/style.css";
+
+@font-face {
+  font-family: "QuanZiKu ZhengKaiTi";
+  src: url("/fonts/QuanZiKuZhengKaiTi/QuanZiKuZhengKaiTi/TaiWanQuanZiKuZhengKaiTi-2.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: "QuanZiKu ZhengKaiTi", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+  font-weight: 400;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+/* 黑白简约线条风格 - 渐变改为纯黑 */
+.bg-gradient-primary {
+  background-color: #000000;
+  background-image: none;
+}
+
+.backdrop-blur-glass {
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* 表单输入框 - 简约线条风格 */
+.form-input {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  background-color: #ffffff;
+  border: 1px solid #e4e4e7;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: #18181b;
+  transition: all 0.2s;
+}
+
+.form-input::placeholder {
+  color: #a1a1aa;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #000000;
+  background-color: white;
+  box-shadow: none;
+}
+
+/* react-day-picker 自定义样式 - 黑白简约 */
+.rdp-root {
+  --rdp-accent-color: #000000;
+  --rdp-accent-background-color: #f4f4f5;
+  --rdp-day-height: 38px;
+  --rdp-day-width: 38px;
+  --rdp-day_button-height: 36px;
+  --rdp-day_button-width: 36px;
+  --rdp-day_button-border-radius: 0.5rem;
+  --rdp-day_button-border: 1px solid transparent;
+  --rdp-selected-border: 1px solid #000000;
+  --rdp-nav_button-height: 2rem;
+  --rdp-nav_button-width: 2rem;
+  --rdp-nav-height: 2.5rem;
+  margin: 0;
+}
+
+.rdp-root .rdp-month_caption {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #000000;
+}
+
+.rdp-root .rdp-weekday {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #71717a;
+}
+
+.rdp-root .rdp-day_button {
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+
+.rdp-root .rdp-day_button:hover {
+  border-color: #000000;
+  background-color: #fafafa;
+}
+
+.rdp-root .rdp-today {
+  font-weight: 700;
+  color: #000000;
+}
+
+.rdp-root .rdp-selected .rdp-day_button {
+  background-color: #000000;
+  color: white;
+  font-weight: 600;
+  border-color: #000000;
+}
+
+.rdp-root .rdp-nav_button {
+  color: #000000;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.rdp-root .rdp-nav_button:hover {
+  background-color: #f4f4f5;
+  border-color: #e4e4e7;
+}
+
+.rdp-root .rdp-chevron {
+  width: 18px;
+  height: 18px;
+}
