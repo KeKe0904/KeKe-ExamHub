@@ -161,7 +161,7 @@ info "前端 npm install..."
 npm install --no-audit --no-fund
 
 info "前端 npm run build..."
-npm run build
+VITE_API_BASE_URL=/api npm run build
 
 if [ ! -f "$PROJECT_DIR/dist/index.html" ]; then
   error "前端构建失败: dist/index.html 不存在"

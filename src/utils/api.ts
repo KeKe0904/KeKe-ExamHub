@@ -1,5 +1,7 @@
 // API 基础配置
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
+// 开发环境通过 Vite dev server 代理 /api → http://localhost:3000
+// 生产环境通过 Nginx 反向代理 /api → http://127.0.0.1:3000
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 
 // 获取存储的 token
 export function getToken(): string | null {
