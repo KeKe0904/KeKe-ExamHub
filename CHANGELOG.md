@@ -6,7 +6,6 @@
 - 全局字体更换为全字库正楷体（TaiWanQuanZiKuZhengKaiTi）
 
 ### 修复
-- 移除右下角 Trae 标识显示
 - 修复 CSS @import 顺序警告
 
 ### 变更
