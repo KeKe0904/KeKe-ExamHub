@@ -10,6 +10,8 @@ import ExamForm from "@/pages/admin/ExamForm";
 import Settings from "@/pages/admin/Settings";
 import AnnouncementList from "@/pages/admin/AnnouncementList";
 import AnnouncementForm from "@/pages/admin/AnnouncementForm";
+import ServerMonitor from "@/pages/admin/ServerMonitor";
+import Environment from "@/pages/admin/Environment";
 import Setup from "@/pages/Setup";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
@@ -92,6 +94,24 @@ export default function App() {
           element={
             <ProtectedRoute>
               <AnnouncementForm />
+            </ProtectedRoute>
+          }
+        />
+        {/* 服务器监控路由 */}
+        <Route
+          path="/admin/monitor"
+          element={
+            <ProtectedRoute>
+              <ServerMonitor />
+            </ProtectedRoute>
+          }
+        />
+        {/* 服务器环境路由 */}
+        <Route
+          path="/admin/environment"
+          element={
+            <ProtectedRoute>
+              <Environment />
             </ProtectedRoute>
           }
         />

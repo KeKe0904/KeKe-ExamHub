@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { CalendarX, Loader2, Globe, X, ChevronDown, ChevronUp } from "@/components/MathIcon";
 import UserLayout from "@/components/Layout/UserLayout";
 import Hero from "@/components/Hero";

@@ -294,6 +294,73 @@ export function CheckCircle2({ className, size = defaultSize }: IconProps) {
   );
 }
 
+// CPU - 用矩形芯片和引脚
+export function Cpu({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="6" y="6" width="12" height="12" rx="1" />
+      <rect x="9" y="9" width="6" height="6" rx="0.5" />
+      <path d="M 9 2 L 9 6 M 12 2 L 12 6 M 15 2 L 15 6" />
+      <path d="M 9 18 L 9 22 M 12 18 L 12 22 M 15 18 L 15 22" />
+      <path d="M 2 9 L 6 9 M 2 12 L 6 12 M 2 15 L 6 15" />
+      <path d="M 18 9 L 22 9 M 18 12 L 22 12 M 18 15 L 22 15" />
+    </svg>
+  );
+}
+
+// 硬盘 - 用矩形和圆盘
+export function HardDrive({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="3" y="8" width="18" height="10" rx="1" />
+      <circle cx="8" cy="13" r="2" />
+      <path d="M 14 12 L 18 12 M 14 14 L 18 14" />
+    </svg>
+  );
+}
+
+// 网络 - 用节点和连线（三角形拓扑）
+export function Network({ className, size = defaultSize }: IconProps) {
+  const nodes = [
+    { x: 12, y: 4 },
+    { x: 5, y: 18 },
+    { x: 19, y: 18 },
+    { x: 12, y: 12 },
+  ];
+  const edges = [
+    [0, 3], [3, 1], [3, 2], [0, 1], [0, 2], [1, 2],
+  ];
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      {edges.map(([a, b], i) => (
+        <line key={i} x1={nodes[a].x} y1={nodes[a].y} x2={nodes[b].x} y2={nodes[b].y} />
+      ))}
+      {nodes.map((n, i) => (
+        <circle key={i} cx={n.x} cy={n.y} r="1.5" fill="currentColor" />
+      ))}
+    </svg>
+  );
+}
+
+// 活动监控 - 用心跳波形线
+export function Activity({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M 2 12 L 6 12 L 8 7 L 12 17 L 14 12 L 18 12 L 22 12" />
+    </svg>
+  );
+}
+
+// 温度计 - 用于CPU温度
+export function Thermometer({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M14 4a2 2 0 0 0-4 0v10.5a4 4 0 1 0 4 0V4z" />
+      <circle cx="12" cy="17" r="1.5" fill="currentColor" />
+    </svg>
+  );
+}
+
 // 服务器 - 用矩形堆叠
 export function Server({ className, size = defaultSize }: IconProps) {
   return (
@@ -667,6 +734,98 @@ export function Phone({ className, size = defaultSize }: IconProps) {
   );
 }
 
+// 包/依赖图标 - 立体盒子
+export function Package({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M 21 16 V 8 a2 2 0 0 0-1-1.73 l-7-4 a2 2 0 0 0-2 0 l-7 4 A2 2 0 0 0 3 8 v8 a2 2 0 0 0 1 1.73 l7 4 a2 2 0 0 0 2 0 l7-4 A2 2 0 0 0 21 16 z" />
+      <path d="M 3.27 6.96 12 12.01 l8.73-5.05" />
+      <path d="M 12 22.08 V 12" />
+    </svg>
+  );
+}
+
+// Git 分支图标
+export function GitBranch({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <line x1="6" y1="3" x2="6" y2="15" />
+      <circle cx="18" cy="6" r="3" />
+      <circle cx="6" cy="18" r="3" />
+      <path d="M 18 9 a9 9 0 0 1-9 9" />
+    </svg>
+  );
+}
+
+// 下载图标
+export function Download({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M 21 15 v 4 a2 2 0 0 1-2 2 H 5 a2 2 0 0 1-2-2 v-4" />
+      <polyline points="7 10 12 15 17 10" />
+      <line x1="12" y1="15" x2="12" y2="3" />
+    </svg>
+  );
+}
+
+// 重置/重装图标 - 逆时针箭头
+export function RotateCcw({ className, size = defaultSize }: IconProps) {
+  const cx = 12, cy = 12, r = 8;
+  const startAngle = -Math.PI / 4;
+  const endAngle = startAngle - (3 * Math.PI) / 2;
+  const arc = arcPath(cx, cy, r, startAngle, endAngle);
+  const arrowAngle = endAngle;
+  const ax = cx + r * Math.cos(arrowAngle);
+  const ay = cy + r * Math.sin(arrowAngle);
+
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d={arc} />
+      <polyline points={`${ax - 2},${ay - 2} ${ax},${ay} ${ax + 2},${ay - 2}`} />
+    </svg>
+  );
+}
+
+// 代码图标
+export function Code({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <polyline points="16 18 22 12 16 6" />
+      <polyline points="8 6 2 12 8 18" />
+    </svg>
+  );
+}
+
+// 盾牌图标 - 安全保护
+export function Shield({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M 12 22 s 8-4 8-10 V 5 l-8-3-8 3 v7 c 0 6 8 10 8 10 z" />
+    </svg>
+  );
+}
+
+// 盒子图标 - 组件
+export function Box({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <line x1="3" y1="9" x2="21" y2="9" />
+      <line x1="9" y1="21" x2="9" y2="9" />
+    </svg>
+  );
+}
+
+// 复制图标
+export function Copy({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="9" y="9" width="13" height="13" rx="2" />
+      <path d="M 5 15 H 4 a2 2 0 0 1-2-2 V 4 a2 2 0 0 1 2-2 h9 a2 2 0 0 1 2 2 v1" />
+    </svg>
+  );
+}
+
 // 导出图标对象，方便批量使用
 export const MathIcons = {
   Sunrise, Sun, Moon, Calendar, Clock, User, MapPin, Search,
@@ -677,6 +836,8 @@ export const MathIcons = {
   Lock, Edit, Trash2, Settings, AlertCircle, AlertTriangle,
   Info, Save, Printer, ChevronDown, ChevronUp, Maximize, Minimize,
   Image, Building, Phone,
+  Package, GitBranch, Download, RotateCcw, Code, Shield, Box, Copy,
+  Cpu, HardDrive, Network, Activity, Thermometer,
 };
 
 export default MathIcons;

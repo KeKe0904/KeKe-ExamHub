@@ -1,8 +1,18 @@
 {
-  "name": "trae-project",
+  "name": "keke-examhub",
   "private": true,
   "version": "1.0.5",
+  "description": "KeKe ExamHub - 考试管理系统前端",
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "KeKe",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KeKe0904/KeKe-ExamHub"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

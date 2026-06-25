@@ -1,4 +1,4 @@
-﻿import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   FileText,
@@ -10,6 +10,8 @@ import {
   User,
   Settings,
   Sun,
+  Server,
+  Box,
 } from "@/components/MathIcon";
 import { useAuthStore } from "@/store/authStore";
 import { useSchoolName } from "@/hooks/useSchoolName";
@@ -52,6 +54,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     {
       title: "系统",
       items: [
+        { href: "/admin/monitor", label: "服务器监控", icon: Server },
+        { href: "/admin/environment", label: "服务器环境", icon: Box },
         { href: "/admin/settings", label: "系统设置", icon: Settings },
       ],
     },

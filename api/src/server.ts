@@ -9,6 +9,8 @@ import announcementRoutes from "./routes/announcements.js";
 import setupRoutes from "./routes/setup.js";
 import settingsRoutes from "./routes/settings.js";
 import schoolInfoRoutes from "./routes/school-info.js";
+import monitorRoutes from "./routes/monitor.js";
+import environmentRoutes from "./routes/environment.js";
 
 dotenv.config();
 
@@ -52,6 +54,8 @@ async function start() {
     await app.register(settingsRoutes, { prefix: "/api/settings" });
     await app.register(schoolInfoRoutes, { prefix: "/api/school-info" });
     await app.register(announcementRoutes, { prefix: "/api/announcements" });
+    await app.register(monitorRoutes, { prefix: "/api/monitor" });
+    await app.register(environmentRoutes, { prefix: "/api/environment" });
 
     // 健康检查
     app.get("/api/health", async () => {
