@@ -15,10 +15,17 @@ export async function runMigration() {
         id INT AUTO_INCREMENT PRIMARY KEY,
         username VARCHAR(50) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
+        avatar LONGTEXT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     `);
+    // 兼容已有表:补充 avatar 字段
+    try {
+      await pool.execute(`ALTER TABLE admins ADD COLUMN avatar LONGTEXT NULL`);
+    } catch {
+      // 字段已存在则忽略
+    }
     console.log("✓ admins 表创建成功");
 
     // 创建exams表
@@ -39,14 +46,39 @@ export async function runMigration() {
     `);
     console.log("✓ exams 表创建成功");
 
-    // 插入默认管理员
+    // 创建announcements表(公告)
+    await pool.execute(`
+      CREATE TABLE IF NOT EXISTS announcements (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        title VARCHAR(200) NOT NULL,
+        content TEXT NOT NULL,
+        is_pinned BOOLEAN DEFAULT FALSE,
+        is_active BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_created_at (created_at)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+    console.log("✓ announcements 表创建成功");
+
+    // 创建settings表(系统设置,键值对存储)
+    await pool.execute(`
+      CREATE TABLE IF NOT EXISTS settings (
+        setting_key VARCHAR(100) PRIMARY KEY,
+        setting_value TEXT,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+    console.log("✓ settings 表创建成功");
+
+    // 插入默认管理员(已存在则更新密码)
     const adminUsername = process.env.ADMIN_USERNAME || "admin";
     const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
     const hashedPassword = await bcrypt.hash(adminPassword, 10);
 
     await pool.execute(
       `INSERT INTO admins (username, password) VALUES (?, ?)
-       ON DUPLICATE KEY UPDATE username=username`,
+       ON DUPLICATE KEY UPDATE password = VALUES(password)`,
       [adminUsername, hashedPassword]
     );
     console.log("✓ 默认管理员账号创建成功");

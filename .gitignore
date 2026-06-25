@@ -20,6 +20,9 @@ dist-ssr
 api/.env
 .setup-complete
 
+# 部署数据目录（服务器信息、凭据、脚本、临时密码等）
+deploy-data/
+
 # 部署和调试脚本（包含服务器密码）
 deploy-all.js
 deploy.js
@@ -36,6 +39,9 @@ test-login.js
 create-repo.js
 upload-to-github.js
 backup_trae.ps1
+
+# 构建输出调试文件
+build-output.txt
 
 # IDE 配置
 .trae/

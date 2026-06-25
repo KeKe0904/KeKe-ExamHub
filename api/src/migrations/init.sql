@@ -1,4 +1,13 @@
--- ExamHub 数据库初始化脚本
+-- ExamHub 数据库初始化脚本(表结构 + 示例数据)
+--
+-- 说明:
+--   本脚本仅创建表结构与示例考试数据,不创建管理员账号。
+--   管理员账号请通过以下任一方式创建:
+--     1. 访问 /setup 安装向导(推荐,同时生成 .env)
+--     2. 运行 npm run migrate(读取 .env 中的 ADMIN_USERNAME/ADMIN_PASSWORD)
+--
+-- 用法:
+--   mysql -u root -p < api/src/migrations/init.sql
 
 -- 创建数据库
 CREATE DATABASE IF NOT EXISTS examhub CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -9,9 +18,13 @@ CREATE TABLE IF NOT EXISTS admins (
   id INT AUTO_INCREMENT PRIMARY KEY,
   username VARCHAR(50) NOT NULL UNIQUE,
   password VARCHAR(255) NOT NULL,
+  avatar LONGTEXT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 兼容已有表:补充 avatar 字段
+-- ALTER TABLE admins ADD COLUMN avatar LONGTEXT NULL;
 
 -- 考试信息表
 CREATE TABLE IF NOT EXISTS exams (
@@ -40,12 +53,14 @@ CREATE TABLE IF NOT EXISTS announcements (
   INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 插入默认管理员账号 (密码: admin123, bcrypt加密)
-INSERT INTO admins (username, password) VALUES
-('admin', '$2a$10$N9qo8uLOickgx2ZMRZoMy.Mrq8KqXqWQ/q3qxKQjQK5aQqKQjQKQ')
-ON DUPLICATE KEY UPDATE username=username;
+-- 系统设置表(键值对存储)
+CREATE TABLE IF NOT EXISTS settings (
+  setting_key VARCHAR(100) PRIMARY KEY,
+  setting_value TEXT,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 插入示例考试数据
+-- 插入示例考试数据(已存在则跳过)
 INSERT INTO exams (subject, exam_date, duration, location, invigilator, notes) VALUES
 ('高等数学(下)', '2026-07-05 09:00:00', 120, '教学楼A-301', '王教授', '请携带学生证、2B铅笔、黑色签字笔,允许使用计算器(非编程型)'),
 ('大学英语(四)', '2026-07-08 14:30:00', 150, '教学楼B-105', '李老师', '请携带2B铅笔、橡皮、黑色签字笔,听力部分需自带调频耳机(频率FM 75.0)'),

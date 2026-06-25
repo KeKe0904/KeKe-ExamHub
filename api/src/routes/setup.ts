@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import { exec } from "child_process";
+import { exec, spawn } from "child_process";
 import { promisify } from "util";
 import fs from "fs/promises";
 import path from "path";
@@ -155,23 +155,26 @@ export default async function setupRoutes(fastify: FastifyInstance) {
     };
   });
 
-  // 测试数据库连接
+  // 测试数据库连接（验证用户凭据 + 库是否存在）
   fastify.post(
     "/database/test",
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const { host, port, user, password } = request.body as {
+      const { host, port, user, password, database } = request.body as {
         host: string;
         port: number;
         user: string;
         password: string;
+        database: string;
       };
 
       try {
+        // 连接时指定 database，若库不存在会直接报错
         const { connection, usingSocket, socketPath } = await createDbConnection({
           host: host || "localhost",
           port: port || 3306,
           user,
           password,
+          database,
         });
 
         const [rows] = await connection.query("SELECT VERSION() as version");
@@ -181,8 +184,8 @@ export default async function setupRoutes(fastify: FastifyInstance) {
         return {
           success: true,
           message: usingSocket
-            ? `数据库连接成功（通过 socket: ${socketPath}）`
-            : "数据库连接成功",
+            ? `数据库连接成功（通过 socket: ${socketPath}，库: ${database}）`
+            : `数据库连接成功（库: ${database}）`,
           version,
         };
       } catch (error: any) {
@@ -216,21 +219,18 @@ export default async function setupRoutes(fastify: FastifyInstance) {
     };
 
     try {
-      // 1. 创建数据库连接（不指定数据库，自动尝试 TCP 和 socket）
+      // 1. 连接到用户手动创建的数据库（不自动建库，要求用户提前手动创建）
+      //    若库不存在会直接报错，提示用户手动创建
       const { connection, usingSocket, socketPath } = await createDbConnection({
         host: dbConfig.host || "localhost",
         port: dbConfig.port || 3306,
         user: dbConfig.user,
         password: dbConfig.password,
+        database: dbConfig.database,
       });
-
-      // 2. 创建数据库
-      await connection.query(
-        `CREATE DATABASE IF NOT EXISTS \`${dbConfig.database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`
-      );
       await connection.end();
 
-      // 3. 连接到新数据库，创建表（根据连接方式选择 TCP 或 socket）
+      // 2. 创建连接池用于建表（根据连接方式选择 TCP 或 socket）
       const poolConfig: any = usingSocket
         ? {
             socketPath,
@@ -366,9 +366,26 @@ NODE_ENV=production
         "utf8"
       );
 
+      // 7. 自动重启后端以加载新 .env 配置
+      // 使用 detached spawn 确保子进程独立于父进程
+      // PM2 守护进程(独立进程)会接收重启命令,杀死当前进程并启动新实例
+      // 延迟 1.5 秒确保 HTTP 响应已发送到客户端
+      const appName = process.env.name || "examhub-api";
+      setTimeout(() => {
+        try {
+          const child = spawn("pm2", ["restart", appName], {
+            detached: true,
+            stdio: "ignore",
+          });
+          child.unref();
+        } catch (restartError) {
+          console.error("自动重启失败,请手动执行: pm2 restart", appName, restartError);
+        }
+      }, 1500);
+
       return {
         success: true,
-        message: "安装成功！请重启后端服务以加载新配置。",
+        message: "安装成功！后端服务将在 1.5 秒后自动重启以加载新配置。",
       };
     } catch (error: any) {
       return { success: false, message: `安装失败: ${error.message}` };

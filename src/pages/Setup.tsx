@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from "react";
+﻿﻿﻿﻿import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Check,
   X,
@@ -37,7 +37,7 @@ export default function Setup() {
   const [dbConfig, setDbConfig] = useState({
     host: "localhost",
     port: 3306,
-    user: "root",
+    user: "examhub",
     password: "",
     database: "examhub",
   });
@@ -60,6 +60,9 @@ export default function Setup() {
     success: boolean;
     message: string;
   } | null>(null);
+
+  // 后端自动重启状态
+  const [restartStatus, setRestartStatus] = useState<"restarting" | "done" | "timeout">("restarting");
 
   // 检查安装状态
   useEffect(() => {
@@ -84,6 +87,44 @@ export default function Setup() {
       setEnvLoading(false);
     }
   }, []);
+
+  // 安装完成后轮询后端健康检查,检测自动重启是否完成
+  useEffect(() => {
+    if (step !== "done") return;
+
+    let attempts = 0;
+    const maxAttempts = 20; // 最多尝试 20 次,每次 2 秒,共 40 秒
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    const pollHealth = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/health`);
+        if (res.ok) {
+          setRestartStatus("done");
+          if (intervalId) clearInterval(intervalId);
+          return;
+        }
+      } catch {
+        // 后端正在重启,连接失败是正常的
+      }
+      attempts++;
+      if (attempts >= maxAttempts) {
+        setRestartStatus("timeout");
+        if (intervalId) clearInterval(intervalId);
+      }
+    };
+
+    // 等待 3 秒后开始轮询(给后端 1.5 秒重启 + 缓冲时间,避免检测到旧进程)
+    const startDelay = setTimeout(() => {
+      pollHealth(); // 立即执行一次
+      intervalId = setInterval(pollHealth, 2000);
+    }, 3000);
+
+    return () => {
+      clearTimeout(startDelay);
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [step]);
 
   // 测试数据库连接
   const testDatabase = async () => {
@@ -246,13 +287,23 @@ export default function Setup() {
 
   // 完成
   if (step === "done") {
+    const isRestarting = restartStatus === "restarting";
+    const isRestartDone = restartStatus === "done";
+    const isTimeout = restartStatus === "timeout";
+
     return (
       <div className="min-h-screen bg-black dark:bg-black flex items-center justify-center p-4">
         <div className="max-w-lg w-full bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 p-8 text-center">
-          <CheckCircle2 className="w-16 h-16 text-black dark:text-white mx-auto mb-4" />
+          {isRestarting ? (
+            <Loader2 className="w-16 h-16 text-black dark:text-white mx-auto mb-4 animate-spin" />
+          ) : (
+            <CheckCircle2 className="w-16 h-16 text-black dark:text-white mx-auto mb-4" />
+          )}
           <h1 className="text-2xl font-bold text-black dark:text-white mb-2">安装成功！</h1>
           <p className="text-zinc-500 dark:text-zinc-300 mb-6">
-            KeKe ExamHub 已成功安装配置。请重启后端服务以加载新配置。
+            {isRestarting && "后端服务正在自动重启以加载新配置..."}
+            {isRestartDone && "KeKe ExamHub 已成功安装配置，后端服务已自动重启。"}
+            {isTimeout && "后端自动重启超时，请手动执行：pm2 restart examhub-api"}
           </p>
 
           {installResult && (
@@ -261,25 +312,51 @@ export default function Setup() {
             </div>
           )}
 
-          <div className="rounded-lg border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-black p-4 mb-6 text-left">
-            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-300 mb-2">下一步操作：</p>
-            <ol className="space-y-1 text-sm text-zinc-600 dark:text-zinc-300 list-decimal list-inside">
-              <li>重启后端服务：pm2 restart examhub-api</li>
-              <li>访问首页：点击下方按钮</li>
-              <li>登录管理后台发布考试信息</li>
-            </ol>
-          </div>
+          {isRestarting && (
+            <div className="mb-6 p-4 rounded-lg border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-black">
+              <div className="flex items-center justify-center gap-2 text-sm text-zinc-600 dark:text-zinc-300">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>正在等待后端重启完成...</span>
+              </div>
+            </div>
+          )}
+
+          {isRestartDone && (
+            <div className="rounded-lg border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-black p-4 mb-6 text-left">
+              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-300 mb-2">下一步操作：</p>
+              <ol className="space-y-1 text-sm text-zinc-600 dark:text-zinc-300 list-decimal list-inside">
+                <li>访问首页：点击下方按钮</li>
+                <li>登录管理后台发布考试信息</li>
+              </ol>
+            </div>
+          )}
+
+          {isTimeout && (
+            <div className="rounded-lg border border-yellow-300 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-950 p-4 mb-6 text-left">
+              <p className="text-sm text-yellow-700 dark:text-yellow-400">
+                自动重启超时。请在服务器上手动执行：<code className="px-1 py-0.5 rounded bg-yellow-100 dark:bg-yellow-900">pm2 restart examhub-api</code>
+              </p>
+            </div>
+          )}
 
           <div className="flex flex-col gap-3">
             <a
               href="/"
-              className="bg-black dark:bg-white text-white dark:text-black px-6 py-3 rounded-lg font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
+              className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                isRestarting
+                  ? "bg-zinc-300 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 cursor-not-allowed pointer-events-none"
+                  : "bg-black dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200"
+              }`}
             >
               访问首页
             </a>
             <a
               href="/admin/login"
-              className="border border-zinc-300 dark:border-zinc-600 text-black dark:text-white px-6 py-3 rounded-lg font-medium hover:border-black dark:hover:border-white transition-colors"
+              className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                isRestarting
+                  ? "border border-zinc-300 dark:border-zinc-700 text-zinc-400 dark:text-zinc-500 cursor-not-allowed pointer-events-none"
+                  : "border border-zinc-300 dark:border-zinc-600 text-black dark:text-white hover:border-black dark:hover:border-white"
+              }`}
             >
               管理后台登录
             </a>
