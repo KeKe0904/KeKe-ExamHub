@@ -105,8 +105,8 @@ install_system_packages() {
 }
 
 install_node() {
-    log_info "安装 Node.js 22 LTS (NodeSource)..."
-    curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+    log_info "安装 Node.js 24 LTS (NodeSource)..."
+    curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
     apt-get install -y -qq nodejs
 }
 
