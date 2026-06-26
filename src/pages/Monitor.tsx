@@ -1,4 +1,10 @@
-﻿import { useState, useEffect, useRef, useCallback } from "react";
+﻿/**
+ * KeKe ExamHub - 考试信息管理系统
+ * @author 落梦陳 (KeKe0904) | B站/抖音: 落梦陳
+ * @github https://github.com/KeKe0904/KeKe-ExamHub
+ * @license MIT
+ */
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { parseISO, differenceInSeconds } from "date-fns";
 import { zhCN } from "date-fns/locale";

@@ -1,3 +1,9 @@
+/**
+ * KeKe ExamHub - 考试信息管理系统
+ * @author 落梦陳 (KeKe0904) | B站/抖音: 落梦陳
+ * @github https://github.com/KeKe0904/KeKe-ExamHub
+ * @license MIT
+ */
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { CalendarX, Loader2, Globe, X, ChevronDown, ChevronUp } from "@/components/MathIcon";
 import UserLayout from "@/components/Layout/UserLayout";

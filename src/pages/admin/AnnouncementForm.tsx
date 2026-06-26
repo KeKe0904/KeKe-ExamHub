@@ -1,4 +1,10 @@
-﻿import { useState, useEffect } from "react";
+﻿/**
+ * KeKe ExamHub - 考试信息管理系统
+ * @author 落梦陳 (KeKe0904) | B站/抖音: 落梦陳
+ * @github https://github.com/KeKe0904/KeKe-ExamHub
+ * @license MIT
+ */
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Save, Loader2 } from "@/components/MathIcon";
 import AdminLayout from "@/components/Layout/AdminLayout";
