@@ -60,9 +60,12 @@ async function request<T>(
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
 
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
+  const headers: Record<string, string> = {};
+
+  // 只有带 body 的请求才设置 Content-Type
+  if (options.body) {
+    headers["Content-Type"] = "application/json";
+  }
 
   // 合并自定义 headers
   if (options.headers) {
@@ -406,9 +409,12 @@ async function classroomRequest<T>(
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
 
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
+  const headers: Record<string, string> = {};
+
+  // 只有带 body 的请求才设置 Content-Type
+  if (options.body) {
+    headers["Content-Type"] = "application/json";
+  }
 
   if (options.headers) {
     const customHeaders = options.headers as Record<string, string>;
