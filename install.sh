@@ -126,19 +126,26 @@ check_and_install_environment() {
             log_info "基础包 (git/nginx/mariadb) 已安装"
         fi
 
-        # --- Node.js >= 18 ---
-        local NODE_OK=0
+        # --- Node.js：安装/升级到最新 LTS (24.x) ---
+        local TARGET_NODE_MAJOR=24
+        local NODE_NEEDS_UPDATE=0
         if has node; then
             local NODE_MAJOR
             NODE_MAJOR=$(node -v | cut -dv -f2 | cut -d. -f1)
-            if [ "$NODE_MAJOR" -ge "$REQUIRED_NODE_MAJOR" ]; then
-                NODE_OK=1
+            if [ "$NODE_MAJOR" -ge "$TARGET_NODE_MAJOR" ]; then
+                log_info "Node.js 已安装: $(node -v)（已是目标版本）"
+            elif [ "$NODE_MAJOR" -ge "$REQUIRED_NODE_MAJOR" ]; then
+                log_warn "Node.js $(node -v) 版本偏旧，升级到 ${TARGET_NODE_MAJOR}.x LTS..."
+                NODE_NEEDS_UPDATE=1
+            else
+                log_warn "Node.js $(node -v) 版本过低，升级到 ${TARGET_NODE_MAJOR}.x LTS..."
+                NODE_NEEDS_UPDATE=1
             fi
-        fi
-        if [ "$NODE_OK" -eq 0 ]; then
-            install_node
         else
-            log_info "Node.js 已安装: $(node -v)"
+            NODE_NEEDS_UPDATE=1
+        fi
+        if [ "$NODE_NEEDS_UPDATE" -eq 1 ]; then
+            install_node
         fi
 
         # --- 升级 npm 到最新稳定版（Node.js 自带的 npm 通常不是最新）---
