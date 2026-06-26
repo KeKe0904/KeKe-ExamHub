@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Building,
@@ -11,7 +11,6 @@ import {
   CalendarX,
   AlertCircle,
   Eye,
-  Maximize,
   TrendingUp,
   RotateCcw,
 } from "@/components/MathIcon";
@@ -20,10 +19,14 @@ import { classroomApi } from "@/utils/api";
 import {
   calculateExamStatus,
   calculateCountdown,
+  calculateStats,
   formatDateTime,
   formatDuration,
 } from "@/utils/date";
-import type { Exam } from "@/types";
+import Hero from "@/components/Hero";
+import SearchFilterBar from "@/components/SearchFilterBar";
+import PublicExamCard from "@/components/ExamCard";
+import type { Exam, ExamStats, ExamStatus } from "@/types";
 
 type DisplayMode = "display" | "invigilation";
 
@@ -242,276 +245,88 @@ function DisplayMode({
   );
 }
 
-// ==================== 监考模式（在主页内嵌） ====================
+// ==================== 监考模式（与公众首页相同布局） ====================
 
 function InvigilationMode({
-  featuredExam,
   examinations,
-  currentTime,
 }: {
   featuredExam: (Exam & { status: string }) | undefined;
   examinations: (Exam & { status: string })[];
   currentTime: Date;
 }) {
-  const [selectedExamId, setSelectedExamId] = useState<string | null>(
-    featuredExam?.id || null
-  );
-  const selectedExam = examinations.find((e) => e.id === selectedExamId);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<ExamStatus | "all">("all");
 
-  if (examinations.length === 0) return <EmptyState />;
+  // 计算统计数据
+  const stats: ExamStats = useMemo(() => calculateStats(examinations), [examinations]);
 
-  return (
-    <div className="space-y-6 animate-fade-in">
-      {/* 考试选择器 */}
-      <div className="flex items-center gap-2 flex-wrap">
-        {examinations.map((exam) => (
-          <button
-            key={exam.id}
-            onClick={() => setSelectedExamId(exam.id)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              exam.id === selectedExamId
-                ? "bg-white text-black"
-                : exam.status === "ongoing"
-                ? "bg-white/10 text-white border border-white/20 hover:bg-white/20"
-                : exam.status === "upcoming"
-                ? "bg-zinc-900 text-zinc-300 border border-zinc-800 hover:border-zinc-600"
-                : "bg-transparent text-zinc-600 border border-zinc-800"
-            }`}
-          >
-            {exam.status === "ongoing" && (
-              <span className="inline-block w-2 h-2 rounded-full bg-green-400 mr-2 animate-pulse" />
-            )}
-            {exam.subject}
-          </button>
-        ))}
-      </div>
-
-      {/* 选中考试的监考详情 */}
-      {selectedExam && (
-        <InvigilationDetail exam={selectedExam} currentTime={currentTime} />
-      )}
-    </div>
-  );
-}
-
-// ==================== 监考详情卡片 ====================
-
-function InvigilationDetail({
-  exam,
-  currentTime,
-}: {
-  exam: Exam & { status: string };
-  currentTime: Date;
-}) {
-  const [countdown, setCountdown] = useState(calculateCountdown(exam));
-  const [elapsed, setElapsed] = useState(0);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
-  // 每秒刷新倒计时
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCountdown(calculateCountdown(exam));
-
-      const start = new Date(exam.examDate).getTime();
-      const end = start + exam.duration * 60 * 1000;
-      const now = Date.now();
-      if (now >= start) {
-        const elapsedMinutes = Math.floor((Math.min(now, end) - start) / 60000);
-        setElapsed(elapsedMinutes);
-      }
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [exam]);
-
-  // 全屏切换
-  const toggleFullscreen = useCallback(() => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {});
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen().catch(() => {});
-      setIsFullscreen(false);
-    }
-  }, []);
-
-  // 监听全屏变化
-  useEffect(() => {
-    const handler = () => setIsFullscreen(!!document.fullscreenElement);
-    document.addEventListener("fullscreenchange", handler);
-    return () => document.removeEventListener("fullscreenchange", handler);
-  }, []);
-
-  const isOngoing = exam.status === "ongoing";
-  const progressPercent = exam.duration > 0
-    ? Math.min(100, Math.max(0, (elapsed / exam.duration) * 100))
-    : 0;
-  const isWarning = isOngoing && countdown.hours === 0 && countdown.minutes <= 5 && !countdown.isFinished;
-
-  // 考试阶段
-  const phaseLabel = isOngoing
-    ? isWarning
-      ? "⚠ 最后五分钟"
-      : "考试进行中"
-    : exam.status === "upcoming"
-    ? "待开考"
-    : "考试已结束";
+  // 搜索筛选
+  const filteredExams = useMemo(() => {
+    return examinations
+      .filter((exam) => {
+        if (statusFilter !== "all" && exam.status !== statusFilter) return false;
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          return (
+            exam.subject.toLowerCase().includes(q) ||
+            exam.location.toLowerCase().includes(q) ||
+            exam.invigilator.toLowerCase().includes(q)
+          );
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        const order = { upcoming: 0, ongoing: 1, ended: 2 };
+        if (order[a.status] !== order[b.status]) return order[a.status] - order[b.status];
+        return new Date(a.examDate).getTime() - new Date(b.examDate).getTime();
+      });
+  }, [examinations, searchQuery, statusFilter]);
 
   return (
-    <div className="space-y-6">
-      {/* 标题栏 */}
-      <div className="flex items-center justify-between">
-        <div>
-          <span
-            className={`inline-block px-3 py-1 rounded text-sm font-bold uppercase tracking-wider ${
-              isOngoing
-                ? isWarning
-                  ? "bg-red-600 text-white animate-pulse"
-                  : "bg-white text-black"
-                : "bg-zinc-800 text-zinc-300"
-            }`}
-          >
-            {phaseLabel}
-          </span>
-        </div>
-        <button
-          onClick={toggleFullscreen}
-          className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors"
-          title={isFullscreen ? "退出全屏" : "全屏显示"}
-        >
-          <Maximize className="w-5 h-5" />
-        </button>
-      </div>
+    <div className="animate-fade-in -mx-6 lg:-mx-10 -my-6">
+      {/* Hero 统计区 */}
+      <Hero stats={stats} />
 
-      {/* 核心信息 */}
-      <div className="rounded-xl border-2 border-white bg-zinc-900 p-8 lg:p-12">
-        <h2 className="font-serif text-4xl lg:text-6xl font-bold mb-8 text-center">
-          {exam.subject}
-        </h2>
-
-        {/* 状态指示条 */}
-        {isOngoing && (
-          <div className="mb-8">
-            <div className="flex justify-between text-sm text-zinc-400 mb-2">
-              <span>已过 {elapsed} 分钟</span>
-              <span>共 {exam.duration} 分钟</span>
-            </div>
-            <div className="w-full h-3 bg-zinc-800 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-1000 ${
-                  isWarning ? "bg-red-500" : "bg-white"
-                }`}
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* 倒计时 */}
-        <div className="text-center mb-8">
-          <p className="text-sm text-zinc-500 mb-3 uppercase tracking-wider">
-            {isOngoing ? "剩余时间" : countdown.isFinished ? "已结束" : "距离开考"}
-          </p>
-          <div className="inline-flex items-center gap-3 font-serif tabular-nums">
-            {countdown.days > 0 && (
-              <>
-                <CountBlock value={countdown.days} label="天" />
-                <span className="text-4xl text-zinc-700">:</span>
-              </>
-            )}
-            <CountBlock
-              value={String(countdown.hours).padStart(2, "0")}
-              label="时"
-              warning={isWarning}
-            />
-            <span className="text-4xl text-zinc-700">:</span>
-            <CountBlock
-              value={String(countdown.minutes).padStart(2, "0")}
-              label="分"
-              warning={isWarning}
-            />
-            <span className="text-4xl text-zinc-700">:</span>
-            <CountBlock
-              value={String(countdown.seconds).padStart(2, "0")}
-              label="秒"
-              warning={isWarning}
-            />
-          </div>
-        </div>
-
-        {/* 考试信息网格 */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <InfoBadge icon={<Calendar className="w-4 h-4" />} label="考试时间">
-            {formatDateTime(exam.examDate)}
-          </InfoBadge>
-          <InfoBadge icon={<Clock className="w-4 h-4" />} label="考试时长">
-            {formatDuration(exam.duration)}
-          </InfoBadge>
-          <InfoBadge icon={<User className="w-4 h-4" />} label="监考老师">
-            {exam.invigilator}
-          </InfoBadge>
-          <InfoBadge icon={<MapPin className="w-4 h-4" />} label="考试地点">
-            {exam.location}
-          </InfoBadge>
-        </div>
-
-        {exam.notes && (
-          <div className="mt-8 pt-8 border-t border-zinc-800">
-            <p className="text-sm text-zinc-500 mb-3 uppercase tracking-wider">
-              考试注意事项
-            </p>
-            <p className="text-base lg:text-lg text-zinc-300 whitespace-pre-wrap leading-relaxed">
-              {exam.notes}
+      {/* 考试卡片区 */}
+      <section className="px-6 lg:px-10 py-12">
+        <div className="flex items-end justify-between mb-6">
+          <div>
+            <h2 className="font-serif text-2xl sm:text-3xl font-bold text-white mb-1">
+              本教室考试安排
+            </h2>
+            <p className="text-sm text-zinc-400">
+              共 {filteredExams.length} 场考试
             </p>
           </div>
+        </div>
+
+        <SearchFilterBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          statusFilter={statusFilter}
+          onStatusChange={setStatusFilter}
+        />
+
+        {filteredExams.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredExams.map((exam) => (
+              <div key={exam.id}>
+                <PublicExamCard exam={exam} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="w-20 h-20 rounded-full bg-zinc-900 flex items-center justify-center mb-4">
+              <CalendarX className="w-10 h-10 text-zinc-500" />
+            </div>
+            <h3 className="text-lg font-medium text-zinc-400 mb-2">
+              无匹配考试
+            </h3>
+            <p className="text-sm text-zinc-600">试试调整搜索条件或筛选器</p>
+          </div>
         )}
-      </div>
-    </div>
-  );
-}
-
-// ==================== 子组件 ====================
-
-function CountBlock({
-  value,
-  label,
-  warning = false,
-}: {
-  value: number | string;
-  label: string;
-  warning?: boolean;
-}) {
-  return (
-    <div className="text-center">
-      <div
-        className={`text-5xl lg:text-7xl font-bold tabular-nums ${
-          warning ? "text-red-400" : "text-white"
-        }`}
-      >
-        {value}
-      </div>
-      <div className={`text-xs mt-2 ${warning ? "text-red-400/60" : "text-zinc-500"}`}>
-        {label}
-      </div>
-    </div>
-  );
-}
-
-function InfoBadge({
-  icon,
-  label,
-  children,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="bg-zinc-950 rounded-lg p-4 border border-zinc-800">
-      <div className="flex items-center gap-1.5 text-xs text-zinc-500 mb-1">
-        {icon}
-        {label}
-      </div>
-      <div className="text-sm font-medium text-zinc-200">{children}</div>
+      </section>
     </div>
   );
 }
