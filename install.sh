@@ -496,14 +496,39 @@ print_summary() {
     echo ""
 }
 
+# ==================== 爱心 Banner ====================
+# 用 ♥ 拼出 "KeKe ExamHub" 像素艺术字
+print_banner() {
+    local HR="${RED}♥${NC}"   # 红色爱心
+    local SP=" "             # 间隔
+    local GAP="   "          # 单词间距
+
+    # 逐行打印，每行加一点延时营造动画感
+    local lines=(
+        "${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR}${HR}${SP}${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR}${HR}${GAP}${HR}${HR}${HR}${HR}${HR}${SP}${HR}   ${HR} ${SP}  ${HR}  ${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR} "
+        "${HR}  ${HR}  ${SP}${HR}    ${SP}${HR}  ${HR}  ${SP}${HR}    ${GAP}${HR}    ${SP} ${HR} ${HR} ${SP} ${HR} ${HR} ${SP}${HR}${HR} ${HR}${HR}${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR}"
+        "${HR} ${HR}   ${SP}${HR}    ${SP}${HR} ${HR}   ${SP}${HR}    ${GAP}${HR}    ${SP}  ${HR}  ${SP}${HR}   ${HR}${SP}${HR} ${HR} ${HR}${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR}"
+        "${HR}${HR}    ${SP}${HR}${HR}${HR}${HR} ${SP}${HR}${HR}    ${SP}${HR}${HR}${HR}${HR} ${GAP}${HR}${HR}${HR}${HR} ${SP} ${HR} ${HR} ${SP}${HR}   ${HR}${SP}${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR}${HR}${SP}${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR} "
+        "${HR} ${HR}   ${SP}${HR}    ${SP}${HR} ${HR}   ${SP}${HR}    ${GAP}${HR}    ${SP}  ${HR}  ${SP}${HR}   ${HR}${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR}"
+        "${HR}  ${HR}  ${SP}${HR}    ${SP}${HR}  ${HR}  ${SP}${HR}    ${GAP}${HR}    ${SP} ${HR} ${HR} ${SP}${HR}   ${HR}${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR}"
+        "${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR}${HR}${SP}${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR}${HR}${GAP}${HR}${HR}${HR}${HR}${HR}${SP}${HR}   ${HR} ${SP}${HR}   ${HR}${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP} ${HR}${HR}${HR} ${SP}${HR}${HR}${HR}${HR}"
+    )
+
+    echo ""
+    for line in "${lines[@]}"; do
+        echo -e "          $line"
+        sleep 0.06
+    done
+
+    echo ""
+    echo -e "          ${CYAN}${BOLD}一键部署脚本 v1.0.5${NC}"
+    echo -e "          ${CYAN}https://github.com/KeKe0904/KeKe-ExamHub${NC}"
+    echo ""
+}
+
 # ==================== 主流程 ====================
 main() {
-    echo ""
-    echo -e "${BLUE}${BOLD}╔════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}${BOLD}║   KeKe-ExamHub 一键部署脚本 v1.0.5    ║${NC}"
-    echo -e "${BLUE}${BOLD}║   https://github.com/KeKe0904/KeKe-ExamHub  ║${NC}"
-    echo -e "${BLUE}${BOLD}╚════════════════════════════════════════╝${NC}"
-    echo ""
+    print_banner
 
     check_root
     check_environment
