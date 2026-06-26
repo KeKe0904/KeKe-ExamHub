@@ -1,5 +1,5 @@
-﻿import { Link, useLocation } from "react-router-dom";
-import { GraduationCap, Menu, X } from "@/components/MathIcon";
+import { Link, useLocation } from "react-router-dom";
+import { GraduationCap, Menu, X, Monitor } from "@/components/MathIcon";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useSchoolName } from "@/hooks/useSchoolName";
@@ -18,6 +18,7 @@ export default function UserLayout({ children }: UserLayoutProps) {
   const navLinks = [
     { href: "/", label: "首页" },
     { href: "/school-info", label: "学校信息" },
+    { href: "/classroom/login", label: "教室端", icon: Monitor },
     { href: "/#about", label: "关于" },
     { href: "/admin/login", label: "管理后台" },
   ];
@@ -27,9 +28,9 @@ export default function UserLayout({ children }: UserLayoutProps) {
       {/* 导航栏 */}
       <header className="sticky top-0 z-50 bg-zinc-50 dark:bg-black border-b border-zinc-200 dark:border-zinc-600">
         <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
+          <div className="flex h-16 items-center">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2 group">
+            <Link to="/" className="flex items-center gap-2 group shrink-0 mr-6">
               <div className="w-10 h-10 rounded-xl bg-black dark:bg-white flex items-center justify-center group-hover:scale-105 transition-transform">
                 <GraduationCap className="w-6 h-6 text-white dark:text-black" />
               </div>
@@ -38,22 +39,26 @@ export default function UserLayout({ children }: UserLayoutProps) {
               </span>
             </Link>
 
-            {/* 桌面端导航 */}
-            <div className="hidden md:flex items-center gap-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  to={link.href}
-                  className={cn(
-                    "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                    location.pathname === link.href
-                      ? "text-black dark:text-white font-semibold"
-                      : "text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-950"
-                  )}
-                >
-                  {link.label}
-                </Link>
-              ))}
+            {/* 桌面端导航 — 撑满剩余空间 */}
+            <div className="hidden md:flex items-center gap-1 flex-1 justify-end">
+              {navLinks.map((link) => {
+                const Icon = link.icon;
+                return (
+                  <Link
+                    key={link.href}
+                    to={link.href}
+                    className={cn(
+                      "px-4 py-2 rounded-lg text-sm font-medium transition-colors inline-flex items-center gap-1.5",
+                      location.pathname === link.href
+                        ? "text-black dark:text-white font-semibold"
+                        : "text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-950"
+                    )}
+                  >
+                    {Icon && <Icon className="w-4 h-4" />}
+                    {link.label}
+                  </Link>
+                );
+              })}
               <ThemeToggle />
             </div>
 
@@ -74,16 +79,20 @@ export default function UserLayout({ children }: UserLayoutProps) {
           {/* 移动端菜单 */}
           {menuOpen && (
             <div className="md:hidden py-3 border-t border-zinc-200 dark:border-zinc-600 animate-slide-down">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  to={link.href}
-                  onClick={() => setMenuOpen(false)}
-                  className="block px-4 py-2.5 rounded-lg text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-950"
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                const Icon = link.icon;
+                return (
+                  <Link
+                    key={link.href}
+                    to={link.href}
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-950"
+                  >
+                    {Icon && <Icon className="w-4 h-4" />}
+                    {link.label}
+                  </Link>
+                );
+              })}
               <div className="px-4 py-2">
                 <ThemeToggle />
               </div>
