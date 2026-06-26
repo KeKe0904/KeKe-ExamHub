@@ -75,7 +75,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   ];
 
   return (
-    <div className="min-h-screen flex bg-zinc-50 dark:bg-black">
+    <div className="min-h-screen flex bg-zinc-50 dark:bg-black" data-build={__BUILD_ID__}>
       {/* 侧边栏 */}
       <aside className="w-64 bg-black dark:bg-black text-white flex flex-col fixed inset-y-0 left-0 z-50">
         {/* Logo */}

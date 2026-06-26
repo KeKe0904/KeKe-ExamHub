@@ -4,6 +4,9 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 // https://vite.dev/config/
 export default defineConfig({
+  define: {
+    __BUILD_ID__: JSON.stringify(Date.now()),
+  },
   build: {
     sourcemap: 'hidden',
   },
