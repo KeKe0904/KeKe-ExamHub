@@ -15,6 +15,7 @@ import {
   Building,
   Package,
   Shield,
+  Terminal,
 } from "@/components/MathIcon";
 import { useAuthStore } from "@/store/authStore";
 import { useSchoolName } from "@/hooks/useSchoolName";
@@ -44,6 +45,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       title: "概览",
       items: [
         { href: "/admin", label: "仪表盘", icon: LayoutDashboard },
+        { href: "/classroom", label: "教室端", icon: Terminal },
       ],
     },
     {
@@ -175,7 +177,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
       {/* 主内容区 */}
       <div className="flex-1 ml-64">
-        <main className="p-6 lg:p-8">{children}</main>
+        <main className="p-4">{children}</main>
       </div>
     </div>
   );
