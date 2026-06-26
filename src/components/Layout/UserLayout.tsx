@@ -27,7 +27,7 @@ export default function UserLayout({ children }: UserLayoutProps) {
     <div className="min-h-screen flex flex-col bg-zinc-100 dark:bg-black">
       {/* 导航栏 */}
       <header className="sticky top-0 z-50 bg-zinc-50 dark:bg-black border-b border-zinc-200 dark:border-zinc-600">
-        <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <nav className="px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 group shrink-0">
