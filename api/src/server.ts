@@ -11,6 +11,10 @@ import settingsRoutes from "./routes/settings.js";
 import schoolInfoRoutes from "./routes/school-info.js";
 import monitorRoutes from "./routes/monitor.js";
 import environmentRoutes from "./routes/environment.js";
+import buildingRoutes from "./routes/buildings.js";
+import registrationCodeRoutes from "./routes/registration-codes.js";
+import classroomAdminRoutes from "./routes/classrooms.js";
+import classroomRoutes from "./routes/classroom.js";
 
 dotenv.config();
 
@@ -56,6 +60,11 @@ async function start() {
     await app.register(announcementRoutes, { prefix: "/api/announcements" });
     await app.register(monitorRoutes, { prefix: "/api/monitor" });
     await app.register(environmentRoutes, { prefix: "/api/environment" });
+    // 教室端功能路由
+    await app.register(buildingRoutes, { prefix: "/api/buildings" });
+    await app.register(registrationCodeRoutes, { prefix: "/api/registration-codes" });
+    await app.register(classroomAdminRoutes, { prefix: "/api/classrooms" });
+    await app.register(classroomRoutes, { prefix: "/api/classroom" });
 
     // 健康检查
     app.get("/api/health", async () => {

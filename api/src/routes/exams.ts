@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { pool } from "../config/database.js";
-import { successResponse, errorResponse, formatExam, type ExamRow } from "../utils/response.js";
+import { successResponse, errorResponse, formatExam, formatClassroom, type ExamRow, type ClassroomRow } from "../utils/response.js";
 import { authMiddleware } from "../middleware/auth.js";
 
 export default async function examRoutes(fastify: FastifyInstance) {
@@ -226,4 +226,124 @@ export default async function examRoutes(fastify: FastifyInstance) {
       return reply.status(500).send(errorResponse("获取统计数据失败"));
     }
   });
+
+  // ==================== 考试-教室分配接口(需管理员认证) ====================
+
+  // 获取某场考试已分配的教室列表
+  fastify.get(
+    "/:id/classrooms",
+    { preHandler: [authMiddleware] },
+    async (request, reply) => {
+      try {
+        const { id } = request.params as { id: string };
+
+        const [rows] = await pool.execute(
+          `SELECT c.*, b.name AS building_name FROM exam_classrooms ec
+           JOIN classrooms c ON ec.classroom_id = c.id
+           JOIN buildings b ON c.building_id = b.id
+           WHERE ec.exam_id = ?
+           ORDER BY c.room_number ASC`,
+          [id]
+        );
+
+        const classrooms = (rows as (ClassroomRow & { building_name: string })[]).map(
+          formatClassroom
+        );
+        return reply.send(successResponse(classrooms));
+      } catch (error) {
+        console.error("获取考试分配教室失败:", error);
+        return reply.status(500).send(errorResponse("获取分配教室失败"));
+      }
+    }
+  );
+
+  // 为考试分配教室(支持批量)
+  fastify.post(
+    "/:id/classrooms",
+    { preHandler: [authMiddleware] },
+    async (request, reply) => {
+      try {
+        const { id } = request.params as { id: string };
+        const { classroomIds } = request.body as { classroomIds: string[] };
+
+        if (!Array.isArray(classroomIds) || classroomIds.length === 0) {
+          return reply
+            .status(400)
+            .send(errorResponse("请选择要分配的教室"));
+        }
+
+        // 验证考试存在
+        const [examRows] = await pool.execute(
+          "SELECT id FROM exams WHERE id = ?",
+          [id]
+        );
+        if ((examRows as any[]).length === 0) {
+          return reply.status(404).send(errorResponse("考试不存在"));
+        }
+
+        // 批量插入关联(忽略重复)
+        const values = classroomIds.map(() => "(?, ?)").join(", ");
+        const params = classroomIds.flatMap((cid) => [id, cid]);
+        await pool.execute(
+          `INSERT IGNORE INTO exam_classrooms (exam_id, classroom_id) VALUES ${values}`,
+          params
+        );
+
+        return reply.send(
+          successResponse(null, `成功分配 ${classroomIds.length} 个教室`)
+        );
+      } catch (error) {
+        console.error("分配教室失败:", error);
+        return reply.status(500).send(errorResponse("分配教室失败"));
+      }
+    }
+  );
+
+  // 取消考试的某个教室分配
+  fastify.delete(
+    "/:id/classrooms/:classroomId",
+    { preHandler: [authMiddleware] },
+    async (request, reply) => {
+      try {
+        const { id, classroomId } = request.params as {
+          id: string;
+          classroomId: string;
+        };
+
+        await pool.execute(
+          "DELETE FROM exam_classrooms WHERE exam_id = ? AND classroom_id = ?",
+          [id, classroomId]
+        );
+
+        return reply.send(successResponse(null, "已取消分配"));
+      } catch (error) {
+        console.error("取消教室分配失败:", error);
+        return reply.status(500).send(errorResponse("取消分配失败"));
+      }
+    }
+  );
+
+  // 获取所有已审核通过的教室(用于分配时选择)
+  fastify.get(
+    "/classrooms/available",
+    { preHandler: [authMiddleware] },
+    async (request, reply) => {
+      try {
+        const [rows] = await pool.execute(
+          `SELECT c.*, b.name AS building_name FROM classrooms c
+           JOIN buildings b ON c.building_id = b.id
+           WHERE c.status = 'approved'
+           ORDER BY b.name ASC, c.room_number ASC`
+        );
+
+        const classrooms = (rows as (ClassroomRow & { building_name: string })[]).map(
+          formatClassroom
+        );
+        return reply.send(successResponse(classrooms));
+      } catch (error) {
+        console.error("获取可用教室失败:", error);
+        return reply.status(500).send(errorResponse("获取可用教室失败"));
+      }
+    }
+  );
 }

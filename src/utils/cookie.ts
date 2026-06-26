@@ -5,6 +5,8 @@ export const COOKIE_KEYS = {
   TOKEN: "examhub-token",
   USERNAME: "examhub-username",
   THEME: "examhub-theme",
+  CLASSROOM_TOKEN: "examhub-classroom-token",
+  CLASSROOM_INFO: "examhub-classroom-info",
 } as const;
 
 // Cookie 过期时间配置（毫秒）

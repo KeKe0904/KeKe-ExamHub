@@ -306,6 +306,62 @@ export default async function setupRoutes(fastify: FastifyInstance) {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
 
+      // ==================== 教室端功能相关表 ====================
+
+      // 教学楼表
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS buildings (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(100) NOT NULL UNIQUE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      `);
+
+      // 注册码表
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS registration_codes (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          code VARCHAR(32) NOT NULL UNIQUE,
+          is_used BOOLEAN DEFAULT FALSE,
+          used_by_classroom_id INT NULL COMMENT '使用该注册码的教室ID(应用层维护,不设外键避免循环依赖)',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          used_at TIMESTAMP NULL,
+          INDEX idx_code (code)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      `);
+
+      // 教室端账号表
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS classrooms (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          building_id INT NOT NULL,
+          room_number VARCHAR(50) NOT NULL,
+          password VARCHAR(255) NOT NULL COMMENT 'bcrypt加密',
+          registration_code_id INT NOT NULL,
+          status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending' COMMENT '审核状态',
+          reject_reason VARCHAR(255) NULL COMMENT '驳回原因',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          UNIQUE KEY uk_building_room (building_id, room_number),
+          FOREIGN KEY (building_id) REFERENCES buildings(id) ON DELETE CASCADE,
+          FOREIGN KEY (registration_code_id) REFERENCES registration_codes(id) ON DELETE RESTRICT,
+          INDEX idx_status (status)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      `);
+
+      // 考试-教室关联表
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS exam_classrooms (
+          exam_id INT NOT NULL,
+          classroom_id INT NOT NULL,
+          assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (exam_id, classroom_id),
+          FOREIGN KEY (exam_id) REFERENCES exams(id) ON DELETE CASCADE,
+          FOREIGN KEY (classroom_id) REFERENCES classrooms(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      `);
+
       // 4. 创建管理员账号
       const hashedPassword = await bcrypt.hash(admin.password, 10);
       await pool.query(

@@ -12,8 +12,15 @@ import AnnouncementList from "@/pages/admin/AnnouncementList";
 import AnnouncementForm from "@/pages/admin/AnnouncementForm";
 import ServerMonitor from "@/pages/admin/ServerMonitor";
 import Environment from "@/pages/admin/Environment";
+import Buildings from "@/pages/admin/Buildings";
+import RegistrationCodes from "@/pages/admin/RegistrationCodes";
+import Classrooms from "@/pages/admin/Classrooms";
+import ClassroomLogin from "@/pages/classroom/Login";
+import ClassroomRegister from "@/pages/classroom/Register";
+import ClassroomHome from "@/pages/classroom/Home";
 import Setup from "@/pages/Setup";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import ClassroomProtectedRoute from "@/components/ClassroomProtectedRoute";
 
 export default function App() {
   return (
@@ -27,6 +34,10 @@ export default function App() {
         <Route path="/exam/:id" element={<ExamDetail />} />
         <Route path="/exam/:id/monitor" element={<Monitor />} />
         <Route path="/school-info" element={<SchoolInfo />} />
+
+        {/* 教室端登录/注册(公开) */}
+        <Route path="/classroom/login" element={<ClassroomLogin />} />
+        <Route path="/classroom/register" element={<ClassroomRegister />} />
 
         {/* 管理员登录路由 */}
         <Route path="/admin/login" element={<Login />} />
@@ -113,6 +124,41 @@ export default function App() {
             <ProtectedRoute>
               <Environment />
             </ProtectedRoute>
+          }
+        />
+        {/* 教室端管理路由 */}
+        <Route
+          path="/admin/buildings"
+          element={
+            <ProtectedRoute>
+              <Buildings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/registration-codes"
+          element={
+            <ProtectedRoute>
+              <RegistrationCodes />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/classrooms"
+          element={
+            <ProtectedRoute>
+              <Classrooms />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 教室端首页(受保护) */}
+        <Route
+          path="/classroom"
+          element={
+            <ClassroomProtectedRoute>
+              <ClassroomHome />
+            </ClassroomProtectedRoute>
           }
         />
       </Routes>

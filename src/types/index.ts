@@ -47,3 +47,56 @@ export interface ExamStats {
   ongoing: number;
   ended: number;
 }
+
+// ==================== 教室端相关类型 ====================
+
+// 教学楼
+export interface Building {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// 注册码
+export interface RegistrationCode {
+  id: string;
+  code: string;
+  isUsed: boolean;
+  usedByClassroomId: string | null;
+  createdAt: string;
+  usedAt: string | null;
+}
+
+// 教室审核状态
+export type ClassroomStatus = "pending" | "approved" | "rejected";
+
+// 教室端账号
+export interface Classroom {
+  id: string;
+  buildingId: string;
+  buildingName: string;
+  roomNumber: string;
+  registrationCodeId: string;
+  status: ClassroomStatus;
+  rejectReason: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// 教室端登录响应
+export interface ClassroomLoginResult {
+  token?: string;
+  classroomId?: string;
+  buildingName?: string;
+  roomNumber?: string;
+  status: "pending" | "approved" | "rejected";
+  reason?: string;
+}
+
+// 教室端信息(存入 Cookie)
+export interface ClassroomInfo {
+  classroomId: string;
+  buildingName: string;
+  roomNumber: string;
+}

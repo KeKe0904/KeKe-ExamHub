@@ -1,6 +1,23 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 
-// JWT 认证中间件
+// JWT payload 类型
+export interface AdminPayload {
+  id: number;
+  username: string;
+  role: "admin";
+}
+
+export interface ClassroomPayload {
+  id: number;
+  classroomId: number;
+  roomNumber: string;
+  buildingName: string;
+  role: "classroom";
+}
+
+export type TokenPayload = AdminPayload | ClassroomPayload;
+
+// 管理员 JWT 认证中间件
 export async function authMiddleware(
   request: FastifyRequest,
   reply: FastifyReply
@@ -15,15 +32,62 @@ export async function authMiddleware(
     }
 
     const token = authHeader.substring(7);
-    const decoded = request.server.jwt.verify(token) as {
-      id: number;
-      username: string;
-    };
+    const decoded = request.server.jwt.verify(token) as TokenPayload;
+
+    // 拒绝教室端 token 访问管理员接口
+    if (decoded.role === "classroom") {
+      return reply.status(403).send({
+        success: false,
+        message: "无权限访问此接口",
+      });
+    }
 
     // 将用户信息存储到 request 上
     (request as any).user = {
       id: decoded.id,
       username: decoded.username,
+      role: "admin" as const,
+    };
+  } catch (error) {
+    return reply.status(401).send({
+      success: false,
+      message: "认证令牌无效或已过期",
+    });
+  }
+}
+
+// 教室端 JWT 认证中间件
+export async function classroomAuthMiddleware(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  try {
+    const authHeader = request.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return reply.status(401).send({
+        success: false,
+        message: "未提供认证令牌",
+      });
+    }
+
+    const token = authHeader.substring(7);
+    const decoded = request.server.jwt.verify(token) as TokenPayload;
+
+    // 仅允许教室端 token
+    if (decoded.role !== "classroom") {
+      return reply.status(403).send({
+        success: false,
+        message: "无权限访问此接口",
+      });
+    }
+
+    // 将教室信息存储到 request 上
+    (request as any).user = {
+      id: decoded.id,
+      classroomId: decoded.classroomId,
+      roomNumber: decoded.roomNumber,
+      buildingName: decoded.buildingName,
+      role: "classroom" as const,
     };
   } catch (error) {
     return reply.status(401).send({

@@ -23,6 +23,9 @@ api/.env
 # 部署数据目录（服务器信息、凭据、脚本、临时密码等）
 deploy-data/
 
+# Trae 部署工具目录
+.trae-deploy/
+
 # 部署和调试脚本（包含服务器密码）
 deploy-all.js
 deploy.js

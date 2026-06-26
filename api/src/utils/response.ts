@@ -42,3 +42,70 @@ export function formatExam(row: ExamRow) {
     updatedAt: row.updated_at.toISOString(),
   };
 }
+
+// ==================== 教室端相关类型和格式化函数 ====================
+
+// 教学楼行类型
+export interface BuildingRow {
+  id: number;
+  name: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export function formatBuilding(row: BuildingRow) {
+  return {
+    id: String(row.id),
+    name: row.name,
+    createdAt: row.created_at.toISOString(),
+    updatedAt: row.updated_at.toISOString(),
+  };
+}
+
+// 注册码行类型
+export interface RegistrationCodeRow {
+  id: number;
+  code: string;
+  is_used: number;
+  used_by_classroom_id: number | null;
+  created_at: Date;
+  used_at: Date | null;
+}
+
+export function formatRegistrationCode(row: RegistrationCodeRow) {
+  return {
+    id: String(row.id),
+    code: row.code,
+    isUsed: Boolean(row.is_used),
+    usedByClassroomId: row.used_by_classroom_id ? String(row.used_by_classroom_id) : null,
+    createdAt: row.created_at.toISOString(),
+    usedAt: row.used_at ? row.used_at.toISOString() : null,
+  };
+}
+
+// 教室端账号行类型
+export interface ClassroomRow {
+  id: number;
+  building_id: number;
+  room_number: string;
+  password: string;
+  registration_code_id: number;
+  status: "pending" | "approved" | "rejected";
+  reject_reason: string | null;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export function formatClassroom(row: ClassroomRow & { building_name?: string }) {
+  return {
+    id: String(row.id),
+    buildingId: String(row.building_id),
+    buildingName: row.building_name || "",
+    roomNumber: row.room_number,
+    registrationCodeId: String(row.registration_code_id),
+    status: row.status,
+    rejectReason: row.reject_reason || "",
+    createdAt: row.created_at.toISOString(),
+    updatedAt: row.updated_at.toISOString(),
+  };
+}

@@ -12,6 +12,9 @@ import {
   Sun,
   Server,
   Box,
+  Building,
+  Package,
+  Shield,
 } from "@/components/MathIcon";
 import { useAuthStore } from "@/store/authStore";
 import { useSchoolName } from "@/hooks/useSchoolName";
@@ -49,6 +52,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         { href: "/admin/exams", label: "考试管理", icon: FileText },
         { href: "/admin/exams/new", label: "发布考试", icon: Plus },
         { href: "/admin/announcements", label: "公告管理", icon: Globe },
+      ],
+    },
+    {
+      title: "教室端管理",
+      items: [
+        { href: "/admin/buildings", label: "教学楼管理", icon: Building },
+        { href: "/admin/registration-codes", label: "注册码管理", icon: Package },
+        { href: "/admin/classrooms", label: "教室端账号", icon: Shield },
       ],
     },
     {
