@@ -29,18 +29,8 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 # ==================== 路径变量 ====================
-# 默认部署目录（按优先级依次尝试）
-DEFAULT_DEPLOY_DIR="/opt/examhub"
-
-# 项目根目录 = install.sh 所在目录（优先）
+# 项目根目录 = install.sh 所在目录（与 README 一致：cd examhub && ./install.sh）
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
-
-# 如果脚本不在项目内（无 .git），尝试默认路径
-if [ ! -d "${PROJECT_DIR}/.git" ]; then
-    if [ -d "${DEFAULT_DEPLOY_DIR}/.git" ]; then
-        PROJECT_DIR="$DEFAULT_DEPLOY_DIR"
-    fi
-fi
 cd "$PROJECT_DIR"
 
 # 后端目录
@@ -266,21 +256,11 @@ sync_code() {
             fi
         fi
     else
-        # --- 非 Git 仓库：自动克隆到默认目录 ---
-        log_warn "当前目录不是 Git 仓库，自动克隆项目..."
-        PROJECT_DIR="$DEFAULT_DEPLOY_DIR"
-        API_DIR="$PROJECT_DIR/api"
-        mkdir -p "$(dirname "$PROJECT_DIR")"
-        if [ -d "$PROJECT_DIR" ] && [ "$(ls -A "$PROJECT_DIR" 2>/dev/null)" ]; then
-            log_warn "目标目录 ${PROJECT_DIR} 已有内容，备份后重新克隆..."
-            mv "$PROJECT_DIR" "${PROJECT_DIR}.bak.$(date +%s)" 2>/dev/null || true
-        fi
-        git clone --depth 1 "${GITHUB_REPO}" "$PROJECT_DIR" || {
-            log_error "克隆失败，请手动执行：git clone ${GITHUB_REPO} ${PROJECT_DIR}"
-            exit 1
-        }
-        cd "$PROJECT_DIR"
-        log_success "项目已克隆到: ${PROJECT_DIR}"
+        # --- 非 Git 仓库：提示用户 ---
+        log_warn "当前目录不是 Git 仓库，无法自动检查版本"
+        log_info "如需自动更新功能，请通过 git clone 部署："
+        log_info "  git clone ${GITHUB_REPO} ${PROJECT_DIR}"
+        log_info "继续使用当前代码构建..."
         need_build=true
     fi
 
