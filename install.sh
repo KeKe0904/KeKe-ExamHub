@@ -55,29 +55,32 @@ get_version_major() {
 }
 
 # ==================== 爱心 Banner ====================
-# 用 ♥ 拼出 "KeKe ExamHub" 像素艺术字，逐行动画渲染
+# 用 ♥ 拼出 "KeKe  ExamHub" 像素艺术字，逐行动画渲染
+# 每列至少 1 空格间隔，单词间 4 空格，总宽度 ~68 列
 print_banner() {
-    local HR="${RED}♥${NC}"
-    local SP=" "
-    local GAP="   "
+    local H="${RED}♥${NC}"
+    # s = 空格, W = 单词间距
+    local s=" "
+    local W="    "
 
     local lines=(
-        "${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR}${HR}${SP}${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR}${HR}${GAP}${HR}${HR}${HR}${HR}${HR}${SP}${HR}   ${HR} ${SP}  ${HR}  ${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR} "
-        "${HR}  ${HR}  ${SP}${HR}    ${SP}${HR}  ${HR}  ${SP}${HR}    ${GAP}${HR}    ${SP} ${HR} ${HR} ${SP} ${HR} ${HR} ${SP}${HR}${HR} ${HR}${HR}${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR}"
-        "${HR} ${HR}   ${SP}${HR}    ${SP}${HR} ${HR}   ${SP}${HR}    ${GAP}${HR}    ${SP}  ${HR}  ${SP}${HR}   ${HR}${SP}${HR} ${HR} ${HR}${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR}"
-        "${HR}${HR}    ${SP}${HR}${HR}${HR}${HR} ${SP}${HR}${HR}    ${SP}${HR}${HR}${HR}${HR} ${GAP}${HR}${HR}${HR}${HR} ${SP} ${HR} ${HR} ${SP}${HR}   ${HR}${SP}${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR}${HR}${SP}${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR} "
-        "${HR} ${HR}   ${SP}${HR}    ${SP}${HR} ${HR}   ${SP}${HR}    ${GAP}${HR}    ${SP}  ${HR}  ${SP}${HR}   ${HR}${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR}"
-        "${HR}  ${HR}  ${SP}${HR}    ${SP}${HR}  ${HR}  ${SP}${HR}    ${GAP}${HR}    ${SP} ${HR} ${HR} ${SP}${HR}   ${HR}${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR}"
-        "${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR}${HR}${SP}${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR}${HR}${GAP}${HR}${HR}${HR}${HR}${HR}${SP}${HR}   ${HR} ${SP}${HR}   ${HR}${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP} ${HR}${HR}${HR} ${SP}${HR}${HR}${HR}${HR}"
+        # K       e       K       e       W  E       x       a       m       H       u       b
+        "${H}${s}${H}${s}${H}${s}${H}${s}${H}${s} ${H}${s}${H}${s}${H}${s}${H} ${H}${s}${H}${s}${H}${s}${H}${s}${H}${s} ${H}${s}${H}${s}${H}${s}${H}${W} ${H}${H}${H}${H}${H} ${H}${s}${H}${s}${H} ${H}${H}${H}${s}${H}${s}${H} ${H}${s}${s}${s}${s}${H}${s}${H} ${H}${s}${s}${s}${H}${H} ${H}${s}${s}${s}${s}${H}${s}${H} ${H}${H}${H}${s}${H}"
+        "${H}${s}${s}${H}${s}${s}${H}${s}${s}${s} ${H}${s}${s}${s}${s} ${H}${s}${s}${H}${s}${s}${H}${s}${s}${s} ${H}${s}${s}${s}${s}${W} ${H}${s}${s}${s}${s}${s} ${H}${s}${s}${H}${s}${s} ${H}${s}${s}${s}${H}${s}${s} ${H}${H}${s}${s}${H}${H} ${H}${s}${s}${s}${H}${H} ${H}${s}${s}${s}${s}${H}${s}${H} ${H}${s}${s}${s}${H}"
+        "${H}${s}${s}${s}${H}${s}${s}${H}${s}${s} ${H}${s}${s}${s}${s} ${H}${s}${s}${s}${H}${s}${s}${H}${s}${s} ${H}${s}${s}${s}${s}${W} ${H}${H}${H}${H}${s} ${H}${s}${s}${s}${H} ${H}${s}${s}${s}${H}${s}${s} ${H}${s}${H}${s}${H}${s}${H} ${H}${s}${s}${s}${H}${H} ${H}${s}${s}${s}${s}${H}${s}${H} ${H}${H}${H}${H}${s}"
+        "${H}${s}${s}${s}${s}${H}${s}${s}${H} ${H}${H}${H}${s}${s} ${H}${s}${s}${s}${s}${H}${s}${s}${H} ${H}${H}${H}${s}${s}${W} ${H}${H}${H}${H}${H} ${H}${s}${s}${s}${H} ${H}${s}${s}${s}${H}${s}${s} ${H}${s}${s}${s}${H}${s}${s} ${H}${s}${s}${s}${H}${H} ${H}${s}${s}${s}${s}${H}${s}${H} ${H}${s}${s}${H}${s}"
+        "${H}${s}${s}${s}${H}${s}${s}${H}${s}${s} ${H}${s}${s}${s}${s} ${H}${s}${s}${s}${H}${s}${s}${H}${s}${s} ${H}${s}${s}${s}${s}${W} ${H}${H}${H}${H}${s} ${H}${s}${s}${H}${s}${s} ${H}${s}${s}${s}${H}${s}${s} ${H}${s}${s}${s}${H}${s}${s} ${H}${s}${s}${s}${H}${H} ${H}${s}${s}${s}${s}${H}${s}${H} ${H}${H}${H}${H}${s}"
+        "${H}${s}${s}${H}${s}${s}${H}${s}${s}${s} ${H}${s}${s}${s}${s} ${H}${s}${s}${H}${s}${s}${H}${s}${s}${s} ${H}${s}${s}${s}${s}${W} ${H}${s}${s}${s}${s}${s} ${H}${s}${s}${H}${s}${s} ${H}${s}${s}${s}${H}${s}${s} ${H}${s}${s}${s}${H}${s}${s} ${H}${s}${s}${s}${H}${H} ${H}${s}${s}${s}${s}${H}${s}${H} ${H}${H}${H}${H}${s}"
+        "${H}${s}${H}${s}${H}${s}${H}${s}${H}${s} ${H}${H}${H}${H}${s}${s} ${H}${s}${H}${s}${H}${s}${H}${s}${H}${s} ${H}${H}${H}${H}${s}${s}${W} ${H}${s}${s}${s}${s}${s} ${H}${s}${s}${s}${H} ${H}${s}${s}${s}${H}${s}${s} ${H}${s}${s}${s}${H}${s}${s} ${H}${s}${s}${s}${H}${H} ${H}${s}${s}${s}${s}${H}${s}${H} ${H}${s}${s}${H}${H}"
     )
 
     echo ""
     for line in "${lines[@]}"; do
-        echo -e "          $line"
+        echo -e "    ${line}"
         sleep 0.06
     done
     echo ""
-    echo -e "          ${CYAN}${BOLD}一键部署脚本${NC}  |  ${CYAN}https://github.com/KeKe0904/KeKe-ExamHub${NC}"
+    echo -e "    ${CYAN}${BOLD}一键部署脚本${NC}  |  ${CYAN}https://github.com/KeKe0904/KeKe-ExamHub${NC}"
     echo ""
 }
 
