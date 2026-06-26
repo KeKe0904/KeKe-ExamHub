@@ -29,7 +29,7 @@
 - **导航栏布局** — 公众首页导航栏全宽撑满，Logo 最左、菜单项最右
 - **教室端入口** — 公众首页和后台侧边栏均添加教室端入口链接
 - **代码清理** — 删除未使用的代码文件（exams.ts、useTheme.ts、Empty.tsx、react.svg）
-- **依赖瘦身** — 移除未使用的 npm 依赖（lucide-react、ssh2、vite-plugin-trae-solo-badge）
+- **依赖瘦身** — 移除未使用的 npm 依赖（lucide-react、ssh2 等）
 - **导出精简** — 移除 date.ts 和 auth.ts 中未使用的导出
 
 ### 数据库变更

@@ -2,6 +2,7 @@
  * KeKe ExamHub - 考试信息管理系统
  * @author 落梦陳 (KeKe0904) | B站/抖音: 落梦陳
  * @github https://github.com/KeKe0904/KeKe-ExamHub
+ * 本项目使用 Trae IDE 开发
  * @license MIT
  */
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
@@ -14,7 +15,7 @@ import { authMiddleware } from "../middleware/auth.js";
 
 const execAsync = promisify(exec);
 
-// 格式化字节大小
+// 格式化字节大�?
 function formatBytes(bytes: number): { value: number; unit: string } {
   const gb = bytes / (1024 * 1024 * 1024);
   const mb = bytes / (1024 * 1024);
@@ -24,7 +25,7 @@ function formatBytes(bytes: number): { value: number; unit: string } {
   return { value: Math.round(kb * 100) / 100, unit: "KB" };
 }
 
-// 格式化运行时间
+// 格式化运行时�?
 function formatUptime(seconds: number): string {
   const days = Math.floor(seconds / 86400);
   const hours = Math.floor((seconds % 86400) / 3600);
@@ -38,7 +39,7 @@ function formatUptime(seconds: number): string {
   return parts.join(" ");
 }
 
-// 计算 CPU 使用率（基于 os.cpus()）
+// 计算 CPU 使用率（基于 os.cpus()�?
 function calculateCpuUsage() {
   const cpus = os.cpus();
   let totalIdle = 0;
@@ -163,7 +164,7 @@ async function getDiskUsage(): Promise<
   }
 }
 
-// 获取网络接口信息（包含 MAC 地址）
+// 获取网络接口信息（包�?MAC 地址�?
 function getNetworkInterfaces() {
   const interfaces = os.networkInterfaces();
   const result: Array<{

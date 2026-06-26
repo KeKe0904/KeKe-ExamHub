@@ -2,6 +2,7 @@
  * KeKe ExamHub - 考试信息管理系统
  * @author 落梦陳 (KeKe0904) | B站/抖音: 落梦陳
  * @github https://github.com/KeKe0904/KeKe-ExamHub
+ * 本项目使用 Trae IDE 开发
  * @license MIT
  */
 import type { FastifyInstance } from "fastify";
@@ -11,7 +12,7 @@ import { successResponse, errorResponse } from "../utils/response.js";
 import { authMiddleware } from "../middleware/auth.js";
 
 export default async function settingsRoutes(fastify: FastifyInstance) {
-  // 获取当前管理员信息
+  // 获取当前管理员信�?
   fastify.get("/profile", {
     preHandler: [authMiddleware],
   }, async (request, reply) => {
@@ -27,8 +28,8 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
       }
       return reply.send(successResponse(admins[0]));
     } catch (error) {
-      console.error("获取管理员信息失败:", error);
-      return reply.status(500).send(errorResponse("服务器内部错误"));
+      console.error("获取管理员信息失�?", error);
+      return reply.status(500).send(errorResponse("服务器内部错�?));
     }
   });
 
@@ -47,7 +48,7 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
         return reply.status(400).send(errorResponse("请输入旧密码和新密码"));
       }
       if (newPassword.length < 6) {
-        return reply.status(400).send(errorResponse("新密码至少6位"));
+        return reply.status(400).send(errorResponse("新密码至�?�?));
       }
 
       // 查询当前密码
@@ -60,10 +61,10 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
         return reply.status(404).send(errorResponse("管理员不存在"));
       }
 
-      // 验证旧密码
+      // 验证旧密�?
       const isOldValid = await bcrypt.compare(oldPassword, admins[0].password);
       if (!isOldValid) {
-        return reply.status(400).send(errorResponse("旧密码错误"));
+        return reply.status(400).send(errorResponse("旧密码错�?));
       }
 
       // 加密新密码并更新
@@ -76,11 +77,11 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
       return reply.send(successResponse(null, "密码修改成功"));
     } catch (error) {
       console.error("修改密码失败:", error);
-      return reply.status(500).send(errorResponse("服务器内部错误"));
+      return reply.status(500).send(errorResponse("服务器内部错�?));
     }
   });
 
-  // 修改头像（存储头像URL或base64数据）
+  // 修改头像（存储头像URL或base64数据�?
   fastify.put("/avatar", {
     preHandler: [authMiddleware],
   }, async (request, reply) => {
@@ -89,12 +90,12 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
       const { avatar } = request.body as { avatar: string };
 
       if (!avatar) {
-        return reply.status(400).send(errorResponse("请提供头像数据"));
+        return reply.status(400).send(errorResponse("请提供头像数�?));
       }
 
-      // 限制头像大小（base64 约 2MB）
+      // 限制头像大小（base64 �?2MB�?
       if (avatar.length > 2 * 1024 * 1024) {
-        return reply.status(400).send(errorResponse("头像文件过大，请上传小于2MB的图片"));
+        return reply.status(400).send(errorResponse("头像文件过大，请上传小于2MB的图�?));
       }
 
       await pool.execute(
@@ -105,11 +106,11 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
       return reply.send(successResponse({ avatar }, "头像更新成功"));
     } catch (error) {
       console.error("修改头像失败:", error);
-      return reply.status(500).send(errorResponse("服务器内部错误"));
+      return reply.status(500).send(errorResponse("服务器内部错�?));
     }
   });
 
-  // 获取系统设置（公开接口，前端展示学校名字等）
+  // 获取系统设置（公开接口，前端展示学校名字等�?
   fastify.get("/", async (request, reply) => {
     try {
       const [rows] = await pool.execute(
@@ -122,11 +123,11 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
       return reply.send(successResponse(settings));
     } catch (error) {
       console.error("获取设置失败:", error);
-      return reply.status(500).send(errorResponse("服务器内部错误"));
+      return reply.status(500).send(errorResponse("服务器内部错�?));
     }
   });
 
-  // 更新系统设置（学校名字、站点标题、站点图标等）
+  // 更新系统设置（学校名字、站点标题、站点图标等�?
   fastify.put("/", {
     preHandler: [authMiddleware],
   }, async (request, reply) => {
@@ -154,9 +155,9 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
       }
 
       if (siteFavicon !== undefined) {
-        // favicon 限制为 1MB（base64）
+        // favicon 限制�?1MB（base64�?
         if (siteFavicon && siteFavicon.length > 1 * 1024 * 1024) {
-          return reply.status(400).send(errorResponse("图标文件过大，请上传小于1MB的图片"));
+          return reply.status(400).send(errorResponse("图标文件过大，请上传小于1MB的图�?));
         }
         updates.push({ key: "site_favicon", value: siteFavicon });
       }
@@ -172,7 +173,7 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
       return reply.send(successResponse(null, "设置更新成功"));
     } catch (error) {
       console.error("更新设置失败:", error);
-      return reply.status(500).send(errorResponse("服务器内部错误"));
+      return reply.status(500).send(errorResponse("服务器内部错�?));
     }
   });
 }

@@ -2,6 +2,7 @@
  * KeKe ExamHub - 考试信息管理系统
  * @author 落梦陳 (KeKe0904) | B站/抖音: 落梦陳
  * @github https://github.com/KeKe0904/KeKe-ExamHub
+ * 本项目使用 Trae IDE 开发
  * @license MIT
  */
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
@@ -15,7 +16,7 @@ import crypto from "crypto";
 
 const execAsync = promisify(exec);
 
-// 常见的 MySQL/MariaDB socket 路径
+// 常见�?MySQL/MariaDB socket 路径
 const SOCKET_PATHS = [
   "/run/mysqld/mysqld.sock",
   "/var/run/mysqld/mysqld.sock",
@@ -30,21 +31,19 @@ async function detectSocketPath(): Promise<string | null> {
       await fs.access(p);
       return p;
     } catch {
-      // 继续检测下一个
-    }
+      // 继续检测下一�?    }
   }
   return null;
 }
 
-// 创建数据库连接（先尝试 TCP，失败后尝试 socket）
-async function createDbConnection(config: {
+// 创建数据库连接（先尝�?TCP，失败后尝试 socket�?async function createDbConnection(config: {
   host: string;
   port: number;
   user: string;
   password: string;
   database?: string;
 }) {
-  // 先尝试 TCP 连接
+  // 先尝�?TCP 连接
   try {
     const connection = await mysql.createConnection({
       host: config.host || "localhost",
@@ -56,7 +55,7 @@ async function createDbConnection(config: {
     });
     return { connection, usingSocket: false, socketPath: null };
   } catch (tcpError) {
-    // TCP 失败，尝试 socket 连接
+    // TCP 失败，尝�?socket 连接
     const socketPath = await detectSocketPath();
     if (socketPath) {
       const connection = await mysql.createConnection({
@@ -88,20 +87,17 @@ function generateSecret(): string {
 }
 
 export default async function setupRoutes(fastify: FastifyInstance) {
-  // 检查安装状态
-  fastify.get("/status", async () => {
+  // 检查安装状�?  fastify.get("/status", async () => {
     const installed = await isInstalled();
     return { installed };
   });
 
-  // 环境检测
-  fastify.get("/env", async () => {
+  // 环境检�?  fastify.get("/env", async () => {
     // Node.js 版本
     const nodeVersion = process.version;
     const nodeVersionNum = parseInt(nodeVersion.slice(1).split(".")[0]);
 
-    // MySQL 检测
-    let mysqlAvailable = false;
+    // MySQL 检�?    let mysqlAvailable = false;
     let mysqlVersion = "";
     try {
       const { stdout } = await execAsync("mysql --version");
@@ -111,8 +107,7 @@ export default async function setupRoutes(fastify: FastifyInstance) {
       mysqlAvailable = false;
     }
 
-    // Nginx 检测
-    let nginxAvailable = false;
+    // Nginx 检�?    let nginxAvailable = false;
     let nginxVersion = "";
     try {
       const { stdout, stderr } = await execAsync("nginx -v 2>&1");
@@ -123,8 +118,7 @@ export default async function setupRoutes(fastify: FastifyInstance) {
       nginxAvailable = false;
     }
 
-    // PM2 检测
-    let pm2Available = false;
+    // PM2 检�?    let pm2Available = false;
     let pm2Version = "";
     try {
       const { stdout } = await execAsync("pm2 --version");
@@ -144,19 +138,19 @@ export default async function setupRoutes(fastify: FastifyInstance) {
         available: mysqlAvailable,
         version: mysqlVersion,
         ok: mysqlAvailable,
-        label: mysqlAvailable ? mysqlVersion : "未安装",
+        label: mysqlAvailable ? mysqlVersion : "未安�?,
       },
       nginx: {
         available: nginxAvailable,
         version: nginxVersion,
         ok: nginxAvailable,
-        label: nginxAvailable ? nginxVersion : "未安装",
+        label: nginxAvailable ? nginxVersion : "未安�?,
       },
       pm2: {
         available: pm2Available,
         version: pm2Version,
         ok: pm2Available,
-        label: pm2Available ? `PM2 ${pm2Version}` : "未安装",
+        label: pm2Available ? `PM2 ${pm2Version}` : "未安�?,
       },
     };
   });
@@ -174,8 +168,7 @@ export default async function setupRoutes(fastify: FastifyInstance) {
       };
 
       try {
-        // 连接时指定 database，若库不存在会直接报错
-        const { connection, usingSocket, socketPath } = await createDbConnection({
+        // 连接时指�?database，若库不存在会直接报�?        const { connection, usingSocket, socketPath } = await createDbConnection({
           host: host || "localhost",
           port: port || 3306,
           user,
@@ -191,7 +184,7 @@ export default async function setupRoutes(fastify: FastifyInstance) {
           success: true,
           message: usingSocket
             ? `数据库连接成功（通过 socket: ${socketPath}，库: ${database}）`
-            : `数据库连接成功（库: ${database}）`,
+            : `数据库连接成功（�? ${database}）`,
           version,
         };
       } catch (error: any) {
@@ -206,7 +199,7 @@ export default async function setupRoutes(fastify: FastifyInstance) {
     if (await isInstalled()) {
       return {
         success: false,
-        message: "系统已安装，如需重新安装请删除 .setup-complete 文件",
+        message: "系统已安装，如需重新安装请删�?.setup-complete 文件",
       };
     }
 
@@ -225,9 +218,7 @@ export default async function setupRoutes(fastify: FastifyInstance) {
     };
 
     try {
-      // 1. 连接到用户手动创建的数据库（不自动建库，要求用户提前手动创建）
-      //    若库不存在会直接报错，提示用户手动创建
-      const { connection, usingSocket, socketPath } = await createDbConnection({
+      // 1. 连接到用户手动创建的数据库（不自动建库，要求用户提前手动创建�?      //    若库不存在会直接报错，提示用户手动创�?      const { connection, usingSocket, socketPath } = await createDbConnection({
         host: dbConfig.host || "localhost",
         port: dbConfig.port || 3306,
         user: dbConfig.user,
@@ -236,8 +227,7 @@ export default async function setupRoutes(fastify: FastifyInstance) {
       });
       await connection.end();
 
-      // 2. 创建连接池用于建表（根据连接方式选择 TCP 或 socket）
-      const poolConfig: any = usingSocket
+      // 2. 创建连接池用于建表（根据连接方式选择 TCP �?socket�?      const poolConfig: any = usingSocket
         ? {
             socketPath,
             user: dbConfig.user,
@@ -253,8 +243,7 @@ export default async function setupRoutes(fastify: FastifyInstance) {
           };
       const pool = mysql.createPool(poolConfig);
 
-      // 创建 admins 表
-      await pool.query(`
+      // 创建 admins �?      await pool.query(`
         CREATE TABLE IF NOT EXISTS admins (
           id INT AUTO_INCREMENT PRIMARY KEY,
           username VARCHAR(50) NOT NULL UNIQUE,
@@ -272,8 +261,7 @@ export default async function setupRoutes(fastify: FastifyInstance) {
         // 字段已存在则忽略
       }
 
-      // 创建 exams 表
-      await pool.query(`
+      // 创建 exams �?      await pool.query(`
         CREATE TABLE IF NOT EXISTS exams (
           id INT AUTO_INCREMENT PRIMARY KEY,
           subject VARCHAR(100) NOT NULL,
@@ -289,8 +277,7 @@ export default async function setupRoutes(fastify: FastifyInstance) {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
 
-      // 创建 announcements 表（公告）
-      await pool.query(`
+      // 创建 announcements 表（公告�?      await pool.query(`
         CREATE TABLE IF NOT EXISTS announcements (
           id INT AUTO_INCREMENT PRIMARY KEY,
           title VARCHAR(200) NOT NULL,
@@ -303,8 +290,7 @@ export default async function setupRoutes(fastify: FastifyInstance) {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
 
-      // 创建 settings 表（系统设置，键值对存储）
-      await pool.query(`
+      // 创建 settings 表（系统设置，键值对存储�?      await pool.query(`
         CREATE TABLE IF NOT EXISTS settings (
           setting_key VARCHAR(100) PRIMARY KEY,
           setting_value TEXT,
@@ -330,7 +316,7 @@ export default async function setupRoutes(fastify: FastifyInstance) {
           id INT AUTO_INCREMENT PRIMARY KEY,
           code VARCHAR(32) NOT NULL UNIQUE,
           is_used BOOLEAN DEFAULT FALSE,
-          used_by_classroom_id INT NULL COMMENT '使用该注册码的教室ID(应用层维护,不设外键避免循环依赖)',
+          used_by_classroom_id INT NULL COMMENT '使用该注册码的教室ID(应用层维�?不设外键避免循环依赖)',
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           used_at TIMESTAMP NULL,
           INDEX idx_code (code)
@@ -345,7 +331,7 @@ export default async function setupRoutes(fastify: FastifyInstance) {
           room_number VARCHAR(50) NOT NULL,
           password VARCHAR(255) NOT NULL COMMENT 'bcrypt加密',
           registration_code_id INT NOT NULL,
-          status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending' COMMENT '审核状态',
+          status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending' COMMENT '审核状�?,
           reject_reason VARCHAR(255) NULL COMMENT '驳回原因',
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -356,8 +342,7 @@ export default async function setupRoutes(fastify: FastifyInstance) {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
 
-      // 考试-教室关联表
-      await pool.query(`
+      // 考试-教室关联�?      await pool.query(`
         CREATE TABLE IF NOT EXISTS exam_classrooms (
           exam_id INT NOT NULL,
           classroom_id INT NOT NULL,
@@ -368,8 +353,7 @@ export default async function setupRoutes(fastify: FastifyInstance) {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
 
-      // 4. 创建管理员账号
-      const hashedPassword = await bcrypt.hash(admin.password, 10);
+      // 4. 创建管理员账�?      const hashedPassword = await bcrypt.hash(admin.password, 10);
       await pool.query(
         "INSERT INTO admins (username, password) VALUES (?, ?) ON DUPLICATE KEY UPDATE password = VALUES(password)",
         [admin.username, hashedPassword]
@@ -380,13 +364,11 @@ export default async function setupRoutes(fastify: FastifyInstance) {
       // 5. 生成 .env 文件
       const jwtSecret = generateSecret();
       const dbConfigSection = usingSocket
-        ? `# 数据库配置（使用 socket 连接）
-DB_SOCKET=${socketPath}
+        ? `# 数据库配置（使用 socket 连接�?DB_SOCKET=${socketPath}
 DB_USER=${dbConfig.user}
 DB_PASSWORD=${dbConfig.password}
 DB_NAME=${dbConfig.database}`
-        : `# 数据库配置
-DB_HOST=${dbConfig.host || "localhost"}
+        : `# 数据库配�?DB_HOST=${dbConfig.host || "localhost"}
 DB_PORT=${dbConfig.port || 3306}
 DB_USER=${dbConfig.user}
 DB_PASSWORD=${dbConfig.password}
@@ -400,12 +382,10 @@ ${dbConfigSection}
 # JWT 密钥
 JWT_SECRET=${jwtSecret}
 
-# 管理员账号
-ADMIN_USERNAME=${admin.username}
+# 管理员账�?ADMIN_USERNAME=${admin.username}
 ADMIN_PASSWORD=${admin.password}
 
-# 服务器配置
-PORT=3000
+# 服务器配�?PORT=3000
 HOST=0.0.0.0
 NODE_ENV=production
 `;
@@ -413,8 +393,7 @@ NODE_ENV=production
       const envPath = path.join(process.cwd(), ".env");
       await fs.writeFile(envPath, envContent, "utf8");
 
-      // 6. 创建锁文件
-      const lockPath = path.join(process.cwd(), ".setup-complete");
+      // 6. 创建锁文�?      const lockPath = path.join(process.cwd(), ".setup-complete");
       await fs.writeFile(
         lockPath,
         JSON.stringify(
@@ -429,10 +408,7 @@ NODE_ENV=production
       );
 
       // 7. 自动重启后端以加载新 .env 配置
-      // 使用 detached spawn 确保子进程独立于父进程
-      // PM2 守护进程(独立进程)会接收重启命令,杀死当前进程并启动新实例
-      // 延迟 1.5 秒确保 HTTP 响应已发送到客户端
-      const appName = process.env.name || "examhub-api";
+      // 使用 detached spawn 确保子进程独立于父进�?      // PM2 守护进程(独立进程)会接收重启命�?杀死当前进程并启动新实�?      // 延迟 1.5 秒确�?HTTP 响应已发送到客户�?      const appName = process.env.name || "examhub-api";
       setTimeout(() => {
         try {
           const child = spawn("pm2", ["restart", appName], {
@@ -441,13 +417,13 @@ NODE_ENV=production
           });
           child.unref();
         } catch (restartError) {
-          console.error("自动重启失败,请手动执行: pm2 restart", appName, restartError);
+          console.error("自动重启失败,请手动执�? pm2 restart", appName, restartError);
         }
       }, 1500);
 
       return {
         success: true,
-        message: "安装成功！后端服务将在 1.5 秒后自动重启以加载新配置。",
+        message: "安装成功！后端服务将�?1.5 秒后自动重启以加载新配置�?,
       };
     } catch (error: any) {
       return { success: false, message: `安装失败: ${error.message}` };

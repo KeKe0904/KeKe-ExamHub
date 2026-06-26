@@ -2,6 +2,7 @@
  * KeKe ExamHub - 考试信息管理系统
  * @author 落梦陳 (KeKe0904) | B站/抖音: 落梦陳
  * @github https://github.com/KeKe0904/KeKe-ExamHub
+ * 本项目使用 Trae IDE 开发
  * @license MIT
  */
 import type { FastifyInstance } from "fastify";
@@ -22,7 +23,7 @@ export default async function classroomAdminRoutes(
 ) {
   // 所有接口都需要管理员认证
 
-  // 获取教室列表(支持按状态筛选)
+  // 获取教室列表(支持按状态筛�?
   fastify.get(
     "/",
     { preHandler: [authMiddleware] },
@@ -79,7 +80,7 @@ export default async function classroomAdminRoutes(
           [id]
         );
         if ((rows as any[]).length === 0) {
-          return reply.status(404).send(errorResponse("教室不存在"));
+          return reply.status(404).send(errorResponse("教室不存�?));
         }
 
         const classroom = (rows as ClassroomRow[])[0];
@@ -126,7 +127,7 @@ export default async function classroomAdminRoutes(
           [id]
         );
         if ((rows as any[]).length === 0) {
-          return reply.status(404).send(errorResponse("教室不存在"));
+          return reply.status(404).send(errorResponse("教室不存�?));
         }
 
         await pool.execute(
@@ -142,7 +143,7 @@ export default async function classroomAdminRoutes(
         return reply.send(
           successResponse(
             formatClassroom((updated as ClassroomWithBuilding[])[0]),
-            "已驳回"
+            "已驳�?
           )
         );
       } catch (error) {
@@ -166,16 +167,15 @@ export default async function classroomAdminRoutes(
           [id]
         );
         if ((rows as any[]).length === 0) {
-          return reply.status(404).send(errorResponse("教室不存在"));
+          return reply.status(404).send(errorResponse("教室不存�?));
         }
 
         const regCodeId = (rows as any[])[0].registration_code_id;
 
-        // 删除教室(关联的 exam_classrooms 会因外键 CASCADE 自动删除)
+        // 删除教室(关联�?exam_classrooms 会因外键 CASCADE 自动删除)
         await pool.execute("DELETE FROM classrooms WHERE id = ?", [id]);
 
-        // 释放注册码
-        if (regCodeId) {
+        // 释放注册�?        if (regCodeId) {
           await pool.execute(
             "UPDATE registration_codes SET is_used = FALSE, used_by_classroom_id = NULL, used_at = NULL WHERE id = ?",
             [regCodeId]
@@ -190,7 +190,7 @@ export default async function classroomAdminRoutes(
     }
   );
 
-  // 获取待审核教室数量(用于后台角标提示)
+  // 获取待审核教室数�?用于后台角标提示)
   fastify.get(
     "/pending/count",
     { preHandler: [authMiddleware] },
@@ -202,10 +202,10 @@ export default async function classroomAdminRoutes(
         const count = (rows as any[])[0].count;
         return reply.send(successResponse({ count }));
       } catch (error) {
-        console.error("获取待审核数量失败:", error);
+        console.error("获取待审核数量失�?", error);
         return reply
           .status(500)
-          .send(errorResponse("获取待审核数量失败"));
+          .send(errorResponse("获取待审核数量失�?));
       }
     }
   );

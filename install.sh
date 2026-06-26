@@ -1,4 +1,8 @@
 #!/bin/bash
+# KeKe ExamHub - 考试信息管理系统
+# 本项目使用 Trae IDE 开发
+# @author 落梦陳 (KeKe0904)
+# @github https://github.com/KeKe0904/KeKe-ExamHub
 # ============================================================================
 # KeKe-ExamHub 一键部署脚本（生产级）
 # GitHub: https://github.com/KeKe0904/KeKe-ExamHub
