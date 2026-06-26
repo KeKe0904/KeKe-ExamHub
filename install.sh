@@ -141,6 +141,12 @@ check_and_install_environment() {
             log_info "Node.js 已安装: $(node -v)"
         fi
 
+        # --- 升级 npm 到最新稳定版（Node.js 自带的 npm 通常不是最新）---
+        log_info "升级 npm 到最新稳定版..."
+        npm install -g npm@latest 2>/dev/null && \
+            log_success "npm 已升级: $(npm -v)" || \
+            log_warn "npm 升级失败，继续使用当前版本"
+
         # --- 启动并设置开机自启 ---
         systemctl enable --now mariadb 2>/dev/null || true
         systemctl enable --now nginx   2>/dev/null || true

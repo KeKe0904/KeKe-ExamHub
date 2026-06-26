@@ -584,9 +584,9 @@ export default async function environmentRoutes(app: FastifyInstance) {
     "npm-packages": {
       label: "更新项目 npm 依赖 + 升级 npm 自身",
       script: `{
-  cd /opt/examhub && npm update 2>&1
+  cd ${PROJECT_ROOT} && npm update 2>&1
   echo "EXIT_FE=\\$?"
-  cd /opt/examhub/api && npm update 2>&1
+  cd ${PROJECT_ROOT}/api && npm update 2>&1
   echo "EXIT_BE=\\$?"
   # 升级 npm 到最新稳定版
   npm install -g npm@latest 2>&1
@@ -665,7 +665,7 @@ echo "DONE" >> "\$LOG"
         // 后台执行（nohup 确保不随请求结束而终止）
         const { exec } = await import("child_process");
         exec(`nohup bash ${scriptFile} > /dev/null 2>&1 &`, {
-          cwd: "/opt/examhub",
+          cwd: PROJECT_ROOT,
         });
 
         // 存储任务状态（记录实际要更新的组件列表）
