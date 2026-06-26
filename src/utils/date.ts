@@ -14,18 +14,6 @@ export function formatDate(dateStr: string): string {
   return format(date, "yyyy年MM月dd日", { locale: zhCN });
 }
 
-// 格式化时间
-export function formatTime(dateStr: string): string {
-  const date = parseISO(dateStr);
-  return format(date, "HH:mm");
-}
-
-// 格式化相对时间
-export function formatRelativeTime(dateStr: string): string {
-  const date = parseISO(dateStr);
-  return format(date, "MM月dd日 EEEE", { locale: zhCN });
-}
-
 // 根据当前时间计算考试状态
 export function calculateExamStatus(exam: Exam): ExamStatus {
   const now = new Date();
@@ -79,16 +67,6 @@ export function getStatusText(status: ExamStatus): string {
     ended: "已结束",
   };
   return textMap[status];
-}
-
-// 获取状态对应的颜色类
-export function getStatusColorClass(status: ExamStatus): string {
-  const colorMap: Record<ExamStatus, string> = {
-    upcoming: "bg-primary-100 text-primary-700 border-primary-200",
-    ongoing: "bg-accent-100 text-accent-700 border-accent-200",
-    ended: "bg-gray-100 text-gray-600 border-gray-200",
-  };
-  return colorMap[status];
 }
 
 // 计算统计数据

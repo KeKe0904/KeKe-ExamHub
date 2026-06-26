@@ -1,7 +1,7 @@
 {
   "name": "keke-examhub",
   "private": true,
-  "version": "1.0.5",
+  "version": "1.1.2",
   "description": "KeKe ExamHub - 考试管理系统前端",
   "type": "module",
   "engines": {
@@ -23,12 +23,10 @@
   "dependencies": {
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
-    "lucide-react": "^0.511.0",
     "react": "^18.3.1",
     "react-day-picker": "^10.0.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.3.0",
-    "ssh2": "^1.17.0",
     "tailwind-merge": "^3.0.2",
     "zustand": "^5.0.3"
   },
@@ -49,7 +47,6 @@
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
     "vite": "^6.3.5",
-    "vite-plugin-trae-solo-badge": "^1.0.0",
     "vite-tsconfig-paths": "^5.1.4"
   }
 }

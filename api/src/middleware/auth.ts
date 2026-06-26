@@ -1,13 +1,13 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 
 // JWT payload 类型
-export interface AdminPayload {
+interface AdminPayload {
   id: number;
   username: string;
   role: "admin";
 }
 
-export interface ClassroomPayload {
+interface ClassroomPayload {
   id: number;
   classroomId: number;
   roomNumber: string;
@@ -15,7 +15,7 @@ export interface ClassroomPayload {
   role: "classroom";
 }
 
-export type TokenPayload = AdminPayload | ClassroomPayload;
+type TokenPayload = AdminPayload | ClassroomPayload;
 
 // 管理员 JWT 认证中间件
 export async function authMiddleware(
