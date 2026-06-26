@@ -132,10 +132,11 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
     preHandler: [authMiddleware],
   }, async (request, reply) => {
     try {
-      const { schoolName, siteTitle, siteFavicon } = request.body as {
+      const { schoolName, siteTitle, siteFavicon, cookieConsentEnabled } = request.body as {
         schoolName?: string;
         siteTitle?: string;
         siteFavicon?: string;
+        cookieConsentEnabled?: string; // "true" | "false"
       };
 
       const updates: { key: string; value: string }[] = [];
@@ -155,11 +156,16 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
       }
 
       if (siteFavicon !== undefined) {
-        // favicon 限制�?1MB（base64�?
+        // favicon 限制为 1MB（base64）
         if (siteFavicon && siteFavicon.length > 1 * 1024 * 1024) {
-          return reply.status(400).send(errorResponse("图标文件过大，请上传小于1MB的图�?));
+          return reply.status(400).send(errorResponse("图标文件过大，请上传小于1MB的图片"));
         }
         updates.push({ key: "site_favicon", value: siteFavicon });
+      }
+
+      if (cookieConsentEnabled !== undefined) {
+        const val = cookieConsentEnabled === "true" ? "true" : "false";
+        updates.push({ key: "cookie_consent_enabled", value: val });
       }
 
       for (const { key, value } of updates) {

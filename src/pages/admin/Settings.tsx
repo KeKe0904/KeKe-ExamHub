@@ -20,7 +20,10 @@ import {
   Globe,
   Image as ImageIcon,
   Building,
+  Cookie,
+  Loader2,
 } from "@/components/MathIcon";
+import { cn } from "@/lib/utils";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
 const getToken = () => sessionStorage.getItem("examhub-token") || "";
@@ -72,6 +75,10 @@ export default function Settings() {
   const [schoolInfoLoading, setSchoolInfoLoading] = useState(false);
   const [schoolInfoMsg, setSchoolInfoMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  const [cookieConsentEnabled, setCookieConsentEnabled] = useState(true);
+  const [cookieConsentLoading, setCookieConsentLoading] = useState(false);
+  const [cookieConsentMsg, setCookieConsentMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
   useEffect(() => {
     // 加载管理员信息和系统设置
     loadData();
@@ -105,6 +112,8 @@ export default function Settings() {
           setSiteFavicon(d.site_favicon);
           setGlobalSiteFavicon(d.site_favicon);
         }
+        // Cookie 弹窗开关（默认开启）
+        setCookieConsentEnabled(d.cookie_consent_enabled !== "false");
       }
 
       // 获取学校信息
@@ -287,6 +296,36 @@ export default function Settings() {
   const handleClearFavicon = () => {
     setSiteFavicon("");
     setSiteMsg(null);
+  };
+
+  // 保存 Cookie 弹窗开关
+  const handleCookieConsentToggle = async () => {
+    const newVal = !cookieConsentEnabled;
+    setCookieConsentEnabled(newVal);
+    setCookieConsentLoading(true);
+    setCookieConsentMsg(null);
+    try {
+      const res = await fetch(`${API_BASE}/settings`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify({ cookieConsentEnabled: newVal ? "true" : "false" }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCookieConsentMsg({ type: "success", text: newVal ? "Cookie 弹窗已开启" : "Cookie 弹窗已关闭" });
+      } else {
+        setCookieConsentEnabled(!newVal); // 回滚
+        setCookieConsentMsg({ type: "error", text: data.message || "保存失败" });
+      }
+    } catch {
+      setCookieConsentEnabled(!newVal);
+      setCookieConsentMsg({ type: "error", text: "网络错误" });
+    } finally {
+      setCookieConsentLoading(false);
+    }
   };
 
   // 保存学校信息
@@ -598,6 +637,52 @@ export default function Settings() {
             {siteLoading ? "保存中..." : "保存站点信息"}
           </button>
         </form>
+      </section>
+
+      {/* Cookie 弹窗设置 */}
+      <section className="bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 p-6">
+        <h2 className="text-lg font-semibold text-black dark:text-white mb-4 flex items-center gap-2">
+          <Cookie className="w-4 h-4" />
+          Cookie 弹窗设置
+        </h2>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-black dark:text-white">全站 Cookie 同意弹窗</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-300 mt-1">
+              在页面底部显示 Cookie 偏好同意横幅，允许访问者自定义接受或拒绝非必需 Cookie。
+            </p>
+          </div>
+          <div className="flex items-center gap-3 mt-4">
+            <button
+              onClick={handleCookieConsentToggle}
+              disabled={cookieConsentLoading}
+              className={cn(
+                "relative w-10 h-6 rounded-full transition-colors",
+                cookieConsentEnabled
+                  ? "bg-black dark:bg-white"
+                  : "bg-zinc-200 dark:bg-zinc-700"
+              )}
+            >
+              <span
+                className={cn(
+                  "absolute top-0.5 w-5 h-5 rounded-full bg-white dark:bg-black shadow-sm transition-transform",
+                  cookieConsentEnabled ? "left-[18px]" : "left-[2px]"
+                )}
+              />
+            </button>
+            <span className="text-sm font-medium text-black dark:text-white ml-3">
+              {cookieConsentEnabled ? "已开启" : "已关闭"}
+            </span>
+            {cookieConsentLoading && (
+              <Loader2 className="w-4 h-4 animate-spin ml-2" />
+            )}
+          </div>
+        </div>
+        {cookieConsentMsg && (
+          <p className={`text-xs mt-2 ${cookieConsentMsg.type === "success" ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400"}`}>
+            {cookieConsentMsg.text}
+          </p>
+        )}
       </section>
 
       {/* 学校信息 */}

@@ -11,6 +11,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useSchoolName } from "@/hooks/useSchoolName";
 import ThemeToggle from "@/components/ThemeToggle";
+import CookieConsentBanner from "@/components/CookieConsent";
 
 interface UserLayoutProps {
   children: React.ReactNode;
@@ -125,6 +126,8 @@ export default function UserLayout({ children }: UserLayoutProps) {
           </div>
         </div>
       </footer>
+      {/* Cookie 同意弹窗 */}
+      <CookieConsentBanner />
     </div>
   );
 }

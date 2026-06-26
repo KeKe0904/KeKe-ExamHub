@@ -853,6 +853,20 @@ export function ChevronRight({ className, size = defaultSize }: IconProps) {
   );
 }
 
+// Cookie - 浏览器 Cookie 图标
+export function Cookie({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5" />
+      <path d="M8.5 8.5v.01" />
+      <path d="M16 15.5v.01" />
+      <path d="M12 12v.01" />
+      <path d="M11 17v.01" />
+      <path d="M7 14v.01" />
+    </svg>
+  );
+}
+
 // 导出图标对象，方便批量使用
 export const MathIcons = {
   Sunrise, Sun, Moon, Calendar, Clock, User, MapPin, Search,
@@ -865,7 +879,7 @@ export const MathIcons = {
   Image, Building, Phone,
   Package, GitBranch, Download, RotateCcw, Code, Shield, Box, Copy,
   Cpu, HardDrive, Network, Activity, Thermometer,
-  Monitor, ChevronRight,
+  Monitor, ChevronRight, Cookie,
 };
 
 export default MathIcons;

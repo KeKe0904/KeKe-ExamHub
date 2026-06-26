@@ -29,6 +29,7 @@ import { useSchoolName } from "@/hooks/useSchoolName";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useThemeStore } from "@/store/themeStore";
 import { cn } from "@/lib/utils";
+import CookieConsentBanner from "@/components/CookieConsent";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -186,6 +187,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       <div className="flex-1 ml-64">
         <main className="p-6 lg:p-8">{children}</main>
       </div>
+      {/* Cookie 同意弹窗 */}
+      <CookieConsentBanner />
     </div>
   );
 }
