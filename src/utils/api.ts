@@ -87,6 +87,15 @@ async function request<T>(
       headers,
     });
 
+    // 检查响应类型，防止非 JSON 响应导致解析错误
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      const text = await response.text().catch(() => "");
+      throw new Error(
+        `服务器返回了非 JSON 响应 (${response.status}): ${text.slice(0, 200)}`
+      );
+    }
+
     const data = await response.json();
 
     // 401 未授权：清除 Token 并触发全局处理器
@@ -430,6 +439,16 @@ async function classroomRequest<T>(
 
   try {
     const response = await fetch(url, { ...options, headers });
+
+    // 检查响应类型
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      const text = await response.text().catch(() => "");
+      throw new Error(
+        `服务器返回了非 JSON 响应 (${response.status}): ${text.slice(0, 200)}`
+      );
+    }
+
     const data = await response.json();
 
     if (response.status === 401) {
