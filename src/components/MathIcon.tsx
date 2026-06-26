@@ -826,6 +826,26 @@ export function Copy({ className, size = defaultSize }: IconProps) {
   );
 }
 
+// 显示器图标 - 用于教室端
+export function Monitor({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="2" y="3" width="20" height="14" rx="2" />
+      <line x1="8" y1="21" x2="16" y2="21" />
+      <line x1="12" y1="17" x2="12" y2="21" />
+    </svg>
+  );
+}
+
+// 右箭头 - 简化版
+export function ChevronRight({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <polyline points="9 18 15 12 9 6" />
+    </svg>
+  );
+}
+
 // 导出图标对象，方便批量使用
 export const MathIcons = {
   Sunrise, Sun, Moon, Calendar, Clock, User, MapPin, Search,
@@ -838,6 +858,7 @@ export const MathIcons = {
   Image, Building, Phone,
   Package, GitBranch, Download, RotateCcw, Code, Shield, Box, Copy,
   Cpu, HardDrive, Network, Activity, Thermometer,
+  Monitor, ChevronRight,
 };
 
 export default MathIcons;

@@ -18,6 +18,7 @@ import Classrooms from "@/pages/admin/Classrooms";
 import ClassroomLogin from "@/pages/classroom/Login";
 import ClassroomRegister from "@/pages/classroom/Register";
 import ClassroomHome from "@/pages/classroom/Home";
+import ClassroomInvigilation from "@/pages/classroom/Invigilation";
 import Setup from "@/pages/Setup";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ClassroomProtectedRoute from "@/components/ClassroomProtectedRoute";
@@ -158,6 +159,16 @@ export default function App() {
           element={
             <ClassroomProtectedRoute>
               <ClassroomHome />
+            </ClassroomProtectedRoute>
+          }
+        />
+
+        {/* 教室端监考模式(受保护) */}
+        <Route
+          path="/classroom/invigilation"
+          element={
+            <ClassroomProtectedRoute>
+              <ClassroomInvigilation />
             </ClassroomProtectedRoute>
           }
         />

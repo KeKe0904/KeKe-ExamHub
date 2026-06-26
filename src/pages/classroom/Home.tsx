@@ -11,20 +11,21 @@ import {
   CalendarX,
   AlertCircle,
   RotateCcw,
-  Search,
-  X,
-  CalendarCheck,
   TrendingUp,
+  CalendarCheck,
+  Monitor,
+  ChevronRight,
 } from "@/components/MathIcon";
 import { useClassroomAuthStore } from "@/store/classroomAuthStore";
 import { classroomApi } from "@/utils/api";
 import {
   calculateExamStatus,
+  calculateCountdown,
   calculateStats,
   formatDateTime,
   formatDuration,
 } from "@/utils/date";
-import type { Exam, ExamStats, ExamStatus } from "@/types";
+import type { Exam, ExamStats } from "@/types";
 
 export default function ClassroomHome() {
   const navigate = useNavigate();
@@ -34,8 +35,6 @@ export default function ClassroomHome() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<ExamStatus | "all">("all");
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -56,8 +55,8 @@ export default function ClassroomHome() {
 
   useEffect(() => {
     fetchExams();
-    const timer = setInterval(fetchExams, 30 * 1000);
-    return () => clearInterval(timer);
+    const t = setInterval(fetchExams, 30 * 1000);
+    return () => clearInterval(t);
   }, [fetchExams]);
 
   const handleLogout = () => {
@@ -73,71 +72,69 @@ export default function ClassroomHome() {
     weekday: "long",
   });
 
-  // 附加状态 + 统计
   const examsWithStatus = useMemo(
     () => exams.map((e) => ({ ...e, status: calculateExamStatus(e) })),
     [exams]
   );
   const stats: ExamStats = useMemo(() => calculateStats(exams), [exams]);
 
-  // 搜索筛选
-  const filteredExams = useMemo(() => {
-    return examsWithStatus
-      .filter((exam) => {
-        if (statusFilter !== "all" && exam.status !== statusFilter) return false;
-        if (searchQuery) {
-          const q = searchQuery.toLowerCase();
-          return (
-            exam.subject.toLowerCase().includes(q) ||
-            exam.location.toLowerCase().includes(q) ||
-            exam.invigilator.toLowerCase().includes(q)
-          );
-        }
-        return true;
-      })
-      .sort((a, b) => {
-        const order = { upcoming: 0, ongoing: 1, ended: 2 };
-        if (order[a.status] !== order[b.status]) return order[a.status] - order[b.status];
-        return new Date(a.examDate).getTime() - new Date(b.examDate).getTime();
-      });
-  }, [examsWithStatus, searchQuery, statusFilter]);
+  // 排序：进行中 > 即将开始 > 已结束
+  const sorted = useMemo(() => {
+    return [...examsWithStatus].sort((a, b) => {
+      const o = { ongoing: 0, upcoming: 1, ended: 2 } as const;
+      if (o[a.status] !== o[b.status]) return o[a.status] - o[b.status];
+      return new Date(a.examDate).getTime() - new Date(b.examDate).getTime();
+    });
+  }, [examsWithStatus]);
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
       {/* 顶部栏 */}
-      <header className="border-b border-zinc-800 px-6 lg:px-10 py-4 flex items-center justify-between shrink-0">
+      <header className="border-b border-zinc-800 px-6 lg:px-12 py-5 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg bg-white flex items-center justify-center">
-            <Building className="w-5 h-5 lg:w-6 lg:h-6 text-black" />
+          <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center">
+            <Building className="w-6 h-6 text-black" />
           </div>
           <div>
-            <h1 className="font-serif text-lg lg:text-2xl font-bold leading-tight">
+            <h1 className="font-serif text-xl lg:text-3xl font-bold leading-tight">
               {info?.buildingName || "教学楼"}
             </h1>
-            <p className="text-xs lg:text-sm text-zinc-400">
-              {info?.roomNumber || ""} 教室 · 监考模式
+            <p className="text-sm lg:text-base text-zinc-400">
+              {info?.roomNumber || ""} 教室 · 考试信息
             </p>
           </div>
         </div>
 
-        {/* 时间 */}
-        <div className="text-center hidden md:block">
-          <div className="font-serif text-xl lg:text-3xl font-bold tabular-nums tracking-wider">
-            {timeStr}
-          </div>
-          <div className="text-xs text-zinc-500 mt-0.5">{dateStr}</div>
-        </div>
+        <div className="flex items-center gap-4">
+          {/* 监考模式入口 */}
+          <button
+            onClick={() => navigate("/classroom/invigilation")}
+            className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-700 text-sm text-zinc-300 hover:border-white hover:text-white transition-colors"
+          >
+            <Monitor className="w-4 h-4" />
+            监考模式
+            <ChevronRight className="w-4 h-4" />
+          </button>
 
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors"
-        >
-          <LogOut className="w-4 h-4" />
-          <span className="hidden sm:inline">退出</span>
-        </button>
+          {/* 时间 */}
+          <div className="text-right hidden lg:block">
+            <div className="font-serif text-2xl font-bold tabular-nums tracking-wider">
+              {timeStr}
+            </div>
+            <div className="text-xs text-zinc-500">{dateStr}</div>
+          </div>
+
+          <button
+            onClick={handleLogout}
+            className="p-3 rounded-lg text-zinc-500 hover:text-white hover:bg-zinc-900 transition-colors"
+            title="退出"
+          >
+            <LogOut className="w-5 h-5" />
+          </button>
+        </div>
       </header>
 
-      {/* 主内容区 */}
+      {/* 内容 */}
       <main className="flex-1 overflow-auto">
         {loading ? (
           <LoadingState />
@@ -145,37 +142,15 @@ export default function ClassroomHome() {
           <ErrorState error={error} onRetry={fetchExams} />
         ) : (
           <>
-            {/* 统计横幅 */}
-            <StatsBanner stats={stats} />
+            <HeroBanner stats={stats} />
 
-            {/* 搜索筛选 + 卡片网格 */}
-            <section className="px-6 lg:px-10 py-12">
-              <div className="flex items-end justify-between mb-6">
-                <div>
-                  <h2 className="font-serif text-2xl sm:text-3xl font-bold text-white mb-1">
-                    本教室考试安排
-                  </h2>
-                  <p className="text-sm text-zinc-400">
-                    共 {filteredExams.length} 场考试
-                  </p>
-                </div>
-              </div>
-
-              <FilterBar
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-                statusFilter={statusFilter}
-                onStatusChange={setStatusFilter}
-              />
-
-              {filteredExams.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredExams.map((exam) => (
+            <section className="px-6 lg:px-12 py-10">
+              {sorted.length > 0 ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+                  {sorted.map((exam) => (
                     <ExamCard key={exam.id} exam={exam} />
                   ))}
                 </div>
-              ) : exams.length > 0 ? (
-                <NoMatchState />
               ) : (
                 <EmptyState />
               )}
@@ -184,8 +159,8 @@ export default function ClassroomHome() {
         )}
       </main>
 
-      {/* 底部状态栏 */}
-      <footer className="border-t border-zinc-800 px-6 lg:px-10 py-3 flex items-center justify-between text-xs text-zinc-600 shrink-0">
+      {/* 底部 */}
+      <footer className="border-t border-zinc-800 px-6 lg:px-12 py-4 flex items-center justify-between text-sm text-zinc-600 shrink-0">
         <span>KeKe ExamHub · 教室端</span>
         <span>
           共 {stats.total} 场 · 进行中 {stats.ongoing} · 即将 {stats.upcoming}
@@ -195,207 +170,187 @@ export default function ClassroomHome() {
   );
 }
 
-// ==================== 统计横幅 ====================
+// ==================== Hero 横幅 ====================
 
-function StatsBanner({ stats }: { stats: ExamStats }) {
+function HeroBanner({ stats }: { stats: ExamStats }) {
   return (
-    <section className="relative overflow-hidden border-b border-zinc-800 bg-zinc-950">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full border border-zinc-800" />
-        <div className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full border border-zinc-800" />
-      </div>
-      <div className="relative px-6 lg:px-10 py-12 lg:py-16 text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-black border border-zinc-700 mb-6">
-          <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-          <span className="text-sm font-medium text-zinc-300">数字化考试信息管理平台</span>
+    <div className="border-b border-zinc-800 bg-zinc-950 px-6 lg:px-12 py-10 lg:py-14">
+      <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+        <div>
+          <h2 className="font-serif text-3xl lg:text-4xl font-bold text-white mb-2">
+            考试信息
+          </h2>
+          <p className="text-base lg:text-lg text-zinc-400">
+            实时查看本教室考试安排
+          </p>
         </div>
-        <h2 className="font-serif text-3xl lg:text-4xl font-bold text-white mb-3">
-          监考模式
-        </h2>
-        <p className="text-sm text-zinc-500 mb-10 max-w-xl mx-auto">
-          实时掌握本教室考试动态，清晰了解每场考试的时间与安排
-        </p>
-        <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto">
-          <StatCard icon={<CalendarCheck className="w-5 h-5" />} value={stats.total} label="考试总数" />
-          <StatCard icon={<Clock className="w-5 h-5" />} value={stats.upcoming} label="即将开始" />
-          <StatCard icon={<TrendingUp className="w-5 h-5" />} value={stats.ongoing} label="进行中" />
+        <div className="flex items-center gap-6 lg:gap-10">
+          <StatItem icon={<CalendarCheck className="w-6 h-6" />} value={stats.total} label="考试总数" />
+          <StatItem icon={<Clock className="w-6 h-6" />} value={stats.upcoming} label="即将开始" />
+          <StatItem icon={<TrendingUp className="w-6 h-6" />} value={stats.ongoing} label="进行中" highlight />
         </div>
       </div>
-    </section>
+    </div>
   );
 }
 
-function StatCard({
+function StatItem({
   icon,
   value,
   label,
+  highlight,
 }: {
   icon: React.ReactNode;
   value: number;
   label: string;
+  highlight?: boolean;
 }) {
   return (
-    <div className="bg-black rounded-lg p-4 border border-zinc-800">
-      <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-2 bg-zinc-900 text-white border border-zinc-700">
+    <div className="text-center">
+      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 border ${
+        highlight ? "bg-white text-black border-white" : "bg-zinc-900 text-zinc-300 border-zinc-700"
+      }`}>
         {icon}
       </div>
-      <div className="text-2xl font-bold font-serif text-white">{value}</div>
-      <div className="text-xs text-zinc-500 mt-0.5">{label}</div>
-    </div>
-  );
-}
-
-// ==================== 筛选栏 ====================
-
-const statusOptions: { value: ExamStatus | "all"; label: string }[] = [
-  { value: "all", label: "全部" },
-  { value: "upcoming", label: "即将开始" },
-  { value: "ongoing", label: "进行中" },
-  { value: "ended", label: "已结束" },
-];
-
-function FilterBar({
-  searchQuery,
-  onSearchChange,
-  statusFilter,
-  onStatusChange,
-}: {
-  searchQuery: string;
-  onSearchChange: (q: string) => void;
-  statusFilter: ExamStatus | "all";
-  onStatusChange: (s: ExamStatus | "all") => void;
-}) {
-  return (
-    <div className="bg-zinc-950 rounded-lg border border-zinc-800 p-4 mb-8">
-      <div className="flex flex-col lg:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="搜索科目、地点、监考老师..."
-            className="w-full pl-10 pr-10 py-2.5 bg-black border border-zinc-700 rounded-lg text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-white transition-colors"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => onSearchChange("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          {statusOptions.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => onStatusChange(opt.value)}
-              className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all border ${
-                statusFilter === opt.value
-                  ? "bg-white text-black border-white"
-                  : "bg-black text-zinc-400 border-zinc-700 hover:border-zinc-500 hover:text-white"
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
+      <div className={`text-3xl lg:text-4xl font-bold font-serif tabular-nums ${
+        highlight ? "text-white" : "text-white"
+      }`}>
+        {value}
       </div>
+      <div className="text-xs lg:text-sm text-zinc-500 mt-1">{label}</div>
     </div>
   );
 }
 
-// ==================== 考试卡片 ====================
+// ==================== 大屏考试卡片 ====================
 
 function ExamCard({ exam }: { exam: Exam & { status: string } }) {
+  const [countdown, setCountdown] = useState(calculateCountdown(exam));
   const isOngoing = exam.status === "ongoing";
   const isUpcoming = exam.status === "upcoming";
+  const isEnding = isOngoing && countdown.hours === 0 && countdown.minutes <= 15 && !countdown.isFinished;
+
+  useEffect(() => {
+    const t = setInterval(() => setCountdown(calculateCountdown(exam)), 1000);
+    return () => clearInterval(t);
+  }, [exam]);
 
   return (
     <div
-      className={`group block bg-zinc-950 rounded-lg border p-6 transition-all duration-300 hover:border-zinc-600 ${
+      className={`rounded-2xl border-2 p-6 lg:p-8 transition-all ${
         isOngoing
-          ? "border-white/30"
+          ? isEnding
+            ? "border-red-500/50 bg-red-950/10 shadow-lg shadow-red-500/5"
+            : "border-white/30 bg-zinc-950/80"
           : isUpcoming
-          ? "border-zinc-700"
-          : "border-zinc-800 opacity-60"
+          ? "border-zinc-700 bg-zinc-950/50"
+          : "border-zinc-800 bg-transparent opacity-50"
       }`}
     >
-      {/* 状态标签 */}
-      <div className="flex items-center justify-between mb-4">
+      {/* 状态 + 科目 */}
+      <div className="flex items-center gap-3 mb-4">
         <span
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold uppercase tracking-wider ${
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold uppercase tracking-wider ${
             isOngoing
-              ? "bg-white text-black"
+              ? isEnding
+                ? "bg-red-600 text-white animate-pulse"
+                : "bg-white text-black"
               : isUpcoming
               ? "bg-zinc-800 text-zinc-200"
               : "bg-transparent text-zinc-600 border border-zinc-800"
           }`}
         >
-          {isOngoing && <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />}
-          {isOngoing ? "进行中" : isUpcoming ? "即将开始" : "已结束"}
+          {isOngoing && <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />}
+          {isOngoing ? (isEnding ? "即将结束" : "进行中") : isUpcoming ? "即将开始" : "已结束"}
         </span>
       </div>
 
-      {/* 科目名称 */}
-      <h3 className="font-serif text-xl font-bold text-white mb-4">
+      <h3 className="font-serif text-2xl lg:text-3xl font-bold text-white mb-6">
         {exam.subject}
       </h3>
 
-      {/* 考试信息 */}
-      <div className="space-y-2.5 text-sm">
-        <Row icon={<Calendar className="w-4 h-4" />}>
+      {/* 信息行 */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <InfoRow icon={<Calendar className="w-5 h-5" />}>
           {formatDateTime(exam.examDate)}
-        </Row>
-        <Row icon={<Clock className="w-4 h-4" />}>
+        </InfoRow>
+        <InfoRow icon={<Clock className="w-5 h-5" />}>
           {formatDuration(exam.duration)}
-        </Row>
-        <Row icon={<MapPin className="w-4 h-4" />}>{exam.location}</Row>
-        <Row icon={<User className="w-4 h-4" />}>{exam.invigilator}</Row>
+        </InfoRow>
+        <InfoRow icon={<MapPin className="w-5 h-5" />}>
+          {exam.location}
+        </InfoRow>
+        <InfoRow icon={<User className="w-5 h-5" />}>
+          {exam.invigilator}
+        </InfoRow>
       </div>
 
-      {exam.notes && (
-        <div className="mt-4 pt-4 border-t border-zinc-800">
-          <p className="text-xs text-zinc-500 whitespace-pre-wrap line-clamp-2">
-            {exam.notes}
+      {/* 倒计时 */}
+      {!countdown.isFinished && (
+        <div className="pt-6 border-t border-zinc-800">
+          <p className="text-xs text-zinc-500 uppercase tracking-wider mb-3">
+            {isOngoing ? "剩余时间" : "距开考"}
           </p>
+          <div className="flex items-center gap-1.5 font-serif tabular-nums">
+            {countdown.days > 0 && (
+              <>
+                <CountBlock v={countdown.days} l="天" />
+                <span className="text-xl text-zinc-700">:</span>
+              </>
+            )}
+            <CountBlock v={String(countdown.hours).padStart(2, "0")} l="时" warn={isEnding} />
+            <span className="text-xl text-zinc-700">:</span>
+            <CountBlock v={String(countdown.minutes).padStart(2, "0")} l="分" warn={isEnding} />
+            <span className="text-xl text-zinc-700">:</span>
+            <CountBlock v={String(countdown.seconds).padStart(2, "0")} l="秒" warn={isEnding} />
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-function Row({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
+function CountBlock({ v, l, warn }: { v: number | string; l: string; warn?: boolean }) {
   return (
-    <div className="flex items-center gap-2 text-zinc-400">
-      <span className="text-zinc-600 shrink-0">{icon}</span>
-      <span>{children}</span>
+    <div className="text-center min-w-[2.5rem]">
+      <div className={`text-2xl lg:text-3xl font-bold ${warn ? "text-red-400" : "text-white"}`}>
+        {v}
+      </div>
+      <div className={`text-[10px] ${warn ? "text-red-400/60" : "text-zinc-600"}`}>{l}</div>
     </div>
   );
 }
 
-// ==================== 状态页 ====================
+function InfoRow({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-2 text-sm lg:text-base text-zinc-300">
+      <span className="text-zinc-500 shrink-0">{icon}</span>
+      <span className="truncate">{children}</span>
+    </div>
+  );
+}
+
+// ==================== 状态 ====================
 
 function LoadingState() {
   return (
-    <div className="flex items-center justify-center h-64">
-      <Loader2 className="w-8 h-8 text-zinc-500 animate-spin" />
-      <span className="ml-3 text-zinc-400">加载考试信息...</span>
+    <div className="flex items-center justify-center py-40">
+      <Loader2 className="w-10 h-10 text-zinc-500 animate-spin" />
+      <span className="ml-3 text-zinc-400 text-lg">加载考试信息...</span>
     </div>
   );
 }
 
 function ErrorState({ error, onRetry }: { error: string; onRetry: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center h-64">
-      <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-      <p className="text-lg text-red-400 mb-2">{error}</p>
+    <div className="flex flex-col items-center justify-center py-40">
+      <AlertCircle className="w-14 h-14 text-red-500 mb-4" />
+      <p className="text-xl text-red-400 mb-3">{error}</p>
       <button
         onClick={onRetry}
-        className="mt-2 inline-flex items-center gap-2 px-5 py-2 bg-white text-black rounded-lg text-sm font-medium hover:bg-zinc-200 transition-colors"
+        className="inline-flex items-center gap-2 px-6 py-3 bg-white text-black rounded-xl text-base font-medium hover:bg-zinc-200 transition-colors"
       >
-        <RotateCcw className="w-4 h-4" />
+        <RotateCcw className="w-5 h-5" />
         重试
       </button>
     </div>
@@ -404,24 +359,12 @@ function ErrorState({ error, onRetry }: { error: string; onRetry: () => void }) 
 
 function EmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-center">
-      <div className="w-20 h-20 rounded-full bg-zinc-950 border border-zinc-800 flex items-center justify-center mb-4">
-        <CalendarX className="w-10 h-10 text-zinc-600" />
+    <div className="flex flex-col items-center justify-center py-40">
+      <div className="w-24 h-24 rounded-full bg-zinc-950 border border-zinc-800 flex items-center justify-center mb-6">
+        <CalendarX className="w-12 h-12 text-zinc-600" />
       </div>
-      <h3 className="text-lg font-medium text-zinc-400 mb-2">暂无考试安排</h3>
-      <p className="text-sm text-zinc-600">本教室当前没有分配的考试</p>
-    </div>
-  );
-}
-
-function NoMatchState() {
-  return (
-    <div className="flex flex-col items-center justify-center py-20 text-center">
-      <div className="w-20 h-20 rounded-full bg-zinc-950 border border-zinc-800 flex items-center justify-center mb-4">
-        <Search className="w-10 h-10 text-zinc-600" />
-      </div>
-      <h3 className="text-lg font-medium text-zinc-400 mb-2">无匹配考试</h3>
-      <p className="text-sm text-zinc-600">试试调整搜索条件或筛选器</p>
+      <h3 className="text-2xl font-serif font-bold text-zinc-300 mb-2">暂无考试安排</h3>
+      <p className="text-lg text-zinc-500">本教室当前没有分配的考试</p>
     </div>
   );
 }
