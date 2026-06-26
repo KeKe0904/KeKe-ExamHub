@@ -1,19 +1,19 @@
 #!/bin/bash
-# ============================================================
-# KeKe-ExamHub 一键部署脚本
+# ============================================================================
+# KeKe-ExamHub 一键部署脚本（生产级）
 # GitHub: https://github.com/KeKe0904/KeKe-ExamHub
-#
-# 功能:
-#   1. 检测运行环境 (Node.js / npm / PM2 / Nginx / MariaDB / Git)
-#   2. 检查代码是否为 GitHub 最新版本，非最新则自动拉取
-#   3. 安装依赖、构建前后端、初始化数据库
-#   4. 配置 Nginx 反向代理 + PM2 进程守护
+# ----------------------------------------------------------------------------
+# 本脚本负责: 环境安装 + 版本检查 + 代码构建 + 服务编排 (Nginx + PM2)
+# 不做数据库初始化、不建管理员账号 —— 这些由用户手动建库 + /setup 安装向导页面完成
 #
 # 用法:
 #   chmod +x install.sh && sudo ./install.sh
-# ============================================================
+#
+# 可重复执行(幂等), 已安装的组件会自动跳过
+# ============================================================================
 
 set -euo pipefail
+export DEBIAN_FRONTEND=noninteractive
 
 # ==================== 颜色定义 ====================
 RED='\033[0;31m'
@@ -24,17 +24,21 @@ CYAN='\033[0;36m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-# ==================== 配置变量 ====================
-PROJECT_DIR="${PROJECT_DIR:-/opt/examhub}"
+# ==================== 路径变量 ====================
+# 项目根目录 = install.sh 所在目录（可在任意位置执行）
+PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$PROJECT_DIR"
+
+# 后端目录
+API_DIR="$PROJECT_DIR/api"
+
+# 应用名（供 PM2 / Nginx 使用）
+APP_NAME="examhub-api"
+
+# GitHub 仓库（版本检查用）
 GITHUB_REPO="https://github.com/KeKe0904/KeKe-ExamHub.git"
 GITHUB_BRANCH="main"
 REQUIRED_NODE_MAJOR="18"
-API_PORT="${API_PORT:-3000}"
-DOMAIN="${DOMAIN:-_}"           # _ 表示匹配所有域名
-NGINX_CONF="/etc/nginx/sites-available/examhub"
-NGINX_ENABLED="/etc/nginx/sites-enabled/examhub"
-ENV_FILE="${PROJECT_DIR}/api/.env"
-FRONTEND_ENV_FILE="${PROJECT_DIR}/.env"
 
 # ==================== 日志函数 ====================
 log_info()    { echo -e "${BLUE}[INFO]${NC}  $1"; }
@@ -44,216 +48,175 @@ log_error()   { echo -e "${RED}[ERROR]${NC} $1"; }
 log_step()    { echo -e "\n${CYAN}${BOLD}>>> $1${NC}"; }
 
 # ==================== 工具函数 ====================
-check_root() {
-    if [[ "$(id -u)" -ne 0 ]]; then
-        log_error "请使用 root 权限运行此脚本: sudo ./install.sh"
-        exit 1
-    fi
-}
+has() { command -v "$1" >/dev/null 2>&1; }
 
 get_version_major() {
     echo "$1" | grep -oP '^\d+' || echo "0"
 }
 
-version_gte() {
-    # 返回 0 表示 $1 >= $2
-    printf '%s\n%s\n' "$2" "$1" | sort -V -C 2>/dev/null
+# ==================== 爱心 Banner ====================
+# 用 ♥ 拼出 "KeKe ExamHub" 像素艺术字，逐行动画渲染
+print_banner() {
+    local HR="${RED}♥${NC}"
+    local SP=" "
+    local GAP="   "
+
+    local lines=(
+        "${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR}${HR}${SP}${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR}${HR}${GAP}${HR}${HR}${HR}${HR}${HR}${SP}${HR}   ${HR} ${SP}  ${HR}  ${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR} "
+        "${HR}  ${HR}  ${SP}${HR}    ${SP}${HR}  ${HR}  ${SP}${HR}    ${GAP}${HR}    ${SP} ${HR} ${HR} ${SP} ${HR} ${HR} ${SP}${HR}${HR} ${HR}${HR}${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR}"
+        "${HR} ${HR}   ${SP}${HR}    ${SP}${HR} ${HR}   ${SP}${HR}    ${GAP}${HR}    ${SP}  ${HR}  ${SP}${HR}   ${HR}${SP}${HR} ${HR} ${HR}${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR}"
+        "${HR}${HR}    ${SP}${HR}${HR}${HR}${HR} ${SP}${HR}${HR}    ${SP}${HR}${HR}${HR}${HR} ${GAP}${HR}${HR}${HR}${HR} ${SP} ${HR} ${HR} ${SP}${HR}   ${HR}${SP}${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR}${HR}${SP}${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR} "
+        "${HR} ${HR}   ${SP}${HR}    ${SP}${HR} ${HR}   ${SP}${HR}    ${GAP}${HR}    ${SP}  ${HR}  ${SP}${HR}   ${HR}${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR}"
+        "${HR}  ${HR}  ${SP}${HR}    ${SP}${HR}  ${HR}  ${SP}${HR}    ${GAP}${HR}    ${SP} ${HR} ${HR} ${SP}${HR}   ${HR}${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR}"
+        "${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR}${HR}${SP}${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR}${HR}${GAP}${HR}${HR}${HR}${HR}${HR}${SP}${HR}   ${HR} ${SP}${HR}   ${HR}${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP} ${HR}${HR}${HR} ${SP}${HR}${HR}${HR}${HR}"
+    )
+
+    echo ""
+    for line in "${lines[@]}"; do
+        echo -e "          $line"
+        sleep 0.06
+    done
+    echo ""
+    echo -e "          ${CYAN}${BOLD}一键部署脚本${NC}  |  ${CYAN}https://github.com/KeKe0904/KeKe-ExamHub${NC}"
+    echo ""
 }
 
-# ==================== 步骤1: 基础环境检测 ====================
-check_environment() {
-    log_step "步骤1/6: 检测运行环境"
-    local all_ok=true
+# ==================== 步骤0: 权限检查 ====================
+check_privilege() {
+    if [ "$(id -u)" -ne 0 ]; then
+        log_warn "未以 root 运行，跳过环境安装（仅构建 + 服务配置）"
+        SKIP_INSTALL=1
+    else
+        SKIP_INSTALL=0
+    fi
+}
 
-    # --- Node.js ---
-    if command -v node &>/dev/null; then
-        local node_ver
-        node_ver=$(node -v | sed 's/^v//')
-        local node_major
-        node_major=$(get_version_major "$node_ver")
-        if [[ "$node_major" -ge "$REQUIRED_NODE_MAJOR" ]]; then
-            log_success "Node.js v${node_ver} (>= v${REQUIRED_NODE_MAJOR}.x)"
+# ==================== 步骤1: 环境检测与安装 ====================
+install_system_packages() {
+    log_info "更新 apt 索引..."
+    # 防止 apt lock 冲突
+    while fuser /var/lib/dpkg/lock-frontend &>/dev/null; do
+        log_warn "等待 apt 锁释放..."
+        sleep 3
+    done
+    apt-get update -qq
+    log_info "安装基础包: ca-certificates curl gnupg git nginx mariadb-server rsync"
+    apt-get install -y -qq ca-certificates curl gnupg git nginx mariadb-server rsync
+}
+
+install_node() {
+    log_info "安装 Node.js 22 LTS (NodeSource)..."
+    curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+    apt-get install -y -qq nodejs
+}
+
+install_pm2() {
+    log_info "安装 PM2..."
+    npm install -g pm2
+}
+
+check_and_install_environment() {
+    log_step "步骤1/6: 检测运行环境"
+
+    if [ "$SKIP_INSTALL" -eq 0 ]; then
+        # --- apt 基础包 ---
+        if ! has git || ! has nginx || ! has mysql || ! has systemctl; then
+            install_system_packages
         else
-            log_error "Node.js v${node_ver} 版本过低，需要 >= v${REQUIRED_NODE_MAJOR}.x"
-            all_ok=false
+            log_info "基础包 (git/nginx/mariadb) 已安装"
+        fi
+
+        # --- Node.js >= 18 ---
+        local NODE_OK=0
+        if has node; then
+            local NODE_MAJOR
+            NODE_MAJOR=$(node -v | cut -dv -f2 | cut -d. -f1)
+            if [ "$NODE_MAJOR" -ge "$REQUIRED_NODE_MAJOR" ]; then
+                NODE_OK=1
+            fi
+        fi
+        if [ "$NODE_OK" -eq 0 ]; then
+            install_node
+        else
+            log_info "Node.js 已安装: $(node -v)"
+        fi
+
+        # --- 启动并设置开机自启 ---
+        systemctl enable --now mariadb 2>/dev/null || true
+        systemctl enable --now nginx   2>/dev/null || true
+
+        # --- PM2 ---
+        if ! has pm2; then
+            install_pm2
+        else
+            log_info "PM2 已安装: $(pm2 --version 2>/dev/null || echo '?')"
         fi
     else
-        log_error "Node.js 未安装"
-        all_ok=false
+        # --- 非 root: 仅检测，不安装 ---
+        for cmd in node npm mysql nginx pm2; do
+            if has "$cmd"; then
+                log_info "已检测到 $cmd"
+            else
+                log_warn "未检测到 $cmd（非 root 模式，不自动安装）"
+            fi
+        done
     fi
 
-    # --- npm ---
-    if command -v npm &>/dev/null; then
-        local npm_ver
-        npm_ver=$(npm -v)
-        log_success "npm v${npm_ver}"
-    else
-        log_error "npm 未安装"
-        all_ok=false
-    fi
-
-    # --- PM2 ---
-    if command -v pm2 &>/dev/null; then
-        local pm2_ver
-        pm2_ver=$(pm2 -v)
-        log_success "PM2 v${pm2_ver}"
-    else
-        log_warn "PM2 未安装（将自动安装）"
-    fi
-
-    # --- Nginx ---
-    if command -v nginx &>/dev/null; then
-        local nginx_ver
-        nginx_ver=$(nginx -v 2>&1 | grep -oP 'nginx/\K[\d.]+')
-        log_success "Nginx v${nginx_ver}"
-    else
-        log_warn "Nginx 未安装（将自动安装）"
-    fi
-
-    # --- MariaDB / MySQL ---
-    if command -v mariadb &>/dev/null || command -v mysql &>/dev/null; then
-        local db_cmd="mariadb"
-        command -v mariadb &>/dev/null || db_cmd="mysql"
-        local db_ver
-        db_ver=$($db_cmd --version 2>&1 | grep -oP '\d+\.\d+\.\d+' | head -1)
-        log_success "MariaDB/MySQL v${db_ver}"
-    else
-        log_warn "MariaDB/MySQL 未安装（将自动安装）"
-    fi
-
-    # --- Git ---
-    if command -v git &>/dev/null; then
-        local git_ver
-        git_ver=$(git --version | grep -oP '\d+\.\d+\.\d+')
-        log_success "Git v${git_ver}"
-    else
-        log_error "Git 未安装"
-        all_ok=false
-    fi
-
-    # --- curl ---
-    if ! command -v curl &>/dev/null; then
-        log_warn "curl 未安装（将自动安装）"
-    fi
-
-    if [[ "$all_ok" = false ]]; then
-        log_error "关键依赖缺失，请先安装后再运行脚本"
+    # --- 最终校验: node 必须 >= 18 ---
+    if ! has node; then
+        log_error "Node.js 未安装，无法继续。请以 root 运行本脚本或手动安装 Node.js 18+"
         exit 1
     fi
-}
-
-# ==================== 步骤2: 安装缺失依赖 ====================
-install_dependencies() {
-    log_step "步骤2/6: 安装缺失依赖"
-
-    # 检测包管理器
-    local pkg_manager=""
-    if command -v apt-get &>/dev/null; then
-        pkg_manager="apt"
-    elif command -v yum &>/dev/null; then
-        pkg_manager="yum"
-    elif command -v dnf &>/dev/null; then
-        pkg_manager="dnf"
+    local NODE_MAJOR
+    NODE_MAJOR=$(node -v | cut -dv -f2 | cut -d. -f1)
+    if [ "$NODE_MAJOR" -lt "$REQUIRED_NODE_MAJOR" ]; then
+        log_error "Node.js 版本需 >= ${REQUIRED_NODE_MAJOR}，当前 $(node -v)"
+        exit 1
     fi
 
-    if [[ -z "$pkg_manager" ]]; then
-        log_warn "未检测到已知的包管理器，跳过系统依赖安装"
-        return
-    fi
-
-    log_info "检测到包管理器: ${pkg_manager}"
-
-    local install_cmd=""
-    case "$pkg_manager" in
-        apt)
-            # 防止 apt lock 冲突
-            while fuser /var/lib/dpkg/lock-frontend &>/dev/null; do
-                log_warn "等待 apt 锁释放..."
-                sleep 3
-            done
-            export DEBIAN_FRONTEND=noninteractive
-            apt-get update -qq
-            install_cmd="apt-get install -y -qq"
-            ;;
-        yum) install_cmd="yum install -y -q" ;;
-        dnf) install_cmd="dnf install -y -q" ;;
-    esac
-
-    # 安装缺失的包
-    local missing_packages=()
-
-    command -v curl &>/dev/null  || missing_packages+=("curl")
-    command -v nginx &>/dev/null || missing_packages+=("nginx")
-
-    if ! command -v mariadb &>/dev/null && ! command -v mysql &>/dev/null; then
-        case "$pkg_manager" in
-            apt) missing_packages+=("mariadb-server" "mariadb-client") ;;
-            yum|dnf) missing_packages+=("mariadb-server") ;;
-        esac
-    fi
-
-    if [[ ${#missing_packages[@]} -gt 0 ]]; then
-        log_info "正在安装: ${missing_packages[*]}"
-        $install_cmd "${missing_packages[@]}"
-        log_success "系统依赖安装完成"
-    else
-        log_success "所有系统依赖已就绪"
-    fi
-
-    # --- 安装 PM2 ---
-    if ! command -v pm2 &>/dev/null; then
-        log_info "正在安装 PM2..."
-        npm install -g pm2
-        log_success "PM2 安装完成"
-    fi
-
-    # --- 启动服务 ---
-    if command -v systemctl &>/dev/null; then
-        # MariaDB
-        if systemctl is-enabled mariadb &>/dev/null 2>&1 || systemctl is-enabled mysql &>/dev/null 2>&1; then
-            systemctl start mariadb 2>/dev/null || systemctl start mysql 2>/dev/null || true
-            log_success "MariaDB 已启动"
-        fi
-        # Nginx
-        systemctl enable nginx 2>/dev/null || true
-        systemctl start nginx 2>/dev/null || true
+    log_success "环境就绪: Node $(node -v) / npm $(npm -v)"
+    if [ "$SKIP_INSTALL" -eq 0 ]; then
+        log_info "服务状态: mariadb=$(systemctl is-active mariadb 2>/dev/null || echo '?') nginx=$(systemctl is-active nginx 2>/dev/null || echo '?')"
     fi
 }
 
-# ==================== 步骤3: 代码拉取 & 版本检查 ====================
+# ==================== 步骤2: 版本检查 & 代码同步 ====================
 sync_code() {
-    log_step "步骤3/6: 代码同步（版本检查 + 自动更新）"
+    log_step "步骤2/6: 代码同步（版本检查 + 自动更新）"
 
     local need_build=false
 
-    if [[ -d "${PROJECT_DIR}/.git" ]]; then
+    if [ -d "${PROJECT_DIR}/.git" ]; then
         # --- 已有仓库：检查是否为最新版本 ---
         log_info "检测到已有仓库，正在检查更新..."
-        cd "${PROJECT_DIR}"
 
-        # 保存当前版本 hash
         local local_hash
         local_hash=$(git rev-parse HEAD 2>/dev/null || echo "")
 
         # 拉取远程引用（不合并）
         git fetch origin "${GITHUB_BRANCH}" --quiet 2>/dev/null || {
             log_warn "无法连接到 GitHub，跳过版本检查"
-            return
+            # 检查是否已构建过
+            if [ ! -d "${PROJECT_DIR}/dist" ] || [ ! -d "${API_DIR}/dist" ]; then
+                need_build=true
+            fi
+            [ "$need_build" = true ] && return 0 || return 1
         }
 
-        # 获取远程最新 hash
         local remote_hash
         remote_hash=$(git rev-parse "origin/${GITHUB_BRANCH}" 2>/dev/null || echo "")
 
-        if [[ -z "$remote_hash" ]]; then
+        if [ -z "$remote_hash" ]; then
             log_warn "无法获取远程版本信息，跳过更新"
-            return
+            if [ ! -d "${PROJECT_DIR}/dist" ] || [ ! -d "${API_DIR}/dist" ]; then
+                need_build=true
+            fi
+            [ "$need_build" = true ] && return 0 || return 1
         fi
 
-        if [[ "$local_hash" == "$remote_hash" ]]; then
+        if [ "$local_hash" = "$remote_hash" ]; then
             log_success "代码已是最新版本 (${local_hash:0:8})"
-            # 检查是否已构建过
-            if [[ ! -d "${PROJECT_DIR}/dist" ]] || [[ ! -d "${PROJECT_DIR}/api/dist" ]]; then
+            if [ ! -d "${PROJECT_DIR}/dist" ] || [ ! -d "${API_DIR}/dist" ]; then
                 log_warn "检测到构建产物缺失，将重新构建"
                 need_build=true
             fi
@@ -262,7 +225,7 @@ sync_code() {
             log_info "  本地: ${local_hash:0:8}"
             log_info "  远程: ${remote_hash:0:8}"
 
-            # 显示 commit log
+            # 显示变更日志
             echo ""
             git log --oneline "${local_hash}..origin/${GITHUB_BRANCH}" 2>/dev/null || true
             echo ""
@@ -284,157 +247,151 @@ sync_code() {
             fi
         fi
     else
-        # --- 首次部署：克隆仓库 ---
-        log_info "首次部署，正在克隆仓库..."
-        local parent_dir
-        parent_dir=$(dirname "${PROJECT_DIR}")
-        mkdir -p "${parent_dir}"
-
-        if [[ -d "${PROJECT_DIR}" ]]; then
-            log_warn "${PROJECT_DIR} 已存在但非 Git 仓库，将备份后重新克隆"
-            mv "${PROJECT_DIR}" "${PROJECT_DIR}.bak.$(date +%Y%m%d%H%M%S)"
-        fi
-
-        git clone --branch "${GITHUB_BRANCH}" "${GITHUB_REPO}" "${PROJECT_DIR}"
-        cd "${PROJECT_DIR}"
-        local hash
-        hash=$(git rev-parse HEAD)
-        log_success "代码克隆成功: ${hash:0:8}"
+        # --- 非 Git 仓库：提示用户 ---
+        log_warn "当前目录不是 Git 仓库，无法自动检查版本"
+        log_info "如需自动更新功能，请通过 git clone 部署："
+        log_info "  git clone ${GITHUB_REPO} ${PROJECT_DIR}"
+        log_info "继续使用当前代码构建..."
         need_build=true
     fi
 
-    # 返回是否需要构建
-    if [[ "$need_build" = true ]]; then
+    if [ "$need_build" = true ]; then
         return 0
     else
         return 1
     fi
 }
 
-# ==================== 步骤4: 环境变量配置 ====================
-setup_env() {
-    log_step "步骤4/6: 环境变量配置"
+# ==================== 步骤3: 构建后端（优先，确保 tsconfig 链路正确） ====================
+build_backend() {
+    log_step "步骤3/6: 构建后端 (api)"
 
-    # 后端 .env
-    if [[ ! -f "${ENV_FILE}" ]]; then
-        log_info "创建后端 .env 配置文件..."
-        cat > "${ENV_FILE}" << 'EOF'
-# 服务器配置
-PORT=3000
-HOST=0.0.0.0
-NODE_ENV=production
-
-# MySQL 数据库配置（请根据实际情况修改）
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=
-DB_NAME=examhub
-
-# JWT 配置（生产环境务必修改为随机字符串）
-JWT_SECRET=examhub_jwt_secret_change_me
-JWT_EXPIRES_IN=7d
-EOF
-        log_warn "请编辑 ${ENV_FILE} 修改数据库密码和 JWT 密钥！"
-    else
-        log_success "后端 .env 已存在，跳过创建"
-    fi
-
-    # 前端 .env
-    if [[ ! -f "${FRONTEND_ENV_FILE}" ]]; then
-        log_info "创建前端 .env 配置文件..."
-        cat > "${FRONTEND_ENV_FILE}" << 'EOF'
-VITE_API_BASE_URL=/api
-EOF
-        log_success "前端 .env 创建成功"
-    else
-        log_success "前端 .env 已存在，跳过创建"
-    fi
-}
-
-# ==================== 步骤5: 构建 & 部署 ====================
-build_and_deploy() {
-    log_step "步骤5/6: 构建前后端"
-
-    cd "${PROJECT_DIR}"
-
-    # --- 前端 ---
-    log_info "安装前端依赖..."
-    npm ci --production=false 2>/dev/null || npm install
-    log_success "前端依赖安装完成"
-
-    log_info "构建前端..."
-    npm run build
-    log_success "前端构建完成 -> dist/"
-
-    # --- 后端 ---
-    log_info "安装后端依赖..."
-    cd "${PROJECT_DIR}/api"
-    npm ci --production=false 2>/dev/null || npm install
+    cd "$API_DIR"
+    log_info "后端 npm install..."
+    npm install --no-audit --no-fund
     log_success "后端依赖安装完成"
 
-    log_info "构建后端..."
+    log_info "后端 npm run build..."
     npm run build
-    log_success "后端构建完成 -> api/dist/"
 
-    # --- 数据库初始化 ---
-    log_info "初始化数据库表结构..."
-    cd "${PROJECT_DIR}"
-    local db_user="${DB_USER:-root}"
-    local db_pass="${DB_PASSWORD:-}"
-
-    if [[ -n "$db_pass" ]]; then
-        mysql -u"${db_user}" -p"${db_pass}" < api/src/migrations/init.sql 2>/dev/null && \
-            log_success "数据库表结构已初始化" || log_warn "数据库初始化失败（可能已存在或连接信息有误）"
-    else
-        # 尝试 root 免密 / socket 方式
-        mysql -u"${db_user}" < api/src/migrations/init.sql 2>/dev/null && \
-            log_success "数据库表结构已初始化" || log_warn "数据库初始化失败（可能已存在或连接信息有误）"
+    if [ ! -f "$API_DIR/dist/server.js" ]; then
+        log_error "后端构建失败: dist/server.js 不存在"
+        exit 1
     fi
-
-    # --- PM2 ---
-    log_info "配置 PM2 进程守护..."
-    local pm2_app="examhub-api"
-    cd "${PROJECT_DIR}/api"
-
-    if pm2 list 2>/dev/null | grep -q "${pm2_app}"; then
-        pm2 restart "${pm2_app}"
-        log_success "PM2 已重启 ${pm2_app}"
-    else
-        pm2 start dist/server.js --name "${pm2_app}" --interpreter node
-        log_success "PM2 已启动 ${pm2_app}"
-    fi
-
-    pm2 save
-    # 设置开机自启（仅首次）
-    pm2 startup systemd 2>/dev/null || true
+    log_success "后端构建产物: $(ls -1 "$API_DIR/dist" | head -5 | tr '\n' ' ')"
 }
 
-# ==================== 步骤6: Nginx 配置 ====================
+# ==================== 步骤4: 构建前端 ====================
+build_frontend() {
+    log_step "步骤4/6: 构建前端"
+
+    cd "$PROJECT_DIR"
+    log_info "前端 npm install..."
+    npm install --no-audit --no-fund
+    log_success "前端依赖安装完成"
+
+    log_info "前端 npm run build..."
+    npm run build
+
+    if [ ! -f "$PROJECT_DIR/dist/index.html" ]; then
+        log_error "前端构建失败: dist/index.html 不存在"
+        exit 1
+    fi
+    log_success "前端构建产物: dist/index.html ($(du -h "$PROJECT_DIR/dist/index.html" | cut -f1))"
+}
+
+# ==================== 步骤5: PM2 配置 + 启动 ====================
+setup_pm2() {
+    log_step "步骤5/6: 配置 PM2"
+
+    # 创建日志目录
+    mkdir -p "$API_DIR/logs"
+
+    # 生成 ecosystem.config.cjs（覆盖写入，保证配置始终最新）
+    cat > "$PROJECT_DIR/ecosystem.config.cjs" << 'PM2_EOF'
+module.exports = {
+  apps: [{
+    name: '__APP_NAME__',
+    script: 'dist/server.js',
+    cwd: '__API_DIR__',
+    instances: 1,
+    exec_mode: 'fork',
+    env: { NODE_ENV: 'production' },
+    max_memory_restart: '300M',
+    exp_backoff_restart_delay: 100,
+    out_file: '__API_DIR__/logs/out.log',
+    error_file: '__API_DIR__/logs/error.log',
+    merge_logs: true,
+    time: true
+  }]
+};
+PM2_EOF
+
+    # 替换占位符
+    sed -i "s|__APP_NAME__|${APP_NAME}|g" "$PROJECT_DIR/ecosystem.config.cjs"
+    sed -i "s|__API_DIR__|${API_DIR}|g"  "$PROJECT_DIR/ecosystem.config.cjs"
+    log_info "已生成 ecosystem.config.cjs (cwd=${API_DIR})"
+
+    # 启动或重启
+    cd "$PROJECT_DIR"
+    if pm2 list 2>/dev/null | grep -q "${APP_NAME}"; then
+        log_warn "${APP_NAME} 已在运行，重启并刷新环境变量..."
+        pm2 restart "${APP_NAME}" --update-env
+    else
+        log_info "启动 ${APP_NAME}..."
+        pm2 start ecosystem.config.cjs
+    fi
+    pm2 save
+    log_success "PM2 配置完成"
+
+    # 开机自启（需要 root）
+    if [ "$SKIP_INSTALL" -eq 0 ]; then
+        env PATH="$PATH:/usr/bin" pm2 startup systemd -u root --hp /root 2>/dev/null || true
+        pm2 save
+        log_success "PM2 开机自启已配置"
+    fi
+}
+
+# ==================== 步骤6: Nginx 反向代理 ====================
 setup_nginx() {
-    log_step "步骤6/6: 配置 Nginx 反向代理"
+    log_step "步骤6/6: 配置 Nginx"
 
-    # 生成 Nginx 配置
-    cat > "${NGINX_CONF}" << NGINX_EOF
-# ExamHub Nginx 配置
-# 生成时间: $(date)
+    local NGINX_CONF="/etc/nginx/sites-available/examhub"
+    local NGINX_ENABLED="/etc/nginx/sites-enabled/examhub"
 
+    if [ "$SKIP_INSTALL" -eq 0 ] && [ -d /etc/nginx/sites-available ]; then
+        # Debian/Ubuntu 风格 sites-available
+        cat > "$NGINX_CONF" << NGINX_EOF
 server {
     listen 80;
-    server_name ${DOMAIN};
+    server_name _;
 
     # 前端静态文件
-    root ${PROJECT_DIR}/dist;
+    root PROJECT_DIR_PLACEHOLDER/dist;
     index index.html;
 
     # gzip 压缩
     gzip on;
-    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
-    gzip_min_length 1000;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_comp_level 6;
+    gzip_types text/plain text/css text/xml application/json application/javascript text/javascript application/xml+rss image/svg+xml;
 
-    # API 反向代理
+    # 静态资源缓存 (Vite 构建产物带 hash，可长期缓存)
+    location /assets/ {
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+        try_files \$uri =404;
+    }
+
+    # SPA 路由支持 (前端 React Router)
+    location / {
+        try_files \$uri \$uri/ /index.html;
+    }
+
+    # API 反向代理到后端 Fastify
     location /api/ {
-        proxy_pass http://127.0.0.1:${API_PORT};
+        proxy_pass http://127.0.0.1:3000;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -443,86 +400,102 @@ server {
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto \$scheme;
         proxy_cache_bypass \$http_upgrade;
-        proxy_read_timeout 120s;
-    }
-
-    # SPA 路由回退
-    location / {
-        try_files \$uri \$uri/ /index.html;
-    }
-
-    # 静态资源缓存
-    location /assets/ {
-        expires 30d;
-        add_header Cache-Control "public, immutable";
+        proxy_read_timeout 60s;
+        proxy_send_timeout 60s;
     }
 }
 NGINX_EOF
 
-    # 创建软链接
-    ln -sf "${NGINX_CONF}" "${NGINX_ENABLED}"
+        # 替换路径占位符
+        sed -i "s|PROJECT_DIR_PLACEHOLDER|${PROJECT_DIR}|g" "$NGINX_CONF"
 
-    # 移除默认配置（如果有）
-    rm -f /etc/nginx/sites-enabled/default
+        ln -sf "$NGINX_CONF" "$NGINX_ENABLED"
+        rm -f /etc/nginx/sites-enabled/default
 
-    # 测试配置并重载
-    if nginx -t 2>/dev/null; then
-        systemctl reload nginx 2>/dev/null || nginx -s reload
-        log_success "Nginx 配置已生效"
+        if nginx -t; then
+            systemctl reload nginx
+            log_success "Nginx 配置完成并已 reload"
+        else
+            log_error "Nginx 配置语法检查失败，请检查 $NGINX_CONF"
+            exit 1
+        fi
     else
-        log_error "Nginx 配置测试失败，请检查 ${NGINX_CONF}"
-        return 1
+        log_warn "非 root 或非 Debian/Ubuntu Nginx 布局，跳过 Nginx 配置"
+        log_warn "请手动配置 Nginx: root=$PROJECT_DIR/dist, 反向代理 /api/ → 127.0.0.1:3000"
     fi
 }
 
 # ==================== 部署总结 ====================
 print_summary() {
-    local server_ip
-    server_ip=$(hostname -I 2>/dev/null | awk '{print $1}' || echo "YOUR_SERVER_IP")
+    # 获取服务器 IP
+    local SERVER_IP
+    SERVER_IP=$(hostname -I 2>/dev/null | awk '{print $1}' || echo "服务器IP")
+    [ -z "$SERVER_IP" ] && SERVER_IP="服务器IP"
+
+    # 健康检查
+    sleep 2
+    local API_HEALTH
+    API_HEALTH=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/api/health 2>/dev/null || echo "000")
+    local FE_STATUS
+    FE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1/ 2>/dev/null || echo "000")
 
     echo ""
-    echo -e "${GREEN}${BOLD}╔════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${GREEN}${BOLD}║          KeKe-ExamHub 部署完成！                      ║${NC}"
-    echo -e "${GREEN}${BOLD}╠════════════════════════════════════════════════════════╣${NC}"
-    echo -e "${GREEN}${BOLD}║${NC}                                                       "
-    echo -e "${GREEN}${BOLD}║${NC}  📍 前端地址:    http://${server_ip}"
-    echo -e "${GREEN}${BOLD}║${NC}  🔌 API 地址:    http://${server_ip}/api/health"
-    echo -e "${GREEN}${BOLD}║${NC}  🔧 安装向导:    http://${server_ip}/setup"
-    echo -e "${GREEN}${BOLD}║${NC}  📂 项目目录:    ${PROJECT_DIR}"
-    echo -e "${GREEN}${BOLD}║${NC}  ⚡ 进程管理:    pm2 status"
-    echo -e "${GREEN}${BOLD}║${NC}                                                       "
-    echo -e "${GREEN}${BOLD}║${NC}  ${YELLOW}⚠ 首次使用请访问 /setup 完成初始化配置${NC}         "
-    echo -e "${GREEN}${BOLD}╚════════════════════════════════════════════════════════╝${NC}"
+    echo "============================================="
+    echo -e "${GREEN}${BOLD}   部署完成！${NC}"
+    echo "============================================="
     echo ""
-}
-
-# ==================== 爱心 Banner ====================
-# 用 ♥ 拼出 "KeKe ExamHub" 像素艺术字
-print_banner() {
-    local HR="${RED}♥${NC}"   # 红色爱心
-    local SP=" "             # 间隔
-    local GAP="   "          # 单词间距
-
-    # 逐行打印，每行加一点延时营造动画感
-    local lines=(
-        "${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR}${HR}${SP}${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR}${HR}${GAP}${HR}${HR}${HR}${HR}${HR}${SP}${HR}   ${HR} ${SP}  ${HR}  ${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR} "
-        "${HR}  ${HR}  ${SP}${HR}    ${SP}${HR}  ${HR}  ${SP}${HR}    ${GAP}${HR}    ${SP} ${HR} ${HR} ${SP} ${HR} ${HR} ${SP}${HR}${HR} ${HR}${HR}${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR}"
-        "${HR} ${HR}   ${SP}${HR}    ${SP}${HR} ${HR}   ${SP}${HR}    ${GAP}${HR}    ${SP}  ${HR}  ${SP}${HR}   ${HR}${SP}${HR} ${HR} ${HR}${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR}"
-        "${HR}${HR}    ${SP}${HR}${HR}${HR}${HR} ${SP}${HR}${HR}    ${SP}${HR}${HR}${HR}${HR} ${GAP}${HR}${HR}${HR}${HR} ${SP} ${HR} ${HR} ${SP}${HR}   ${HR}${SP}${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR}${HR}${SP}${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR} "
-        "${HR} ${HR}   ${SP}${HR}    ${SP}${HR} ${HR}   ${SP}${HR}    ${GAP}${HR}    ${SP}  ${HR}  ${SP}${HR}   ${HR}${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR}"
-        "${HR}  ${HR}  ${SP}${HR}    ${SP}${HR}  ${HR}  ${SP}${HR}    ${GAP}${HR}    ${SP} ${HR} ${HR} ${SP}${HR}   ${HR}${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP}${HR}   ${HR}"
-        "${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR}${HR}${SP}${HR}   ${HR} ${SP}${HR}${HR}${HR}${HR}${HR}${GAP}${HR}${HR}${HR}${HR}${HR}${SP}${HR}   ${HR} ${SP}${HR}   ${HR}${SP}${HR}   ${HR} ${SP}${HR}   ${HR} ${SP} ${HR}${HR}${HR} ${SP}${HR}${HR}${HR}${HR}"
-    )
-
+    echo "服务状态:"
+    if [ "$API_HEALTH" = "200" ]; then
+        echo -e "  后端 API:   ${GREEN}✓${NC} (HTTP $API_HEALTH)"
+    else
+        echo -e "  后端 API:   ${YELLOW}?${NC} (HTTP $API_HEALTH, 可能还在启动中)"
+    fi
+    if [ "$FE_STATUS" = "200" ]; then
+        echo -e "  前端页面:   ${GREEN}✓${NC} (HTTP $FE_STATUS)"
+    else
+        echo -e "  前端页面:   ${YELLOW}?${NC} (HTTP $FE_STATUS)"
+    fi
     echo ""
-    for line in "${lines[@]}"; do
-        echo -e "          $line"
-        sleep 0.06
-    done
-
+    echo "---------------------------------------------"
+    echo -e "${YELLOW}${BOLD}重要: 还未完成！请按以下两步完成安装${NC}"
+    echo "---------------------------------------------"
     echo ""
-    echo -e "          ${CYAN}${BOLD}一键部署脚本 v1.0.5${NC}"
-    echo -e "          ${CYAN}https://github.com/KeKe0904/KeKe-ExamHub${NC}"
+    echo -e "${YELLOW}第1步: 手动创建专用数据库用户(必须)${NC}"
+    echo "  出于安全考虑，请勿使用 root 账号。在服务器上执行:"
+    echo ""
+    echo -e "  ${BLUE}sudo mysql${NC}"
+    echo -e "  ${BLUE}CREATE DATABASE IF NOT EXISTS examhub CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;${NC}"
+    echo -e "  ${BLUE}CREATE USER 'examhub'@'localhost' IDENTIFIED BY '你的强密码';${NC}"
+    echo -e "  ${BLUE}GRANT ALL PRIVILEGES ON examhub.* TO 'examhub'@'localhost';${NC}"
+    echo -e "  ${BLUE}FLUSH PRIVILEGES;${NC}"
+    echo -e "  ${BLUE}EXIT;${NC}"
+    echo ""
+    echo -e "${YELLOW}第2步: 打开浏览器访问安装向导${NC}"
+    echo -e "  地址:  ${GREEN}http://${SERVER_IP}/setup${NC}"
+    echo ""
+    echo "  在向导页面中填写:"
+    echo "    1. 环境检测 —— 自动检测运行环境"
+    echo "    2. 数据库配置 —— 填入刚才创建的专用用户凭据"
+    echo "       主机: localhost / 端口: 3306"
+    echo "       用户名: examhub / 密码: 你设置的密码 / 库名: examhub"
+    echo "    3. 管理员账号 —— 设置后台登录用户名和密码"
+    echo "    4. 点击安装 —— 系统自动建表、生成 .env 并重启后端"
+    echo ""
+    echo "  安装向导完成后，后端会自动重启加载新配置，无需手动操作"
+    echo ""
+    echo "---------------------------------------------"
+    echo "常用运维命令:"
+    echo "---------------------------------------------"
+    echo -e "  ${BLUE}pm2 status${NC}                      # 查看后端状态"
+    echo -e "  ${BLUE}pm2 restart ${APP_NAME}${NC}         # 重启后端"
+    echo -e "  ${BLUE}pm2 logs ${APP_NAME} --lines 50${NC} # 查看后端日志"
+    echo -e "  ${BLUE}systemctl reload nginx${NC}          # 重载 Nginx"
+    echo -e "  ${BLUE}sudo ./install.sh${NC}               # 再次运行本脚本（更新 + 重建）"
+    echo ""
+    echo "访问地址(安装向导完成后生效):"
+    echo -e "  首页:       ${GREEN}http://${SERVER_IP}/${NC}"
+    echo -e "  后台登录:   ${GREEN}http://${SERVER_IP}/admin/login${NC}"
+    echo -e "  安装向导:   ${GREEN}http://${SERVER_IP}/setup${NC}"
     echo ""
 }
 
@@ -530,11 +503,10 @@ print_banner() {
 main() {
     print_banner
 
-    check_root
-    check_environment
-    install_dependencies
+    check_privilege
+    check_and_install_environment
 
-    # sync_code 返回 0 表示需要构建，1 表示无需构建
+    # sync_code 返回 0 = 需要构建, 1 = 无需构建
     local need_build=true
     if sync_code; then
         need_build=true
@@ -542,28 +514,29 @@ main() {
         need_build=false
     fi
 
-    setup_env
-
-    if [[ "$need_build" = true ]]; then
-        build_and_deploy
+    if [ "$need_build" = true ]; then
+        build_backend
+        build_frontend
+        setup_pm2
         setup_nginx
     else
         log_step "构建 & 部署"
         log_success "代码未变更，跳过构建"
 
         # 确保 PM2 在运行
-        cd "${PROJECT_DIR}/api"
-        if ! pm2 list 2>/dev/null | grep -q "examhub-api"; then
+        cd "$PROJECT_DIR"
+        if ! pm2 list 2>/dev/null | grep -q "${APP_NAME}"; then
             log_info "PM2 进程不存在，正在启动..."
-            pm2 start dist/server.js --name "examhub-api" --interpreter node
+            pm2 start ecosystem.config.cjs 2>/dev/null || \
+                pm2 start "$API_DIR/dist/server.js" --name "${APP_NAME}"
             pm2 save
-            log_success "PM2 已启动 examhub-api"
+            log_success "PM2 已启动 ${APP_NAME}"
         else
             log_success "PM2 进程运行中"
         fi
 
         # 确保 Nginx 配置存在
-        if [[ ! -f "${NGINX_CONF}" ]]; then
+        if [ "$SKIP_INSTALL" -eq 0 ] && [ ! -f /etc/nginx/sites-enabled/examhub ]; then
             setup_nginx
         else
             log_success "Nginx 配置已存在，跳过"
