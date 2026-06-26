@@ -92,10 +92,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </div>
 
         {/* 导航菜单 */}
-        <nav className="flex-1 py-4 px-3 overflow-y-auto">
+        <nav className="flex-1 py-4 overflow-y-auto">
           {menuGroups.map((group, gi) => (
             <div key={gi} className={gi > 0 ? "mt-6" : ""}>
-              <div className="px-3 mb-2 text-[10px] font-semibold text-zinc-600 dark:text-zinc-300 tracking-wider uppercase">
+              <div className="px-4 mb-2 text-[10px] font-semibold text-zinc-600 dark:text-zinc-300 tracking-wider uppercase">
                 {group.title}
               </div>
               {group.items.map((item) => {
@@ -112,15 +112,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     key={item.href}
                     to={item.href}
                     className={cn(
-                      "relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium mb-0.5 transition-colors group",
+                      "relative flex items-center gap-3 px-4 py-2.5 text-sm font-medium mb-0.5 transition-colors group border-l-2",
                       isActive
-                        ? "bg-white dark:bg-zinc-100 text-black dark:text-zinc-900"
-                        : "text-zinc-400 dark:text-zinc-400 hover:bg-zinc-900 dark:hover:bg-zinc-950 hover:text-white"
+                        ? "bg-white dark:bg-zinc-100 text-black dark:text-zinc-900 border-l-black dark:border-l-white"
+                        : "text-zinc-400 dark:text-zinc-400 border-l-transparent hover:bg-zinc-900 dark:hover:bg-zinc-950 hover:text-white"
                     )}
                   >
-                    {isActive && (
-                      <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-white dark:bg-zinc-300 rounded-r-full" />
-                    )}
                     <Icon className="w-4 h-4 shrink-0" />
                     <span className="truncate">{item.label}</span>
                   </Link>
