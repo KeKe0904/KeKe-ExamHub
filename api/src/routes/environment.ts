@@ -761,23 +761,26 @@ echo "DONE" >> "\$LOG"
           );
         }
 
-        // task 在内存中，正常处理
+        // task 必须在内存中（前面已处理 !task 的情况）
+        if (!task) {
+          return reply.status(500).send(errorResponse("内部错误：任务状态丢失"));
+        }
+
         // 检查是否完成
         const isDone = log.includes("DONE");
         if (isDone && task.status === "running") {
           task.status = "done";
           task.endTime = new Date().toISOString();
           task.log = log;
-          // 统计更新结果
-          if (log.includes("步骤1完成")) {
-            task.updatedCount++;
-            task.updatedComponents.push("npm-packages");
-          }
-          if (log.includes("步骤2完成")) {
-            task.updatedCount++;
-            task.updatedComponents.push("pm2");
-          }
-          task.updatedComponents.push("nginx");
+          // 动态统计完成步骤数（与重建逻辑保持一致）
+          const completedSteps = (log.match(/步骤\d+完成/g) || []).length;
+          task.updatedCount = completedSteps;
+          // 从任务创建时保存的组件列表获取名称，避免硬编码
+          task.updatedComponents = task.updatedComponents.length > 0
+            ? task.updatedComponents
+            : (
+                (log.match(/^COMPONENTS=(.+)$/m)?.[1] || "").split(",").filter(Boolean)
+              );
           // 清理临时文件
           safeExec(`rm -f ${logFile} /tmp/examhub-update-${taskId}.sh`, CMD_TIMEOUT).catch(() => {});
         }
