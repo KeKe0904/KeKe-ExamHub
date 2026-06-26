@@ -5,7 +5,7 @@
  * 本项目使用 Trae IDE 开发
  * @license MIT
  */
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   CalendarCheck,
@@ -15,6 +15,8 @@ import {
   Plus,
   FileText,
   ArrowRight,
+  GitBranch,
+  Download,
 } from "@/components/MathIcon";
 import AdminLayout from "@/components/Layout/AdminLayout";
 import StatusBadge from "@/components/StatusBadge";
@@ -24,13 +26,37 @@ import {
   calculateExamStatus,
   formatDateTime,
 } from "@/utils/date";
+import { repoCheckApi } from "@/utils/api";
 
 export default function Dashboard() {
   const { exams, fetchExams } = useExamStore();
+  const [repoUpdate, setRepoUpdate] = useState<{
+    hasUpdate: boolean;
+    commitsBehind: number;
+    changelog: string[];
+    localCommit: string;
+    remoteCommit: string;
+  } | null>(null);
+  const [showChangelog, setShowChangelog] = useState(false);
 
   useEffect(() => {
     fetchExams();
   }, [fetchExams]);
+
+  // 检查仓库更新
+  useEffect(() => {
+    repoCheckApi.check().then((res) => {
+      if (res.success && res.data.ok) {
+        setRepoUpdate({
+          hasUpdate: res.data.hasUpdate,
+          commitsBehind: res.data.commitsBehind,
+          changelog: res.data.changelog,
+          localCommit: res.data.localCommit,
+          remoteCommit: res.data.remoteCommit,
+        });
+      }
+    }).catch(() => {});
+  }, []);
 
   const stats = useMemo(() => calculateStats(exams), [exams]);
 
@@ -61,6 +87,59 @@ export default function Dashboard() {
           发布考试
         </Link>
       </div>
+
+      {/* 仓库更新通知 */}
+      {repoUpdate?.hasUpdate && (
+        <div className="mb-6 p-4 rounded-lg border border-yellow-300/60 dark:border-yellow-600/40 bg-yellow-50/80 dark:bg-yellow-950/20">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <GitBranch className="w-5 h-5 text-yellow-600 dark:text-yellow-500 shrink-0" />
+              <div>
+                <p className="text-sm font-semibold text-yellow-700 dark:text-yellow-400">
+                  发现新版本！落后 {repoUpdate.commitsBehind} 个提交
+                </p>
+                <p className="text-xs text-yellow-600/80 dark:text-yellow-500/70 mt-0.5">
+                  本地 {repoUpdate.localCommit} → 远程 {repoUpdate.remoteCommit}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => setShowChangelog(!showChangelog)}
+                className="text-xs px-2.5 py-1 rounded border border-yellow-400/60 dark:border-yellow-600/40 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors"
+              >
+                {showChangelog ? "收起" : "查看变更"}
+              </button>
+              <a
+                href="https://github.com/KeKe0904/KeKe-ExamHub"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded border border-black/20 dark:border-white/20 text-black dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+              >
+                <Download className="w-3 h-3" />
+                前往 GitHub
+              </a>
+            </div>
+          </div>
+          {showChangelog && repoUpdate.changelog.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-yellow-300/40 dark:border-yellow-600/20">
+              <p className="text-xs font-medium text-yellow-700/60 dark:text-yellow-500/50 mb-2">
+                更新日志：
+              </p>
+              <div className="space-y-1">
+                {repoUpdate.changelog.map((line, i) => (
+                  <p key={i} className="text-xs text-zinc-600 dark:text-zinc-400 font-mono pl-2 border-l-2 border-yellow-300/60 dark:border-yellow-600/30">
+                    {line}
+                  </p>
+                ))}
+              </div>
+              <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-2">
+                请在服务器上执行 <code className="px-1 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded text-[11px]">sudo ./install.sh</code> 以更新部署
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard

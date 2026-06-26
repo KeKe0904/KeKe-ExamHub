@@ -1109,4 +1109,74 @@ echo "DONE" >> "\$LOG"
       return reply.status(500).send(errorResponse(`检查更新失�? ${error.message}`));
     }
   });
+
+  // ========== 检查仓库更新（无需认证，供前端轮询）==========
+  app.get("/repo-check", async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const git = await getGitInfo();
+      if (!git.branch || !git.commit) {
+        return reply.send(successResponse({
+          ok: false,
+          reason: "Git 仓库未初始化或不可用",
+          localCommit: git.commit,
+          remoteCommit: "",
+          hasUpdate: false,
+          commitsBehind: 0,
+          changelog: [],
+          lastCheck: new Date().toISOString(),
+        }));
+      }
+
+      // 静默 fetch
+      await safeExec("git fetch origin --quiet 2>/dev/null", 15000);
+
+      const { stdout: remoteHash } = await safeExec(
+        `git rev-parse --short origin/${git.branch} 2>/dev/null || echo ""`,
+        5000
+      );
+      const cleanRemoteHash = remoteHash?.trim() || "";
+
+      let hasUpdate = false;
+      let commitsBehind = 0;
+      let changelog: string[] = [];
+
+      if (cleanRemoteHash && git.commit.trim() !== cleanRemoteHash) {
+        const { stdout: behindCount } = await safeExec(
+          `git rev-list --count ${git.commit.trim()}..origin/${git.branch} 2>/dev/null || echo "0"`,
+          5000
+        );
+        commitsBehind = parseInt(behindCount?.trim() || "0") || 0;
+
+        const { stdout: log } = await safeExec(
+          `git log --oneline ${git.commit.trim()}..origin/${git.branch} --max-count=20 2>/dev/null || echo ""`,
+          5000
+        );
+        if (log?.trim()) {
+          changelog = log.trim().split("\n");
+        }
+        hasUpdate = commitsBehind > 0;
+      }
+
+      return reply.send(successResponse({
+        ok: true,
+        localCommit: git.commit.trim(),
+        remoteCommit: cleanRemoteHash,
+        branch: git.branch,
+        remoteUrl: git.remoteUrl,
+        hasUpdate,
+        commitsBehind,
+        changelog,
+        lastCheck: new Date().toISOString(),
+      }));
+    } catch (error: any) {
+      return reply.send(successResponse({
+        ok: false,
+        reason: error.message,
+        hasUpdate: false,
+        commitsBehind: 0,
+        changelog: [],
+        lastCheck: new Date().toISOString(),
+      }));
+    }
+  });
 }

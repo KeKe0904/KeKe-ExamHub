@@ -228,15 +228,26 @@ sync_code() {
             git log --oneline "${local_hash}..origin/${GITHUB_BRANCH}" 2>/dev/null || true
             echo ""
 
+            # 检查本地是否有未提交的修改
+            local has_changes=false
+            if ! git diff --quiet 2>/dev/null || ! git diff --cached --quiet 2>/dev/null; then
+                has_changes=true
+                log_warn "检测到本地修改，即将自动暂存:"
+                git status --short
+                log_info "自动执行 git stash 暂存本地修改..."
+                git stash push -m "install.sh auto-stash before pull" 2>/dev/null || true
+            fi
+
             # 拉取并合并
             log_info "正在更新到最新版本..."
-            if git pull origin "${GITHUB_BRANCH}" --ff-only; then
+            if git pull origin "${GITHUB_BRANCH}" --ff-only 2>/dev/null; then
                 local new_hash
                 new_hash=$(git rev-parse HEAD)
                 log_success "更新成功: ${new_hash:0:8}"
                 need_build=true
             else
-                log_error "自动合并失败，尝试强制同步..."
+                # 快进合并失败（非快进），使用强制同步
+                log_warn "快进合并失败，使用强制同步（git reset --hard）..."
                 git reset --hard "origin/${GITHUB_BRANCH}"
                 local new_hash
                 new_hash=$(git rev-parse HEAD)

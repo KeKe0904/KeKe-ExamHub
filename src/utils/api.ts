@@ -613,3 +613,24 @@ export const examClassroomApi = {
       method: "GET",
     }),
 };
+
+// ==================== 仓库更新检查 API ====================
+export interface RepoCheckResult {
+  ok: boolean;
+  reason?: string;
+  localCommit: string;
+  remoteCommit: string;
+  branch?: string;
+  remoteUrl?: string;
+  hasUpdate: boolean;
+  commitsBehind: number;
+  changelog: string[];
+  lastCheck: string;
+}
+
+export const repoCheckApi = {
+  check: () =>
+    request<ApiResponse<RepoCheckResult>>("/environment/repo-check", {
+      method: "GET",
+    }),
+};
