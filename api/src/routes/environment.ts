@@ -846,15 +846,24 @@ echo "DONE" >> "\$LOG"
   );
 
   // ========== 重装环境（保留数据）==========
+  // 防并发重装锁：同一时间只允许一个重装任务
+  let reinstalling = false;
+
   app.post(
     "/reinstall",
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
+        if (reinstalling) {
+          return reply.status(409).send(errorResponse("重装任务正在执行中，请稍后再试", "REINSTALL_IN_PROGRESS"));
+        }
+
         const { type } = request.body as { type: string };
 
         if (!type) {
           return reply.status(400).send(errorResponse("请指定重装类型", "MISSING_TYPE"));
         }
+
+        reinstalling = true;
 
         const logs: string[] = [];
         const addLog = (msg: string) => {
@@ -996,9 +1005,11 @@ echo "DONE" >> "\$LOG"
           }
 
           default:
+            reinstalling = false;
             return reply.status(400).send(errorResponse(`不支持的重装类型: ${type}`, "UNSUPPORTED_TYPE"));
         }
 
+        reinstalling = false;
         return reply.send(
           successResponse(
             { type, log: logs.join("\n") },
@@ -1006,6 +1017,7 @@ echo "DONE" >> "\$LOG"
           )
         );
       } catch (error: any) {
+        reinstalling = false;
         app.log.error(error);
         return reply.status(500).send(errorResponse(`重装失败: ${error.message}`));
       }
