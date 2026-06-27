@@ -853,6 +853,15 @@ export function ChevronRight({ className, size = defaultSize }: IconProps) {
   );
 }
 
+// ChevronLeft - 左箭头图标
+export function ChevronLeft({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <polyline points="15 18 9 12 15 6" />
+    </svg>
+  );
+}
+
 // Cookie - 浏览器 Cookie 图标
 export function Cookie({ className, size = defaultSize }: IconProps) {
   return (
@@ -879,7 +888,7 @@ export const MathIcons = {
   Image, Building, Phone,
   Package, GitBranch, Download, RotateCcw, Code, Shield, Box, Copy,
   Cpu, HardDrive, Network, Activity, Thermometer,
-  Monitor, ChevronRight, Cookie,
+  Monitor, ChevronRight, ChevronLeft, Cookie,
 };
 
 export default MathIcons;

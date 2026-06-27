@@ -14,6 +14,7 @@ interface SearchFilterBarProps {
   onSearchChange: (query: string) => void;
   statusFilter: ExamStatus | "all";
   onStatusChange: (status: ExamStatus | "all") => void;
+  compact?: boolean;
 }
 
 const statusOptions: { value: ExamStatus | "all"; label: string }[] = [
@@ -28,9 +29,10 @@ export default function SearchFilterBar({
   onSearchChange,
   statusFilter,
   onStatusChange,
+  compact,
 }: SearchFilterBarProps) {
   return (
-    <div className="bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 shadow-sm p-4 mb-8">
+    <div className={`bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 shadow-sm ${compact ? "p-3 mb-3" : "p-4 mb-8"}`}>
       <div className="flex flex-col lg:flex-row gap-4">
         {/* 搜索框 */}
         <div className="relative flex-1">
