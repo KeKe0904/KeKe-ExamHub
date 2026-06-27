@@ -31,7 +31,7 @@ import {
   User,
 } from "@/components/MathIcon";
 import AdminLayout from "@/components/Layout/AdminLayout";
-import { environmentApi } from "@/utils/api";
+import { environmentApi, repoCheckApi } from "@/utils/api";
 
 interface EnvData {
   system: {
@@ -104,6 +104,22 @@ type OperationType =
   | { kind: "update"; component: "npm-packages" | "pm2" | "system-packages" | "nginx" | "git-pull" }
   | { kind: "reinstall"; type: "frontend" | "backend" | "all" };
 
+interface RepoStatus {
+  ok: boolean;
+  localChanges: boolean;
+  changedFiles: string[];
+  localCommit: string;
+  localMessage: string;
+  remoteCommit: string;
+  remoteMessage: string;
+  branch: string;
+  remoteUrl: string;
+  hasUpdate: boolean;
+  commitsBehind: number;
+  changelog: string[];
+  lastCheck: string;
+}
+
 export default function Environment() {
   const [data, setData] = useState<EnvData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -115,6 +131,9 @@ export default function Environment() {
   const [checkingUpdates, setCheckingUpdates] = useState(false);
   const [updateError, setUpdateError] = useState("");
   const [updateAllConfirm, setUpdateAllConfirm] = useState(false);
+  const [repoStatus, setRepoStatus] = useState<RepoStatus | null>(null);
+  const [checkingRepo, setCheckingRepo] = useState(false);
+  const [repoError, setRepoError] = useState("");
 
   // UpdateItem.name → 后端组件名映射（只包含一键更新支持的组件）
   const UPDATEABLE_COMPONENT_MAP: Record<string, { key: string; label: string }> = {
@@ -182,15 +201,29 @@ export default function Environment() {
     }
   }, []);
 
+  const fetchRepoStatus = useCallback(async (silent: boolean = false) => {
+    try {
+      if (!silent) setCheckingRepo(true);
+      setRepoError("");
+      const res = await repoCheckApi.check();
+      setRepoStatus(res.data as RepoStatus);
+    } catch (err: any) {
+      if (!silent) setRepoError(err.message || "检查仓库状态失败");
+    } finally {
+      if (!silent) setCheckingRepo(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // 进入页面自动检查更新
+  // 进入页面自动检查更新 + 仓库状态
   useEffect(() => {
     if (!data) return;
     fetchUpdateCheck(true);
-  }, [data, fetchUpdateCheck]);
+    fetchRepoStatus(true);
+  }, [data, fetchUpdateCheck, fetchRepoStatus]);
 
   // 每天凌晨4:00-4:02 自动刷新版本检查
   useEffect(() => {
@@ -228,7 +261,7 @@ export default function Environment() {
           "pm2": "更新 PM2",
           "system-packages": "更新系统软件包",
           "nginx": "重载 Nginx 配置",
-          "git-pull": "拉取最新代码",
+          "git-pull": "拉取最新代码并重建",
         }[op.component];
         res = await environmentApi.update(op.component);
       } else {
@@ -718,6 +751,184 @@ export default function Environment() {
               )}
             </Section>
 
+            {/* 仓库状态 */}
+            <Section title="仓库状态" icon={<GitBranch className="w-5 h-5" />}>
+              {/* 仓库检查错误 */}
+              {repoError && (
+                <div className="px-4 py-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3 mb-4">
+                  <AlertCircle className="w-5 h-5 text-red-500 dark:text-red-400 shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-red-500 dark:text-red-400">检查仓库状态失败</p>
+                    <p className="text-xs text-red-400 dark:text-red-500 mt-1">{repoError}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* 检查中 */}
+              {checkingRepo && !repoStatus && (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 text-zinc-500 dark:text-zinc-300 animate-spin" />
+                  <span className="ml-2 text-sm text-zinc-500 dark:text-zinc-300">正在检查仓库状态...</span>
+                </div>
+              )}
+
+              {repoStatus && (
+                <>
+                  {/* 本地变更警告 */}
+                  {repoStatus.localChanges && (
+                    <div className="px-4 py-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg flex items-start gap-3 mb-4">
+                      <AlertTriangle className="w-5 h-5 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                          检测到本地未提交的变更
+                        </p>
+                        <p className="text-xs text-amber-500 dark:text-amber-500 mt-1">
+                          可能由于直接上传文件导致。建议"拉取最新代码并重建"以还原到仓库版本。
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {repoStatus.changedFiles.map((f, i) => (
+                            <code key={i} className="px-1.5 py-0.5 text-[10px] bg-white dark:bg-black border border-amber-200 dark:border-amber-700 text-amber-700 dark:text-amber-300 rounded font-mono">
+                              {f}
+                            </code>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 状态概览 */}
+                  <div className={`px-4 py-3 rounded-lg border mb-4 flex items-center gap-3 ${
+                    repoStatus.hasUpdate
+                      ? "bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800"
+                      : repoStatus.localChanges
+                        ? "bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800"
+                        : "bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800"
+                  }`}>
+                    {repoStatus.hasUpdate ? (
+                      <Download className="w-5 h-5 text-blue-500 dark:text-blue-400 shrink-0" />
+                    ) : repoStatus.localChanges ? (
+                      <AlertTriangle className="w-5 h-5 text-amber-500 dark:text-amber-400 shrink-0" />
+                    ) : (
+                      <CheckCircle2 className="w-5 h-5 text-green-500 dark:text-green-400 shrink-0" />
+                    )}
+                    <div className="flex-1">
+                      <p className={`text-sm font-medium ${
+                        repoStatus.hasUpdate
+                          ? "text-blue-600 dark:text-blue-400"
+                          : repoStatus.localChanges
+                            ? "text-amber-600 dark:text-amber-400"
+                            : "text-green-600 dark:text-green-400"
+                      }`}>
+                        {repoStatus.hasUpdate
+                          ? `发现 ${repoStatus.commitsBehind} 个新提交，代码已落后`
+                          : repoStatus.localChanges
+                            ? "仓库干净，但有本地未提交变更"
+                            : "代码已是最新，与 GitHub 仓库同步"}
+                      </p>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-300 mt-0.5">
+                        最后检查: {new Date(repoStatus.lastCheck).toLocaleString("zh-CN")}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => fetchRepoStatus()}
+                        disabled={checkingRepo}
+                        className="shrink-0 px-3 py-1.5 text-xs bg-zinc-50 dark:bg-black border border-zinc-300 dark:border-zinc-600 text-black dark:text-white rounded-lg hover:border-black dark:hover:border-white transition-colors disabled:opacity-50"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${checkingRepo ? "animate-spin" : ""}`} />
+                      </button>
+                      {(repoStatus.hasUpdate || repoStatus.localChanges) && (
+                        <button
+                          onClick={() => setConfirmModal({ kind: "update", component: "git-pull" })}
+                          disabled={operating}
+                          className="shrink-0 px-4 py-2 text-sm bg-black dark:bg-white text-white dark:text-black rounded-lg hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors disabled:opacity-50"
+                        >
+                          拉取并重建
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Git 详细信息 */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="p-3 rounded-lg bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-600">
+                      <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-2">本地（当前运行版本）</p>
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-zinc-400 dark:text-zinc-500">分支</span>
+                          <code className="px-1.5 py-0.5 text-xs bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded font-mono text-zinc-700 dark:text-zinc-300">
+                            {repoStatus.branch}
+                          </code>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-zinc-400 dark:text-zinc-500">提交</span>
+                          <code className="px-1.5 py-0.5 text-xs bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded font-mono text-zinc-700 dark:text-zinc-300">
+                            {repoStatus.localCommit}
+                          </code>
+                        </div>
+                        <p className="text-xs text-zinc-600 dark:text-zinc-400 break-all">
+                          {repoStatus.localMessage}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="p-3 rounded-lg bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-600">
+                      <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-2">远程（GitHub 最新）</p>
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-zinc-400 dark:text-zinc-500">远端</span>
+                          <code className="px-1.5 py-0.5 text-xs bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded font-mono text-zinc-700 dark:text-zinc-300">
+                            {repoStatus.remoteUrl}
+                          </code>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-zinc-400 dark:text-zinc-500">提交</span>
+                          <code className={`px-1.5 py-0.5 text-xs bg-white dark:bg-zinc-900 border rounded font-mono ${
+                            repoStatus.hasUpdate
+                              ? "border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400"
+                              : "border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300"
+                          }`}>
+                            {repoStatus.remoteCommit}
+                          </code>
+                        </div>
+                        <p className={`text-xs break-all ${
+                          repoStatus.hasUpdate
+                            ? "text-blue-600 dark:text-blue-400"
+                            : "text-zinc-600 dark:text-zinc-400"
+                        }`}>
+                          {repoStatus.remoteMessage}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 更新日志 */}
+                  {repoStatus.hasUpdate && repoStatus.changelog.length > 0 && (
+                    <div className="mt-4 p-3 rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
+                      <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-2">
+                        待拉取提交（{repoStatus.commitsBehind} 个）
+                      </p>
+                      <div className="space-y-1">
+                        {repoStatus.changelog.map((log, i) => (
+                          <div key={i} className="flex items-start gap-2">
+                            <span className="text-[10px] text-blue-400 dark:text-blue-500 mt-0.5 font-mono">•</span>
+                            <code className="text-xs font-mono text-blue-700 dark:text-blue-300 break-all">{log}</code>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* 未检查提示 */}
+              {!repoStatus && !checkingRepo && !repoError && (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <GitBranch className="w-8 h-8 text-zinc-300 dark:text-zinc-600 mb-2" />
+                  <p className="text-sm text-zinc-500 dark:text-zinc-300">正在自动检查中...</p>
+                </div>
+              )}
+            </Section>
+
             {/* 更新操作 */}
             <Section title="环境更新" icon={<Download className="w-5 h-5" />}>
               <p className="text-sm text-zinc-500 dark:text-zinc-300 mb-4">
@@ -725,8 +936,8 @@ export default function Environment() {
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <ActionButton
-                  title="拉取最新代码"
-                  description="从 Git 远程仓库拉取最新代码"
+                  title="拉取最新代码并重建"
+                  description="从 GitHub 拉取最新代码，自动安装依赖并重新编译构建"
                   icon={<GitBranch className="w-5 h-5" />}
                   loading={operating}
                   onClick={() => setConfirmModal({ kind: "update", component: "git-pull" })}

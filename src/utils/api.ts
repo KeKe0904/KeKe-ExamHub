@@ -638,11 +638,15 @@ export interface RepoCheckResult {
   ok: boolean;
   reason?: string;
   localCommit: string;
+  localMessage: string;
   remoteCommit: string;
-  branch?: string;
-  remoteUrl?: string;
+  remoteMessage: string;
+  branch: string;
+  remoteUrl: string;
   hasUpdate: boolean;
   commitsBehind: number;
+  localChanges: boolean;
+  changedFiles: string[];
   changelog: string[];
   lastCheck: string;
 }

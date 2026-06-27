@@ -1054,7 +1054,75 @@ echo "DONE" >> "\$LOG"
     }
   );
 
-  // ========== 检查可用更新（自动检查最新稳定版本） ==========
+  // ========== 检查仓库更新状态（Git 远程 vs 本地）==========
+  app.get("/repo-check", async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      // 检查是否有本地未提交的变更（SFTP 上传等原因导致）
+      const { stdout: statusOut } = await safeExec("git status --porcelain", CMD_TIMEOUT);
+      const localChanges = statusOut.trim().length > 0;
+      const changedFiles = localChanges
+        ? statusOut.trim().split("\n").slice(0, 10).map(line => line.trim().replace(/^[?MADRCU!\s]+/, ""))
+        : [];
+
+      // git fetch 获取远程信息（不合并）
+      await safeExec("git fetch origin main --quiet 2>&1 || true", CMD_TIMEOUT);
+
+      // 获取本地 HEAD 信息
+      const { stdout: localHead } = await safeExec("git rev-parse HEAD", CMD_TIMEOUT);
+      const { stdout: localShort } = await safeExec("git rev-parse --short HEAD", CMD_TIMEOUT);
+      const { stdout: localMsg } = await safeExec("git log -1 --format=%s", CMD_TIMEOUT);
+
+      // 获取远程 HEAD 信息
+      const { stdout: remoteHead } = await safeExec("git rev-parse origin/main", CMD_TIMEOUT);
+      const { stdout: remoteShort } = await safeExec("git rev-parse --short origin/main", CMD_TIMEOUT);
+      const { stdout: remoteMsg } = await safeExec("git log -1 --format=%s origin/main", CMD_TIMEOUT);
+
+      // 计算落后多少提交
+      const { stdout: behindCount } = await safeExec(
+        "git rev-list HEAD..origin/main --count",
+        CMD_TIMEOUT
+      );
+
+      const hasUpdate = localHead.trim() !== remoteHead.trim();
+
+      // 获取更新日志（落后提交的列表）
+      let changelog: string[] = [];
+      if (hasUpdate) {
+        const { stdout: changes } = await safeExec(
+          `git log --oneline HEAD..origin/main --max-count=10`,
+          CMD_TIMEOUT
+        );
+        changelog = changes.trim().split("\n").filter(Boolean);
+      }
+
+      // 获取分支和远端 URL
+      const { stdout: branch } = await safeExec("git rev-parse --abbrev-ref HEAD", CMD_TIMEOUT);
+      const { stdout: remoteUrl } = await safeExec("git config --get remote.origin.url", CMD_TIMEOUT);
+
+      return reply.send(
+        successResponse({
+          ok: !localChanges || !hasUpdate,
+          localChanges,
+          changedFiles,
+          localCommit: localShort.trim(),
+          localMessage: localMsg.trim(),
+          remoteCommit: remoteShort.trim(),
+          remoteMessage: remoteMsg.trim(),
+          branch: branch.trim(),
+          remoteUrl: remoteUrl.trim(),
+          hasUpdate,
+          commitsBehind: parseInt(behindCount.trim()) || 0,
+          changelog,
+          lastCheck: new Date().toISOString(),
+        })
+      );
+    } catch (error: any) {
+      app.log.error(error);
+      return reply.status(500).send(errorResponse(`检查仓库状态失败: ${error.message}`));
+    }
+  });
+
+  // ========== 检查可用更新（自动检查最新稳定版本）==========
   app.get("/check-updates", async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       interface UpdateItem {
