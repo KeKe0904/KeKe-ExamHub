@@ -611,15 +611,18 @@ export default async function environmentRoutes(app: FastifyInstance) {
                 );
                 log += `\n--- 前端构建 ---\n${feOut}${feErr ? `\n${feErr}` : ""}`;
               }
-              // 6. 重载 Nginx + 重启 PM2
+              // 6. 重载 Nginx + 延迟重启 PM2（避免杀死当前请求进程导致 502）
               {
                 const { stdout: nginxOut } = await safeExec("nginx -s reload 2>&1", CMD_TIMEOUT);
                 log += `\n--- Nginx 重载 ---\n${nginxOut}`;
               }
-              {
-                const { stdout: pm2Out } = await safeExec("pm2 restart examhub-api", CMD_TIMEOUT);
-                log += `\n--- PM2 重启 ---\n${pm2Out}`;
-              }
+              // spawn 延迟重启，确保 HTTP 响应在进程被 kill 前已发送
+              spawn("sh", ["-c", "sleep 2 && cd /opt/examhub && pm2 restart examhub-api 2>&1"], {
+                detached: true,
+                stdio: "ignore",
+                cwd: PROJECT_ROOT,
+              }).unref();
+              log += `\n--- PM2 将在 2 秒后重启 ---`;
             }
             break;
 
