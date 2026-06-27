@@ -55,8 +55,8 @@ export default {
         },
       },
       fontFamily: {
-        serif: ['"QuanZiKu ZhengKaiTi"', "serif"],
-        sans: ['"QuanZiKu ZhengKaiTi"', "sans-serif"],
+        serif: ['"ZhouZiSongTi"', '"QuanZiKu ZhengKaiTi"', "serif"],
+        sans: ['"ZhouZiSongTi"', '"QuanZiKu ZhengKaiTi"', "sans-serif"],
       },
       animation: {
         "fade-in": "fadeIn 0.5s ease-in-out",
