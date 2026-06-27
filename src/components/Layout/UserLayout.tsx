@@ -15,10 +15,9 @@ import CookieConsentBanner from "@/components/CookieConsent";
 
 interface UserLayoutProps {
   children: React.ReactNode;
-  compactFooter?: boolean;
 }
 
-export default function UserLayout({ children, compactFooter }: UserLayoutProps) {
+export default function UserLayout({ children }: UserLayoutProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
   const schoolName = useSchoolName();
@@ -114,21 +113,19 @@ export default function UserLayout({ children, compactFooter }: UserLayoutProps)
       <main className="flex-1">{children}</main>
 
       {/* 页脚 */}
-      {!compactFooter && (
-        <footer className="bg-zinc-900 dark:bg-black text-white dark:text-zinc-100 py-8">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <div className="flex items-center gap-2">
-                <GraduationCap className="w-5 h-5" />
-                <span className="font-serif text-lg font-semibold">{displayName}</span>
-              </div>
-              <p className="text-sm text-zinc-400 dark:text-zinc-400">
-                © 2026 {displayName} - 让考试信息展示更高效
-              </p>
+      <footer className="bg-zinc-900 dark:bg-black text-white dark:text-zinc-100 py-8">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-2">
+              <GraduationCap className="w-5 h-5" />
+              <span className="font-serif text-lg font-semibold">{displayName}</span>
             </div>
+            <p className="text-sm text-zinc-400 dark:text-zinc-400">
+              © 2026 {displayName} - 让考试信息展示更高效
+            </p>
           </div>
-        </footer>
-      )}
+        </div>
+      </footer>
       {/* Cookie 同意弹窗 */}
       <CookieConsentBanner />
     </div>
