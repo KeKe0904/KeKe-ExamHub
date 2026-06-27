@@ -8,6 +8,7 @@
 
 import { X, Check, ChevronDown, ChevronUp, Cookie } from "@/components/MathIcon";
 import { useCookieConsent, type CookiePreferences } from "@/hooks/useCookieConsent";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 export default function CookieConsentBanner() {

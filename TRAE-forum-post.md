@@ -170,7 +170,7 @@
 - **注册码管理** — 批量生成 1~50 个注册码（`XXXX-XXXX` 格式，去除 I/O/0/1 易混淆字符），按使用状态筛选，支持删除未使用的注册码
 - **教室端账号管理** — 查看注册申请列表（可按状态筛选：待审核/已通过/已驳回），审核通过/驳回操作，删除已注册教室端（自动释放关联的注册码），实时待审核数量提示
 - **公告管理** — 发布/编辑/删除公告，支持置顶和上下架
-- **环境管理** — 一键检测运行环境组件版本（Node.js / npm / PM2 / Nginx / MariaDB / Git），一键自动更新至最新版本，实时日志反馈
+- **环境管理** — 一键检测运行环境组件版本（Node.js / npm / PM2 / Nginx / MariaDB / Git），支持分别更新各组件和重装前后端环境（前端/后端/完整重装），重装过程自动备份恢复 .env 配置，不留残留数据。实时日志反馈，操作全程透明可控
 - **服务器监控** — 实时 CPU 使用率、内存占用、磁盘空间、系统负载、进程信息
 - **系统设置** — 修改管理员密码、更换头像、设置学校名称、站点信息
 
@@ -250,43 +250,53 @@ KeKe-ExamHub/
 │   │   ├── routes/
 │   │   │   ├── auth.ts               # 管理员登录/修改密码
 │   │   │   ├── exams.ts              # 考试 CRUD + 教室分配
-│   │   │   ├── announcements.ts      # 公告管理
+│   │   │   ├── announcements.ts      # 公告管理 CRUD
 │   │   │   ├── settings.ts           # 系统设置
-│   │   │   ├── school-info.ts         # 学校信息管理
+│   │   │   ├── school-info.ts        # 学校信息管理
 │   │   │   ├── setup.ts              # Web 安装向导
-│   │   │   ├── environment.ts         # 环境检测/一键更新
-│   │   │   ├── monitor.ts             # 服务器实时监控
-│   │   │   ├── buildings.ts           # 教学楼管理
-│   │   │   ├── registration-codes.ts  # 注册码管理
-│   │   │   ├── classrooms.ts          # 教室端账号管理（管理员视角）
-│   │   │   └── classroom.ts           # 教室端业务（注册/登录/考试查询）
+│   │   │   ├── environment.ts        # 环境检测/一键更新
+│   │   │   ├── monitor.ts            # 服务器实时监控
+│   │   │   ├── buildings.ts          # 教学楼管理
+│   │   │   ├── registration-codes.ts # 注册码管理
+│   │   │   ├── classrooms.ts         # 教室端账号管理（管理员视角）
+│   │   │   └── classroom.ts          # 教室端业务（注册/登录/考试查询）
 │   │   ├── utils/
-│   │   │   ├── response.ts            # 统一响应格式 + 类型定义
-│   │   │   └── database.ts            # 数据库工具函数
+│   │   │   └── response.ts           # 统一响应格式 + 类型定义
 │   │   └── server.ts                 # 后端入口（路由注册 + JWT 插件配置）
-│   ├── .env.example                   # 后端环境变量模板
-│   ├── tsconfig.json                  # 后端独立 TS 编译配置
+│   ├── .env.example                  # 后端环境变量模板
+│   ├── tsconfig.json                 # 后端独立 TS 编译配置
 │   └── package.json
 ├── src/                              # 前端 React SPA
 │   ├── components/
 │   │   ├── Layout/                    # 布局组件（AdminLayout / UserLayout）
-│   │   ├── MathIcon.tsx               # 数学函数 SVG 图标（100+ 图标）
 │   │   ├── ClassroomProtectedRoute.tsx # 教室端路由守卫
-│   │   ├── Hero.tsx                   # 首页统计横幅
+│   │   ├── CookieConsent.tsx          # Cookie 同意提示
+│   │   ├── Countdown.tsx              # 实时倒计时
+│   │   ├── DateTimePicker.tsx         # 可视化日期时间选择器
 │   │   ├── ExamCard.tsx               # 考试卡片组件
-│   │   ├── SearchFilterBar.tsx         # 搜索筛选栏
-│   │   └── DateTimePicker.tsx         # 可视化日期时间选择器
+│   │   ├── Hero.tsx                   # 首页统计横幅
+│   │   ├── MathIcon.tsx               # 数学函数 SVG 图标（100+ 图标）
+│   │   ├── ProtectedRoute.tsx         # 后台路由守卫
+│   │   ├── SearchFilterBar.tsx        # 搜索筛选栏
+│   │   ├── StatusBadge.tsx            # 状态标签
+│   │   └── ThemeToggle.tsx            # 深色/浅色模式切换
+│   ├── hooks/
+│   │   ├── useCookieConsent.ts        # Cookie 同意状态 Hook
+│   │   └── useSchoolName.ts           # 学校名称 Hook
+│   ├── lib/
+│   │   └── utils.ts                   # 通用工具函数（cn 等）
 │   ├── pages/
 │   │   ├── admin/                     # 后台页面组
 │   │   │   ├── Dashboard.tsx          # 仪表盘
-│   │   │   ├── Exams.tsx              # 考试列表管理
+│   │   │   ├── ExamList.tsx           # 考试列表管理
 │   │   │   ├── ExamForm.tsx           # 考试表单（含教室分配）
-│   │   │   ├── Announcements.tsx      # 公告管理
+│   │   │   ├── AnnouncementList.tsx   # 公告列表管理
+│   │   │   ├── AnnouncementForm.tsx   # 公告表单
 │   │   │   ├── Buildings.tsx          # 教学楼管理
 │   │   │   ├── RegistrationCodes.tsx  # 注册码管理
 │   │   │   ├── Classrooms.tsx         # 教室端账号审核
-│   │   │   ├── Environment.tsx         # 环境检测/更新
-│   │   │   ├── Monitor.tsx             # 服务器监控
+│   │   │   ├── Environment.tsx        # 环境检测/更新
+│   │   │   ├── ServerMonitor.tsx      # 服务器监控
 │   │   │   ├── Settings.tsx           # 系统设置
 │   │   │   └── Login.tsx              # 管理员登录
 │   │   ├── classroom/                 # 教室端页面组
@@ -294,27 +304,40 @@ KeKe-ExamHub/
 │   │   │   ├── Register.tsx           # 教室端注册
 │   │   │   ├── Home.tsx               # 教室端大屏首页
 │   │   │   └── Invigilation.tsx       # 监考模式全屏页
+│   │   ├── ExamDetail.tsx             # 考试详情页
 │   │   ├── Home.tsx                   # 公众首页
-│   │   ├── About.tsx                  # 关于页面
+│   │   ├── Monitor.tsx                # 考试监控页
 │   │   ├── SchoolInfo.tsx             # 学校信息页
 │   │   └── Setup.tsx                  # 安装向导页
 │   ├── store/
 │   │   ├── authStore.ts               # 管理员认证 Store
+│   │   ├── classroomAuthStore.ts      # 教室端认证 Store
 │   │   ├── examStore.ts               # 考试数据 Store
-│   │   └── classroomAuthStore.ts      # 教室端认证 Store
+│   │   ├── schoolStore.ts             # 学校信息 Store
+│   │   └── themeStore.ts              # 主题 Store
+│   ├── types/
+│   │   └── index.ts                   # TypeScript 类型定义
 │   ├── utils/
 │   │   ├── api.ts                     # API 请求封装（admin + classroom 双通道）
 │   │   ├── cookie.ts                  # Cookie 工具函数
 │   │   └── date.ts                    # 日期格式化/倒计时/状态计算
-│   ├── types/
-│   │   └── index.ts                   # TypeScript 类型定义
-│   └── App.tsx                        # 前端路由总入口
+│   ├── App.tsx                        # 前端路由总入口
+│   ├── main.tsx                       # React 入口
+│   ├── index.css                      # 全局样式
+│   └── vite-env.d.ts                  # Vite 类型声明
 ├── public/                            # 静态资源
-│   └── fonts/                         # 字体文件
-├── deploy.sh                          # 一键部署脚本
+│   ├── fonts/                         # 字体文件
+│   └── favicon.svg                    # 网站图标
+├── install.sh                         # 一键部署脚本
+├── .env.example                       # 前端环境变量示例
 ├── .gitignore
-├── package.json
-└── vite.config.ts
+├── eslint.config.js                   # ESLint 配置
+├── index.html                         # Vite HTML 入口
+├── postcss.config.js                  # PostCSS 配置
+├── tailwind.config.js                 # TailwindCSS 配置
+├── tsconfig.json                      # 前端 TS 配置
+├── vite.config.ts                     # Vite 构建配置
+└── package.json
 ```
 
 ### 部署架构
@@ -354,7 +377,7 @@ KeKe-ExamHub/
 | **教室端入口** | `/classroom/login` |
 | **教室端注册** | `/classroom/register` |
 | **GitHub 仓库** | https://github.com/KeKe0904/KeKe-ExamHub |
-| **当前版本** | v1.1.2 |
+| **当前版本** | v1.1.3 |
 | **License** | MIT（完全开源免费） |
 
 ### 快速体验路径
@@ -366,7 +389,7 @@ KeKe-ExamHub/
 
 ## 8. 后续优化方向
 
-当前版本 v1.1.2 已完成核心功能闭环，以下是已规划的后续迭代方向：
+当前版本 v1.1.3 已完成核心功能闭环，以下是已规划的后续迭代方向：
 
 ### 公告板优化
 

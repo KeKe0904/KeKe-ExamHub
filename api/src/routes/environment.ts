@@ -10,7 +10,7 @@ import os from "os";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { exec, execFile } from "child_process";
+import { exec, execFile, spawn } from "child_process";
 import { promisify } from "util";
 import { successResponse, errorResponse } from "../utils/response.js";
 import { authMiddleware } from "../middleware/auth.js";
@@ -30,28 +30,63 @@ const CMD_TIMEOUT = 30000;
 // 长任务超时时间（重装等）
 const LONG_TIMEOUT = 300000;
 
+// 预解析关键命令的绝对路径
+let NPM_BIN = "npm";
+let NODE_BIN = "node";
+let PM2_BIN = "pm2";
+let GIT_BIN = "git";
+let NGINX_BIN = "nginx";
+
+// 在模块加载时解析命令路径
+(async () => {
+  try {
+    const which = promisify(execFile);
+    const resolvePath = async (name: string, fallback: string): Promise<string> => {
+      try {
+        const { stdout } = await which("which", [name], { timeout: 5000 });
+        const p = stdout.trim();
+        return p || fallback;
+      } catch {
+        return fallback;
+      }
+    };
+    NPM_BIN = await resolvePath("npm", "/usr/bin/npm");
+    NODE_BIN = await resolvePath("node", "/usr/bin/node");
+    PM2_BIN = await resolvePath("pm2", "/usr/bin/pm2");
+    GIT_BIN = await resolvePath("git", "/usr/bin/git");
+    NGINX_BIN = await resolvePath("nginx", "/usr/sbin/nginx");
+  } catch { /* 使用默认值 */ }
+})();
+
 // 安全执行命令（带超时）
 async function safeExec(
   command: string,
-  timeout: number = CMD_TIMEOUT
+  timeout: number = CMD_TIMEOUT,
+  throwOnError: boolean = false
 ): Promise<{ stdout: string; stderr: string }> {
   try {
     const { stdout, stderr } = await execAsync(command, {
       timeout,
       maxBuffer: 1024 * 1024 * 10, // 10MB
       cwd: PROJECT_ROOT,
+      env: {
+        ...process.env,
+        PATH: `${path.join(PROJECT_ROOT, "node_modules", ".bin")}:${path.join(API_ROOT, "node_modules", ".bin")}:${process.env.PATH || "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"}`,
+        NODE_ENV: "", // 覆盖 production，确保 npm install 安装 devDependencies
+      },
     });
     return { stdout: stdout.trim(), stderr: stderr.trim() };
   } catch (error: any) {
-    // 命令不存在时返回空
-    if (error.code === 127 || error.message?.includes("not found")) {
-      return { stdout: "", stderr: "" };
-    }
     // 超时
     if (error.killed || error.signal === "SIGTERM") {
       throw new Error("命令执行超时");
     }
-    // 返回错误输出
+    // throwOnError 模式下，将非零退出码视为错误
+    if (throwOnError) {
+      const errMsg = error.stderr?.trim() || error.stdout?.trim() || error.message;
+      throw new Error(`命令执行失败 (退出码 ${error.code}): ${errMsg}`);
+    }
+    // 默认模式：返回错误输出
     return {
       stdout: error.stdout?.trim() || "",
       stderr: error.stderr?.trim() || error.message,
@@ -505,14 +540,14 @@ export default async function environmentRoutes(app: FastifyInstance) {
           case "npm-packages":
             // 更新项目 npm 依赖
             message = "更新项目依赖";
-            command = "npm update";
+            command = `${NPM_BIN} update`;
             {
               const { stdout, stderr } = await safeExec(command, LONG_TIMEOUT);
               log = stdout + (stderr ? `\n${stderr}` : "");
             }
             // 同时更新后端依赖
             {
-              const { stdout: apiOut, stderr: apiErr } = await safeExec("cd api && npm update", LONG_TIMEOUT);
+              const { stdout: apiOut, stderr: apiErr } = await safeExec(`cd api && ${NPM_BIN} update`, LONG_TIMEOUT);
               log += `\n--- 后端依赖 ---\n${apiOut}${apiErr ? `\n${apiErr}` : ""}`;
             }
             break;
@@ -521,7 +556,7 @@ export default async function environmentRoutes(app: FastifyInstance) {
             // 更新 PM2
             message = "更新 PM2";
             {
-              const { stdout, stderr } = await safeExec("npm install -g pm2@latest", LONG_TIMEOUT);
+              const { stdout, stderr } = await safeExec(`${NPM_BIN} install -g pm2@latest`, LONG_TIMEOUT);
               log = stdout + (stderr ? `\n${stderr}` : "");
             }
             // 重启 PM2
@@ -839,14 +874,13 @@ echo "DONE" >> "\$LOG"
             if (rmErr) addLog(`警告: ${rmErr}`);
 
             addLog("步骤 3/4: 重新安装依赖");
-            const { stdout: installOut, stderr: installErr } = await safeExec("npm install", LONG_TIMEOUT);
+            const { stdout: installOut, stderr: installErr } = await safeExec(`${NPM_BIN} install`, LONG_TIMEOUT, true);
             addLog(installOut);
             if (installErr) addLog(`警告: ${installErr}`);
 
             addLog("步骤 4/4: 重新构建前端");
-            const { stdout: buildOut, stderr: buildErr } = await safeExec("npm run build", LONG_TIMEOUT);
+            const { stdout: buildOut } = await safeExec(`./node_modules/.bin/tsc -b && ./node_modules/.bin/vite build`, LONG_TIMEOUT, true);
             addLog(buildOut);
-            if (buildErr) addLog(`警告: ${buildErr}`);
 
             addLog("前端环境重装完成");
             break;
@@ -856,7 +890,7 @@ echo "DONE" >> "\$LOG"
             // 重装后端依赖并重新编译
             addLog("开始重装后端环境...");
 
-            addLog("步骤 1/5: 备份 .env 配置文件");
+            addLog("步骤 1/4: 备份 .env 配置文件");
             let envBackup = "";
             try {
               envBackup = fs.readFileSync(path.join(API_ROOT, ".env"), "utf-8");
@@ -865,34 +899,31 @@ echo "DONE" >> "\$LOG"
               addLog("警告: .env 文件不存在，跳过备份");
             }
 
-            addLog("步骤 2/5: 停止 PM2 进程");
-            const { stdout: stopOut } = await safeExec("pm2 stop examhub-api 2>/dev/null || true", CMD_TIMEOUT);
-            addLog(stopOut || "无运行中的进程");
-
-            addLog("步骤 3/5: 删除 node_modules 和 dist");
+            addLog("步骤 2/4: 删除 node_modules 和 dist");
             await safeExec("cd api && rm -rf node_modules dist", CMD_TIMEOUT);
             addLog("已清理");
 
-            addLog("步骤 4/5: 重新安装依赖");
-            const { stdout: installOut, stderr: installErr } = await safeExec("cd api && npm install", LONG_TIMEOUT);
+            addLog("步骤 3/4: 重新安装依赖");
+            const { stdout: installOut, stderr: installErr } = await safeExec(`cd api && ${NPM_BIN} install`, LONG_TIMEOUT, true);
             addLog(installOut);
             if (installErr) addLog(`警告: ${installErr}`);
 
-            addLog("步骤 5/5: 恢复配置并重新编译");
+            addLog("步骤 4/4: 恢复配置并重新编译");
             if (envBackup) {
               fs.writeFileSync(path.join(API_ROOT, ".env"), envBackup);
               addLog(".env 已恢复");
             }
-            const { stdout: buildOut, stderr: buildErr } = await safeExec("cd api && npx tsc", LONG_TIMEOUT);
+            const { stdout: buildOut } = await safeExec("cd api && ./node_modules/.bin/tsc", LONG_TIMEOUT, true);
             addLog(buildOut);
-            if (buildErr) addLog(`警告: ${buildErr}`);
 
-            // 重启 PM2
-            addLog("重启 PM2 进程...");
-            const { stdout: restartOut } = await safeExec("pm2 restart examhub-api 2>/dev/null || pm2 start dist/server.js --name examhub-api", CMD_TIMEOUT);
-            addLog(restartOut);
+            // 延迟重启：当前进程先返回响应，再由独立子进程触发重启
+            addLog("后端环境重装完成，服务将在2秒后重启...");
+            spawn("sh", ["-c", "sleep 2 && cd /opt/examhub && (pm2 restart examhub-api || pm2 start api/dist/server.js --name examhub-api)"], {
+              detached: true,
+              stdio: "ignore",
+              cwd: PROJECT_ROOT,
+            }).unref();
 
-            addLog("后端环境重装完成");
             break;
           }
 
@@ -901,7 +932,7 @@ echo "DONE" >> "\$LOG"
             addLog("开始完整重装环境（保留数据）...");
 
             // 1. 备份配置
-            addLog("步骤 1/7: 备份配置文件");
+            addLog("步骤 1/6: 备份配置文件");
             let apiEnvBackup = "";
             try {
               apiEnvBackup = fs.readFileSync(path.join(API_ROOT, ".env"), "utf-8");
@@ -910,56 +941,57 @@ echo "DONE" >> "\$LOG"
               addLog("⚠ api/.env 不存在");
             }
 
-            // 2. 停止服务
-            addLog("步骤 2/7: 停止后端服务");
-            const { stdout: stopOut } = await safeExec("pm2 stop examhub-api 2>/dev/null || true", CMD_TIMEOUT);
-            addLog(stopOut || "无运行中的进程");
-
-            // 3. 清理前端
-            addLog("步骤 3/7: 清理前端依赖");
+            // 2. 清理前端
+            addLog("步骤 2/6: 清理前端依赖");
             await safeExec("rm -rf node_modules dist", CMD_TIMEOUT);
             addLog("✓ 前端已清理");
 
-            // 4. 清理后端
-            addLog("步骤 4/7: 清理后端依赖");
+            // 3. 清理后端
+            addLog("步骤 3/6: 清理后端依赖");
             await safeExec("cd api && rm -rf node_modules dist", CMD_TIMEOUT);
             addLog("✓ 后端已清理");
 
-            // 5. 重新安装依赖
-            addLog("步骤 5/7: 重新安装依赖");
+            // 4. 重新安装依赖
+            addLog("步骤 4/6: 重新安装依赖");
             addLog("--- 前端依赖 ---");
-            const { stdout: feInstallOut, stderr: feInstallErr } = await safeExec("npm install", LONG_TIMEOUT);
+            const { stdout: feInstallOut, stderr: feInstallErr } = await safeExec(`${NPM_BIN} install`, LONG_TIMEOUT, true);
             addLog(feInstallOut);
             if (feInstallErr) addLog(`警告: ${feInstallErr}`);
 
             addLog("--- 后端依赖 ---");
-            const { stdout: beInstallOut, stderr: beInstallErr } = await safeExec("cd api && npm install", LONG_TIMEOUT);
+            const { stdout: beInstallOut, stderr: beInstallErr } = await safeExec(`cd api && ${NPM_BIN} install`, LONG_TIMEOUT, true);
             addLog(beInstallOut);
             if (beInstallErr) addLog(`警告: ${beInstallErr}`);
 
-            // 6. 恢复配置并编译
-            addLog("步骤 6/7: 恢复配置并编译");
+            // 5. 恢复配置并编译
+            addLog("步骤 5/6: 恢复配置并编译");
             if (apiEnvBackup) {
               fs.writeFileSync(path.join(API_ROOT, ".env"), apiEnvBackup);
               addLog("✓ api/.env 已恢复");
             }
 
             addLog("--- 编译后端 ---");
-            const { stdout: beBuildOut, stderr: beBuildErr } = await safeExec("cd api && npx tsc", LONG_TIMEOUT);
+            const { stdout: beBuildOut } = await safeExec("cd api && ./node_modules/.bin/tsc", LONG_TIMEOUT, true);
             addLog(beBuildOut);
-            if (beBuildErr) addLog(`警告: ${beBuildErr}`);
 
             addLog("--- 构建前端 ---");
-            const { stdout: feBuildOut, stderr: feBuildErr } = await safeExec("npm run build", LONG_TIMEOUT);
+            const { stdout: feBuildOut } = await safeExec(`./node_modules/.bin/tsc -b && ./node_modules/.bin/vite build`, LONG_TIMEOUT, true);
             addLog(feBuildOut);
-            if (feBuildErr) addLog(`警告: ${feBuildErr}`);
 
-            // 7. 重启服务
-            addLog("步骤 7/7: 重启服务");
-            const { stdout: restartOut } = await safeExec("pm2 restart examhub-api 2>/dev/null || pm2 start api/dist/server.js --name examhub-api", CMD_TIMEOUT);
-            addLog(restartOut);
+            // 6. 验证编译产物
+            const serverJsPath = path.join(API_ROOT, "dist", "server.js");
+            if (!checkPath(serverJsPath)) {
+              throw new Error(`后端编译失败：找不到 ${serverJsPath}，请检查 TypeScript 编译错误`);
+            }
 
-            addLog("✓ 完整重装完成，数据库数据已保留");
+            // 延迟重启：当前进程先返回响应，再由独立子进程触发重启
+            addLog("完整重装完成，服务将在2秒后重启...");
+            spawn("sh", ["-c", "sleep 2 && cd /opt/examhub && (pm2 restart examhub-api || pm2 start api/dist/server.js --name examhub-api)"], {
+              detached: true,
+              stdio: "ignore",
+              cwd: PROJECT_ROOT,
+            }).unref();
+
             break;
           }
 

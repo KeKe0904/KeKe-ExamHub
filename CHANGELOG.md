@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## [1.1.3] - 2026-06-27
+
+### 关键修复
+
+#### 环境重装稳定性修复
+- **修复 "重装后端" / "完整重装" 进程自杀 Bug** — `pm2 stop` 在代码内部杀死当前 HTTP 请求进程，导致后续依赖安装、编译步骤全部跳过，且 PM2 进程进入 `stopped` 状态无法自恢复。改为移除 `pm2 stop`，使用独立 `spawn` 子进程延迟 2 秒重启，确保：① 全部重装步骤完整执行；② 响应日志完整返回给前端；③ 服务自动重启恢复
+- **修复 PM2 `NODE_ENV=production` 导致构建失败** — PM2 设置的环境变量令 `npm install` 跳过 `devDependencies`（含 TypeScript、Vite），导致 `tsc: not found` 编译失败。在 `safeExec` 执行环境中覆盖 `NODE_ENV=""`，确保 `npm install` 完整安装所有依赖
+- **修复 `CookieConsent.tsx` TypeScript 编译错误** — 缺少 `import { useState } from "react"` 导致前端构建失败，已补充导入语句
+- **构建命令显式路径** — 前端构建命令改为 `./node_modules/.bin/tsc -b && ./node_modules/.bin/vite build`，避免 PATH 解析异常
+
+#### 代码变更
+- `api/src/routes/environment.ts`: 移除 `backend` 和 `all` 重装 case 中的 `pm2 stop`，改用 `spawn(…)` 延迟重启；`safeExec` 添加 `NODE_ENV: ""` 环境覆盖；`safeExec` PATH 增加 `node_modules/.bin` 路径
+- `src/components/CookieConsent.tsx`: 添加 `import { useState } from "react"`
+
+---
+
 ## [1.1.2] - 2026-06-27
 
 ### 新增功能
