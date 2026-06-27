@@ -42,6 +42,22 @@ test-login.js
 create-repo.js
 upload-to-github.js
 backup_trae.ps1
+buildcheck.cjs
+checkenv.cjs
+checklock.cjs
+checkpm2.cjs
+checksrc.cjs
+deepdebug.cjs
+deployenv.cjs
+diagnose.cjs
+diagnose2.cjs
+patchserver.cjs
+restartapi.cjs
+restore.cjs
+simtest.cjs
+testbuild.cjs
+upload.cjs
+dist.zip
 
 # 构建输出调试文件
 build-output.txt
