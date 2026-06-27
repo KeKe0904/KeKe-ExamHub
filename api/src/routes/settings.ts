@@ -12,7 +12,7 @@ import { successResponse, errorResponse } from "../utils/response.js";
 import { authMiddleware } from "../middleware/auth.js";
 
 export default async function settingsRoutes(fastify: FastifyInstance) {
-  // 获取当前管理员信�?
+  // 获取当前管理员信息
   fastify.get("/profile", {
     preHandler: [authMiddleware],
   }, async (request, reply) => {
@@ -28,8 +28,8 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
       }
       return reply.send(successResponse(admins[0]));
     } catch (error) {
-      console.error("获取管理员信息失�?", error);
-      return reply.status(500).send(errorResponse("服务器内部错�?));
+      console.error("获取管理员信息失败:", error);
+      return reply.status(500).send(errorResponse("服务器内部错误"));
     }
   });
 
@@ -48,7 +48,7 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
         return reply.status(400).send(errorResponse("请输入旧密码和新密码"));
       }
       if (newPassword.length < 6) {
-        return reply.status(400).send(errorResponse("新密码至�?�?));
+        return reply.status(400).send(errorResponse("新密码至少6位"));
       }
 
       // 查询当前密码
@@ -61,10 +61,10 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
         return reply.status(404).send(errorResponse("管理员不存在"));
       }
 
-      // 验证旧密�?
+      // 验证旧密码
       const isOldValid = await bcrypt.compare(oldPassword, admins[0].password);
       if (!isOldValid) {
-        return reply.status(400).send(errorResponse("旧密码错�?));
+        return reply.status(400).send(errorResponse("旧密码错误"));
       }
 
       // 加密新密码并更新
@@ -77,11 +77,11 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
       return reply.send(successResponse(null, "密码修改成功"));
     } catch (error) {
       console.error("修改密码失败:", error);
-      return reply.status(500).send(errorResponse("服务器内部错�?));
+      return reply.status(500).send(errorResponse("服务器内部错误"));
     }
   });
 
-  // 修改头像（存储头像URL或base64数据�?
+  // 修改头像（存储头像URL或base64数据）
   fastify.put("/avatar", {
     preHandler: [authMiddleware],
   }, async (request, reply) => {
@@ -90,12 +90,12 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
       const { avatar } = request.body as { avatar: string };
 
       if (!avatar) {
-        return reply.status(400).send(errorResponse("请提供头像数�?));
+        return reply.status(400).send(errorResponse("请提供头像数据"));
       }
 
-      // 限制头像大小（base64 �?2MB�?
+      // 限制头像大小（base64 约 2MB）
       if (avatar.length > 2 * 1024 * 1024) {
-        return reply.status(400).send(errorResponse("头像文件过大，请上传小于2MB的图�?));
+        return reply.status(400).send(errorResponse("头像文件过大，请上传小于2MB的图片"));
       }
 
       await pool.execute(
@@ -106,11 +106,11 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
       return reply.send(successResponse({ avatar }, "头像更新成功"));
     } catch (error) {
       console.error("修改头像失败:", error);
-      return reply.status(500).send(errorResponse("服务器内部错�?));
+      return reply.status(500).send(errorResponse("服务器内部错误"));
     }
   });
 
-  // 获取系统设置（公开接口，前端展示学校名字等�?
+  // 获取系统设置（公开接口，前端展示学校名字等）
   fastify.get("/", async (request, reply) => {
     try {
       const [rows] = await pool.execute(
@@ -123,11 +123,11 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
       return reply.send(successResponse(settings));
     } catch (error) {
       console.error("获取设置失败:", error);
-      return reply.status(500).send(errorResponse("服务器内部错�?));
+      return reply.status(500).send(errorResponse("服务器内部错误"));
     }
   });
 
-  // 更新系统设置（学校名字、站点标题、站点图标等�?
+  // 更新系统设置（学校名字、站点标题、站点图标等）
   fastify.put("/", {
     preHandler: [authMiddleware],
   }, async (request, reply) => {
@@ -136,7 +136,7 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
         schoolName?: string;
         siteTitle?: string;
         siteFavicon?: string;
-        cookieConsentEnabled?: string; // "true" | "false"
+        cookieConsentEnabled?: boolean;
       };
 
       const updates: { key: string; value: string }[] = [];
@@ -164,8 +164,7 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
       }
 
       if (cookieConsentEnabled !== undefined) {
-        const val = cookieConsentEnabled === "true" ? "true" : "false";
-        updates.push({ key: "cookie_consent_enabled", value: val });
+        updates.push({ key: "cookie_consent_enabled", value: cookieConsentEnabled ? "true" : "false" });
       }
 
       for (const { key, value } of updates) {
@@ -179,7 +178,7 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
       return reply.send(successResponse(null, "设置更新成功"));
     } catch (error) {
       console.error("更新设置失败:", error);
-      return reply.status(500).send(errorResponse("服务器内部错�?));
+      return reply.status(500).send(errorResponse("服务器内部错误"));
     }
   });
 }

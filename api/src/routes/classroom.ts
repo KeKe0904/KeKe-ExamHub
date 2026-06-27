@@ -17,7 +17,7 @@ import {
 import { classroomAuthMiddleware } from "../middleware/auth.js";
 
 export default async function classroomRoutes(fastify: FastifyInstance) {
-  // ==================== 教室端注�?====================
+  // ==================== 教室端注册 ====================
   fastify.post("/register", async (request, reply) => {
     try {
       const { registrationCode, buildingId, roomNumber, password } =
@@ -32,16 +32,16 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
       if (!registrationCode || !buildingId || !roomNumber || !password) {
         return reply
           .status(400)
-          .send(errorResponse("请填写所有必填字�?));
+          .send(errorResponse("请填写所有必填字段"));
       }
 
       if (password.length < 6) {
         return reply
           .status(400)
-          .send(errorResponse("密码至少 6 �?));
+          .send(errorResponse("密码至少 6 位"));
       }
 
-      // 1. 验证注册码是否有�?存在且未使用)
+      // 1. 验证注册码是否有效(存在且未使用)
       const [codeRows] = await pool.execute(
         "SELECT * FROM registration_codes WHERE code = ? AND is_used = FALSE",
         [registrationCode.trim()]
@@ -53,7 +53,8 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
       }
       const regCode = (codeRows as any[])[0];
 
-      // 2. 验证教学楼是否存�?      const [buildingRows] = await pool.execute(
+      // 2. 验证教学楼是否存在
+      const [buildingRows] = await pool.execute(
         "SELECT * FROM buildings WHERE id = ?",
         [buildingId]
       );
@@ -61,20 +62,21 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
         return reply.status(400).send(errorResponse("教学楼不存在"));
       }
 
-      // 3. 检查同一教学楼下的教室号是否已存�?      const [existing] = await pool.execute(
+      // 3. 检查同一教学楼下的教室号是否已存在
+      const [existing] = await pool.execute(
         "SELECT id FROM classrooms WHERE building_id = ? AND room_number = ?",
         [buildingId, roomNumber.trim()]
       );
       if ((existing as any[]).length > 0) {
         return reply
           .status(409)
-          .send(errorResponse("该教学楼的此教室号已被注�?));
+          .send(errorResponse("该教学楼的此教室号已被注册"));
       }
 
       // 4. 加密密码
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // 5. 创建教室端账�?状态为 pending,等待审核)
+      // 5. 创建教室端账号(状态为 pending,等待审核)
       const [result] = await pool.execute(
         `INSERT INTO classrooms (building_id, room_number, password, registration_code_id, status)
          VALUES (?, ?, ?, ?, 'pending')`,
@@ -83,7 +85,8 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
 
       const classroomId = (result as any).insertId;
 
-      // 6. 标记注册码为已使�?      await pool.execute(
+      // 6. 标记注册码为已使用
+      await pool.execute(
         "UPDATE registration_codes SET is_used = TRUE, used_by_classroom_id = ?, used_at = NOW() WHERE id = ?",
         [classroomId, regCode.id]
       );
@@ -95,12 +98,12 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
         )
       );
     } catch (error) {
-      console.error("教室端注册失�?", error);
+      console.error("教室端注册失败:", error);
       return reply.status(500).send(errorResponse("注册失败"));
     }
   });
 
-  // ==================== 教室端登�?====================
+  // ==================== 教室端登录 ====================
   fastify.post("/login", async (request, reply) => {
     try {
       const { buildingId, roomNumber, password } = request.body as {
@@ -112,10 +115,10 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
       if (!buildingId || !roomNumber || !password) {
         return reply
           .status(400)
-          .send(errorResponse("请填写所有必填字�?));
+          .send(errorResponse("请填写所有必填字段"));
       }
 
-      // 查询教室账号(关联教学楼名�?
+      // 查询教室账号(关联教学楼名称)
       const [rows] = await pool.execute(
         `SELECT c.*, b.name AS building_name FROM classrooms c
          JOIN buildings b ON c.building_id = b.id
@@ -142,11 +145,12 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
           .send(errorResponse("教室号或密码错误"));
       }
 
-      // 检查审核状�?      if (classroom.status === "pending") {
+      // 检查审核状态
+      if (classroom.status === "pending") {
         return reply.send(
           successResponse(
             { status: "pending" },
-            "账号正在审核�?请等待管理员通过"
+            "账号正在审核中,请等待管理员通过"
           )
         );
       }
@@ -188,7 +192,7 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
         )
       );
     } catch (error) {
-      console.error("教室端登录失�?", error);
+      console.error("教室端登录失败:", error);
       return reply.status(500).send(errorResponse("登录失败"));
     }
   });
@@ -214,7 +218,7 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // ==================== 获取该教室的考试信息(需教室�?token) ====================
+  // ==================== 获取该教室的考试信息(需教室端 token) ====================
   fastify.get(
     "/exams",
     {
@@ -245,7 +249,7 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // ==================== 获取教室端自身信�?====================
+  // ==================== 获取教室端自身信息 ====================
   fastify.get(
     "/profile",
     {
@@ -264,7 +268,7 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
         if ((rows as any[]).length === 0) {
           return reply
             .status(404)
-            .send(errorResponse("教室信息不存�?));
+            .send(errorResponse("教室信息不存在"));
         }
 
         const classroom = (rows as any[])[0];

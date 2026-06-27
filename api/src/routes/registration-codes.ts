@@ -6,7 +6,6 @@
  * @license MIT
  */
 import type { FastifyInstance } from "fastify";
-import crypto from "crypto";
 import { pool } from "../config/database.js";
 import {
   successResponse,
@@ -16,9 +15,9 @@ import {
 } from "../utils/response.js";
 import { authMiddleware } from "../middleware/auth.js";
 
-// 生成随机注册�?8位大写字�?数字,易读格式 XXXX-XXXX)
+// 生成随机注册码(8位大写字母+数字,易读格式 XXXX-XXXX)
 function generateCode(): string {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // 去除易混淆字�?I O 0 1
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // 去除易混淆字符 I O 0 1
   let part1 = "";
   let part2 = "";
   for (let i = 0; i < 4; i++) {
@@ -28,7 +27,7 @@ function generateCode(): string {
   return `${part1}-${part2}`;
 }
 
-// 生成唯一的注册码(检查数据库确保不重�?
+// 生成唯一的注册码(检查数据库确保不重复)
 async function generateUniqueCode(): Promise<string> {
   for (let i = 0; i < 10; i++) {
     const code = generateCode();
@@ -40,8 +39,8 @@ async function generateUniqueCode(): Promise<string> {
       return code;
     }
   }
-  // 极端情况:�?crypto 兜底
-  return `RC-${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
+  // 极端情况:用 crypto 兜底
+  return `RC-${(crypto as any).randomBytes(4).toString("hex").toUpperCase()}`;
 }
 
 export default async function registrationCodeRoutes(
@@ -74,13 +73,14 @@ export default async function registrationCodeRoutes(
         );
         return reply.send(successResponse(codes));
       } catch (error) {
-        console.error("获取注册码列表失�?", error);
-        return reply.status(500).send(errorResponse("获取注册码列表失�?));
+        console.error("获取注册码列表失败:", error);
+        return reply.status(500).send(errorResponse("获取注册码列表失败"));
       }
     }
   );
 
-  // 批量生成注册�?  fastify.post(
+  // 批量生成注册码
+  fastify.post(
     "/",
     { preHandler: [authMiddleware] },
     async (request, reply) => {
@@ -106,13 +106,13 @@ export default async function registrationCodeRoutes(
           )
         );
       } catch (error) {
-        console.error("生成注册码失�?", error);
-        return reply.status(500).send(errorResponse("生成注册码失�?));
+        console.error("生成注册码失败:", error);
+        return reply.status(500).send(errorResponse("生成注册码失败"));
       }
     }
   );
 
-  // 删除注册�?仅未使用的可删除)
+  // 删除注册码(仅未使用的可删除)
   fastify.delete(
     "/:id",
     { preHandler: [authMiddleware] },
@@ -131,17 +131,17 @@ export default async function registrationCodeRoutes(
         if ((rows as any[])[0].is_used) {
           return reply
             .status(409)
-            .send(errorResponse("已使用的注册码无法删�?));
+            .send(errorResponse("已使用的注册码无法删除"));
         }
 
         await pool.execute("DELETE FROM registration_codes WHERE id = ?", [
           id,
         ]);
 
-        return reply.send(successResponse(null, "注册码删除成�?));
+        return reply.send(successResponse(null, "注册码删除成功"));
       } catch (error) {
-        console.error("删除注册码失�?", error);
-        return reply.status(500).send(errorResponse("删除注册码失�?));
+        console.error("删除注册码失败:", error);
+        return reply.status(500).send(errorResponse("删除注册码失败"));
       }
     }
   );
