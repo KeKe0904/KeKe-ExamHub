@@ -57,6 +57,9 @@ restore.cjs
 simtest.cjs
 testbuild.cjs
 upload.cjs
+
+# PM2 运行时生成文件（由 install.sh 生成，每台服务器不同）
+ecosystem.config.cjs
 dist.zip
 
 # 构建输出调试文件

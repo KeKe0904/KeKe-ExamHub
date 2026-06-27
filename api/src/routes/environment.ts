@@ -611,6 +611,9 @@ export default async function environmentRoutes(app: FastifyInstance) {
                 );
                 log += `\n--- 前端构建 ---\n${feOut}${feErr ? `\n${feErr}` : ""}`;
               }
+              // 5.5. 清理 npm install 产生的 lock 文件变更，保持仓库干净
+              await safeExec("git checkout -- api/package-lock.json package-lock.json 2>&1 || true", CMD_TIMEOUT);
+              log += `\n--- 已清理 lock 文件变更 ---`;
               // 6. 重载 Nginx + 延迟重启 PM2（避免杀死当前请求进程导致 502）
               {
                 const { stdout: nginxOut } = await safeExec("nginx -s reload 2>&1", CMD_TIMEOUT);
