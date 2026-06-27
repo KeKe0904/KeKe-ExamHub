@@ -585,11 +585,41 @@ export default async function environmentRoutes(app: FastifyInstance) {
             break;
 
           case "git-pull":
-            // 拉取最新代码
-            message = "拉取最新代码";
+            // 拉取最新代码（先 stash 避免 SFTP 上传导致的冲突，后自动重建）
+            message = "拉取最新代码并重建";
             {
-              const { stdout, stderr } = await safeExec("git pull", CMD_TIMEOUT);
-              log = stdout + (stderr ? `\n${stderr}` : "");
+              // 1. 先 stash 本地所有变更，防止 SFTP 覆盖导致的冲突
+              await safeExec("git stash push -m 'auto-stash-before-pull' 2>&1 || true", CMD_TIMEOUT);
+              // 2. 恢复误 stash 的 lock 文件（保持依赖树稳定）
+              await safeExec("git checkout -- api/package-lock.json package-lock.json 2>&1 || true", CMD_TIMEOUT);
+              // 3. git pull
+              const { stdout: pullOut, stderr: pullErr } = await safeExec("git pull", CMD_TIMEOUT);
+              log = pullOut + (pullErr ? `\n${pullErr}` : "");
+              // 4. 后端：安装依赖 + 编译 TypeScript
+              {
+                const { stdout: apiOut, stderr: apiErr } = await safeExec(
+                  "cd api && NODE_ENV='' npm install --include=dev && NODE_ENV='' ./node_modules/.bin/tsc",
+                  LONG_TIMEOUT
+                );
+                log += `\n--- 后端编译 ---\n${apiOut}${apiErr ? `\n${apiErr}` : ""}`;
+              }
+              // 5. 前端：构建
+              {
+                const { stdout: feOut, stderr: feErr } = await safeExec(
+                  "NODE_ENV='' npm install --include=dev && NODE_ENV='' ./node_modules/.bin/vite build",
+                  LONG_TIMEOUT
+                );
+                log += `\n--- 前端构建 ---\n${feOut}${feErr ? `\n${feErr}` : ""}`;
+              }
+              // 6. 重载 Nginx + 重启 PM2
+              {
+                const { stdout: nginxOut } = await safeExec("nginx -s reload 2>&1", CMD_TIMEOUT);
+                log += `\n--- Nginx 重载 ---\n${nginxOut}`;
+              }
+              {
+                const { stdout: pm2Out } = await safeExec("pm2 restart examhub-api", CMD_TIMEOUT);
+                log += `\n--- PM2 重启 ---\n${pm2Out}`;
+              }
             }
             break;
 
