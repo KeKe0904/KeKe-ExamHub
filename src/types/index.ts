@@ -48,6 +48,61 @@ export interface ExamStats {
   ended: number;
 }
 
+// 进行中的考试
+export interface OngoingExam {
+  id: string;
+  subject: string;
+  examDate: string;
+  duration: number;
+  location: string;
+  progress: number;
+  startTime: string;
+  endTime: string;
+}
+
+// 即将开始的考试
+export interface UpcomingExam {
+  id: string;
+  subject: string;
+  examDate: string;
+  duration: number;
+  location: string;
+}
+
+// 最近结束的考试
+export interface RecentEndedExam {
+  id: string;
+  subject: string;
+  examDate: string;
+  duration: number;
+  location: string;
+  endedAt: string;
+}
+
+// 教学楼统计
+export interface BuildingStat {
+  name: string;
+  examCount: number;
+  classroomCount: number;
+}
+
+// 数据大屏数据
+export interface DashboardStats {
+  totalExams: number;
+  upcomingExams: number;
+  ongoingExams: number;
+  endedExams: number;
+  todayExams: number;
+  totalClassrooms: number;
+  totalBuildings: number;
+  activeClassrooms: number;
+  classroomUtilization: number;
+  ongoingExamList: OngoingExam[];
+  upcomingExamList: UpcomingExam[];
+  recentEndedList: RecentEndedExam[];
+  buildingStats: BuildingStat[];
+}
+
 // ==================== 教室端相关类型 ====================
 
 // 教学楼
@@ -99,4 +154,34 @@ export interface ClassroomInfo {
   classroomId: string;
   buildingName: string;
   roomNumber: string;
+}
+
+// 考试冲突信息
+export interface ExamConflict {
+  examId: string;
+  subject: string;
+  examDate: string;
+  duration: number;
+  classroomId: string;
+  classroomName: string;
+  buildingName: string;
+}
+
+// ==================== 公告相关类型 ====================
+
+// 公告状态
+export type AnnouncementStatus = 'scheduled' | 'active' | 'expired';
+
+// 公告信息
+export interface Announcement {
+  id: number;
+  title: string;
+  content: string;
+  isPinned: boolean;
+  isActive: boolean;
+  publishAt: string | null;
+  expireAt: string | null;
+  status: AnnouncementStatus;
+  createdAt: string;
+  updatedAt: string;
 }

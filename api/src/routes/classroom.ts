@@ -17,8 +17,15 @@ import {
 import { classroomAuthMiddleware } from "../middleware/auth.js";
 
 export default async function classroomRoutes(fastify: FastifyInstance) {
-  // ==================== 教室端注册 ====================
-  fastify.post("/register", async (request, reply) => {
+  // ==================== 教室端注册 - 严格限流（每 IP 每分钟 5 次）====================
+  fastify.post("/register", {
+    config: {
+      rateLimit: {
+        max: 5,
+        timeWindow: "1 minute",
+      },
+    },
+  }, async (request, reply) => {
     try {
       const { registrationCode, buildingId, roomNumber, password } =
         request.body as {
@@ -103,8 +110,15 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // ==================== 教室端登录 ====================
-  fastify.post("/login", async (request, reply) => {
+  // ==================== 教室端登录 - 严格限流（每 IP 每分钟 5 次）====================
+  fastify.post("/login", {
+    config: {
+      rateLimit: {
+        max: 5,
+        timeWindow: "1 minute",
+      },
+    },
+  }, async (request, reply) => {
     try {
       const { buildingId, roomNumber, password } = request.body as {
         buildingId: string;

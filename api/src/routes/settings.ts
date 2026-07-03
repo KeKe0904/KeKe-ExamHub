@@ -10,6 +10,7 @@ import bcrypt from "bcryptjs";
 import { pool } from "../config/database.js";
 import { successResponse, errorResponse } from "../utils/response.js";
 import { authMiddleware } from "../middleware/auth.js";
+import { logAdminAction } from "../utils/audit-log.js";
 
 export default async function settingsRoutes(fastify: FastifyInstance) {
   // 获取当前管理员信息
@@ -74,6 +75,8 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
         [hashedPassword, user.id]
       );
 
+      logAdminAction(user.id, user.username, "password_change", {});
+
       return reply.send(successResponse(null, "密码修改成功"));
     } catch (error) {
       console.error("修改密码失败:", error);
@@ -102,6 +105,8 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
         "UPDATE admins SET avatar = ? WHERE id = ?",
         [avatar, user.id]
       );
+
+      logAdminAction(user.id, user.username, "avatar_change", {});
 
       return reply.send(successResponse({ avatar }, "头像更新成功"));
     } catch (error) {
@@ -132,6 +137,7 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
     preHandler: [authMiddleware],
   }, async (request, reply) => {
     try {
+      const user = (request as any).user;
       const { schoolName, siteTitle, siteFavicon, cookieConsentEnabled } = request.body as {
         schoolName?: string;
         siteTitle?: string;
@@ -174,6 +180,11 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
           [key, value]
         );
       }
+
+      const updatedKeys = updates.map((u) => u.key);
+      logAdminAction(user.id, user.username, "settings_update", {
+        updatedKeys,
+      });
 
       return reply.send(successResponse(null, "设置更新成功"));
     } catch (error) {

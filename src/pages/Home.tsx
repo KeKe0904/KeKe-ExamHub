@@ -112,13 +112,12 @@ export default function Home() {
                       )}
                       <h3 className="text-sm font-semibold break-words">{a.title}</h3>
                     </div>
-                    <p
-                      className={`text-xs whitespace-pre-wrap break-words ${
+                    <div
+                      className={`text-xs break-words announcement-content ${
                         a.isPinned ? "text-zinc-300 dark:text-zinc-600" : "text-zinc-500 dark:text-zinc-300"
                       } ${!isExpanded && isLong ? "line-clamp-2" : ""}`}
-                    >
-                      {a.content}
-                    </p>
+                      dangerouslySetInnerHTML={{ __html: a.content }}
+                    />
                     {isLong && (
                       <button
                         onClick={() =>

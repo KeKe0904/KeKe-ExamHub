@@ -23,6 +23,7 @@ import {
   Package,
   Shield,
   Terminal,
+  Monitor,
 } from "@/components/MathIcon";
 import { useAuthStore } from "@/store/authStore";
 import { useSchoolName } from "@/hooks/useSchoolName";
@@ -53,6 +54,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       title: "概览",
       items: [
         { href: "/admin", label: "仪表盘", icon: LayoutDashboard },
+        { href: "/admin/data-dashboard", label: "数据大屏", icon: Monitor },
         { href: "/classroom", label: "教室端", icon: Terminal },
       ],
     },
@@ -78,6 +80,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         { href: "/admin/monitor", label: "服务器监控", icon: Server },
         { href: "/admin/environment", label: "服务器环境", icon: Box },
         { href: "/admin/settings", label: "系统设置", icon: Settings },
+        { href: "/admin/audit-logs", label: "操作日志", icon: FileText },
       ],
     },
   ];

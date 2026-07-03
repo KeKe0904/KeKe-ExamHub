@@ -8,6 +8,7 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";
+import rateLimit from "@fastify/rate-limit";
 import dotenv from "dotenv";
 import { testConnection } from "./config/database.js";
 import authRoutes from "./routes/auth.js";
@@ -22,6 +23,7 @@ import buildingRoutes from "./routes/buildings.js";
 import registrationCodeRoutes from "./routes/registration-codes.js";
 import classroomAdminRoutes from "./routes/classrooms.js";
 import classroomRoutes from "./routes/classroom.js";
+import auditLogRoutes from "./routes/audit-logs.js";
 
 dotenv.config();
 
@@ -36,10 +38,37 @@ async function start() {
   try {
     // 注册 CORS 插件
     await app.register(cors, {
-      origin: true, // 允许所有来源（安装向导需要）
+      origin: process.env.NODE_ENV === "production"
+        ? (origin, cb) => {
+            if (!origin) return cb(null, true);
+            try {
+              const allowed = [
+                new URL(process.env.SITE_URL || "").origin,
+              ].filter(Boolean);
+              if (allowed.length === 0 || allowed.includes(origin)) {
+                cb(null, true);
+              } else {
+                cb(new Error("Not allowed by CORS"), false);
+              }
+            } catch {
+              cb(null, true);
+            }
+          }
+        : true,
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
       allowedHeaders: ["Content-Type", "Authorization"],
       credentials: true,
+    });
+
+    // 注册速率限制插件
+    await app.register(rateLimit, {
+      max: 100,
+      timeWindow: "1 minute",
+      hook: "preHandler",
+      keyGenerator: (request) => {
+        return request.headers["x-forwarded-for"]?.toString().split(",")[0].trim()
+          || request.ip;
+      },
     });
 
     // 注册 JWT 插件
@@ -72,6 +101,7 @@ async function start() {
     await app.register(registrationCodeRoutes, { prefix: "/api/registration-codes" });
     await app.register(classroomAdminRoutes, { prefix: "/api/classrooms" });
     await app.register(classroomRoutes, { prefix: "/api/classroom" });
+    await app.register(auditLogRoutes, { prefix: "/api/audit-logs" });
 
     // 健康检查
     app.get("/api/health", async () => {

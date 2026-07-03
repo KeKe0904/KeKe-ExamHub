@@ -35,11 +35,15 @@ CREATE TABLE IF NOT EXISTS exams (
   location VARCHAR(100) NOT NULL,
   invigilator VARCHAR(50) NOT NULL,
   notes TEXT,
+  is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_exam_date (exam_date),
   INDEX idx_subject (subject)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 兼容已有表:补充 is_active 字段
+-- ALTER TABLE exams ADD COLUMN is_active BOOLEAN DEFAULT TRUE;
 
 -- 公告表
 CREATE TABLE IF NOT EXISTS announcements (
@@ -48,10 +52,20 @@ CREATE TABLE IF NOT EXISTS announcements (
   content TEXT NOT NULL,
   is_pinned BOOLEAN DEFAULT FALSE,
   is_active BOOLEAN DEFAULT TRUE,
+  publish_at DATETIME NULL COMMENT '定时发布时间(NULL表示立即发布)',
+  expire_at DATETIME NULL COMMENT '自动下架时间(NULL表示永不过期)',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX idx_created_at (created_at)
+  INDEX idx_created_at (created_at),
+  INDEX idx_publish_at (publish_at),
+  INDEX idx_expire_at (expire_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 兼容已有表:补充 publish_at 和 expire_at 字段
+-- ALTER TABLE announcements ADD COLUMN publish_at DATETIME NULL COMMENT '定时发布时间(NULL表示立即发布)';
+-- ALTER TABLE announcements ADD COLUMN expire_at DATETIME NULL COMMENT '自动下架时间(NULL表示永不过期)';
+-- ALTER TABLE announcements ADD INDEX idx_publish_at (publish_at);
+-- ALTER TABLE announcements ADD INDEX idx_expire_at (expire_at);
 
 -- 系统设置表(键值对存储)
 CREATE TABLE IF NOT EXISTS settings (
@@ -105,14 +119,16 @@ CREATE TABLE IF NOT EXISTS exam_classrooms (
   assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (exam_id, classroom_id),
   FOREIGN KEY (exam_id) REFERENCES exams(id) ON DELETE CASCADE,
-  FOREIGN KEY (classroom_id) REFERENCES classrooms(id) ON DELETE CASCADE
+  FOREIGN KEY (classroom_id) REFERENCES classrooms(id) ON DELETE CASCADE,
+  INDEX idx_classroom_id (classroom_id),
+  INDEX idx_exam_classroom (exam_id, classroom_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 插入示例考试数据(已存在则跳过)
-INSERT INTO exams (subject, exam_date, duration, location, invigilator, notes) VALUES
-('高等数学(下)', '2026-07-05 09:00:00', 120, '教学楼A-301', '王教授', '请携带学生证、2B铅笔、黑色签字笔,允许使用计算器(非编程型)'),
-('大学英语(四)', '2026-07-08 14:30:00', 150, '教学楼B-105', '李老师', '请携带2B铅笔、橡皮、黑色签字笔,听力部分需自带调频耳机(频率FM 75.0)'),
-('数据结构与算法', '2026-07-12 10:00:00', 180, '计算机楼C-201', '张教授', '开卷考试,可携带教材与笔记,禁止使用电子设备。请提前15分钟入场。'),
-('中国近现代史纲要', '2026-07-15 14:00:00', 120, '文科楼D-401', '陈教授', '闭卷考试,请携带学生证与黑色签字笔,禁止携带任何资料'),
-('线性代数', '2026-06-28 09:00:00', 120, '教学楼A-205', '刘教授', '闭卷考试,允许使用计算器(非编程型),请携带学生证')
+INSERT INTO exams (subject, exam_date, duration, location, invigilator, notes, is_active) VALUES
+('高等数学(下)', '2026-07-05 09:00:00', 120, '教学楼A-301', '王教授', '请携带学生证、2B铅笔、黑色签字笔,允许使用计算器(非编程型)', TRUE),
+('大学英语(四)', '2026-07-08 14:30:00', 150, '教学楼B-105', '李老师', '请携带2B铅笔、橡皮、黑色签字笔,听力部分需自带调频耳机(频率FM 75.0)', TRUE),
+('数据结构与算法', '2026-07-12 10:00:00', 180, '计算机楼C-201', '张教授', '开卷考试,可携带教材与笔记,禁止使用电子设备。请提前15分钟入场。', TRUE),
+('中国近现代史纲要', '2026-07-15 14:00:00', 120, '文科楼D-401', '陈教授', '闭卷考试,请携带学生证与黑色签字笔,禁止携带任何资料', TRUE),
+('线性代数', '2026-06-28 09:00:00', 120, '教学楼A-205', '刘教授', '闭卷考试,允许使用计算器(非编程型),请携带学生证', TRUE)
 ON DUPLICATE KEY UPDATE subject=subject;

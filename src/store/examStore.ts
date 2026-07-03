@@ -24,6 +24,15 @@ interface ExamState {
   updateExam: (id: string, input: ExamInput) => Promise<void>;
   // 删除考试
   deleteExam: (id: string) => Promise<void>;
+  // 批量删除考试
+  batchDeleteExams: (ids: string[]) => Promise<number>;
+  // 批量修改考试
+  batchUpdateExams: (ids: string[], updates: {
+    examDate?: string;
+    duration?: number;
+    location?: string;
+    invigilator?: string;
+  }) => Promise<number>;
   // 清除错误
   clearError: () => void;
 }
@@ -113,6 +122,50 @@ export const useExamStore = create<ExamState>((set, get) => ({
       set({
         loading: false,
         error: error instanceof Error ? error.message : "删除考试失败",
+      });
+      throw error;
+    }
+  },
+
+  batchDeleteExams: async (ids: string[]) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await examApi.batchDelete(ids);
+      set((state) => ({
+        exams: state.exams.filter((exam) => !ids.includes(exam.id)),
+        loading: false,
+      }));
+      return response.data.count;
+    } catch (error) {
+      set({
+        loading: false,
+        error: error instanceof Error ? error.message : "批量删除失败",
+      });
+      throw error;
+    }
+  },
+
+  batchUpdateExams: async (ids, updates) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await examApi.batchUpdate(ids, updates);
+      set((state) => ({
+        exams: state.exams.map((exam) => {
+          if (!ids.includes(exam.id)) return exam;
+          const updated = { ...exam };
+          if (updates.examDate !== undefined) updated.examDate = updates.examDate;
+          if (updates.duration !== undefined) updated.duration = updates.duration;
+          if (updates.location !== undefined) updated.location = updates.location;
+          if (updates.invigilator !== undefined) updated.invigilator = updates.invigilator;
+          return { ...updated, status: calculateExamStatus(updated) };
+        }),
+        loading: false,
+      }));
+      return response.data.count;
+    } catch (error) {
+      set({
+        loading: false,
+        error: error instanceof Error ? error.message : "批量更新失败",
       });
       throw error;
     }

@@ -14,6 +14,7 @@ import {
   type BuildingRow,
 } from "../utils/response.js";
 import { authMiddleware } from "../middleware/auth.js";
+import { logAdminAction } from "../utils/audit-log.js";
 
 export default async function buildingRoutes(fastify: FastifyInstance) {
   // 获取所有教学楼(公开接口,教室端注册时需要)
@@ -38,6 +39,7 @@ export default async function buildingRoutes(fastify: FastifyInstance) {
     { preHandler: [authMiddleware] },
     async (request, reply) => {
       try {
+        const user = (request as any).user;
         const { name } = request.body as { name: string };
 
         if (!name || !name.trim()) {
@@ -64,6 +66,11 @@ export default async function buildingRoutes(fastify: FastifyInstance) {
           [insertId]
         );
 
+        logAdminAction(user.id, user.username, "building_create", {
+          buildingId: insertId,
+          name: name.trim(),
+        });
+
         return reply.status(201).send(
           successResponse(
             formatBuilding((rows as BuildingRow[])[0]),
@@ -83,6 +90,7 @@ export default async function buildingRoutes(fastify: FastifyInstance) {
     { preHandler: [authMiddleware] },
     async (request, reply) => {
       try {
+        const user = (request as any).user;
         const { id } = request.params as { id: string };
         const { name } = request.body as { name: string };
 
@@ -113,6 +121,11 @@ export default async function buildingRoutes(fastify: FastifyInstance) {
           [id]
         );
 
+        logAdminAction(user.id, user.username, "building_update", {
+          buildingId: id,
+          name: name.trim(),
+        });
+
         return reply.send(
           successResponse(
             formatBuilding((rows as BuildingRow[])[0]),
@@ -132,7 +145,15 @@ export default async function buildingRoutes(fastify: FastifyInstance) {
     { preHandler: [authMiddleware] },
     async (request, reply) => {
       try {
+        const user = (request as any).user;
         const { id } = request.params as { id: string };
+
+        // 获取教学楼名称
+        const [buildingRows] = await pool.execute(
+          "SELECT name FROM buildings WHERE id = ?",
+          [id]
+        );
+        const building = (buildingRows as any[])[0];
 
         // 检查是否有教室关联
         const [classrooms] = await pool.execute(
@@ -153,6 +174,11 @@ export default async function buildingRoutes(fastify: FastifyInstance) {
         if ((result as any).affectedRows === 0) {
           return reply.status(404).send(errorResponse("教学楼不存在"));
         }
+
+        logAdminAction(user.id, user.username, "building_delete", {
+          buildingId: id,
+          name: building?.name || "",
+        });
 
         return reply.send(successResponse(null, "教学楼删除成功"));
       } catch (error) {

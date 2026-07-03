@@ -24,7 +24,7 @@ import AdminLayout from "@/components/Layout/AdminLayout";
 import DateTimePicker from "@/components/DateTimePicker";
 import { useExamStore } from "@/store/examStore";
 import { examClassroomApi } from "@/utils/api";
-import type { ExamInput, Classroom } from "@/types";
+import type { ExamInput, Classroom, ExamConflict } from "@/types";
 
 export default function ExamForm() {
   const { id } = useParams<{ id: string }>();
@@ -51,6 +51,12 @@ export default function ExamForm() {
   const [selectedClassroomIds, setSelectedClassroomIds] = useState<Set<string>>(new Set());
   const [originalClassroomIds, setOriginalClassroomIds] = useState<Set<string>>(new Set());
   const [classroomsLoading, setClassroomsLoading] = useState(false);
+
+  // 冲突检测相关状态
+  const [conflicts, setConflicts] = useState<ExamConflict[]>([]);
+  const [conflictsLoading, setConflictsLoading] = useState(false);
+  const [showConflictDialog, setShowConflictDialog] = useState(false);
+  const [pendingSubmit, setPendingSubmit] = useState(false);
 
   // 编辑模式:加载数据
   useEffect(() => {
@@ -192,6 +198,42 @@ export default function ExamForm() {
     return false;
   }, [selectedClassroomIds, originalClassroomIds]);
 
+  // 检测冲突
+  const handleCheckConflicts = async () => {
+    if (!isEdit || !id) return;
+    if (selectedClassroomIds.size === 0) {
+      setConflicts([]);
+      return;
+    }
+
+    setConflictsLoading(true);
+    try {
+      const res = await examClassroomApi.checkConflicts(
+        id,
+        Array.from(selectedClassroomIds)
+      );
+      setConflicts(res.data.conflicts);
+    } catch (error) {
+      setConflicts([]);
+    } finally {
+      setConflictsLoading(false);
+    }
+  };
+
+  // 格式化时间显示
+  const formatConflictTime = (examDate: string, duration: number) => {
+    const start = new Date(examDate);
+    const end = new Date(start.getTime() + duration * 60 * 1000);
+    const formatDate = (d: Date) => {
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      const hours = String(d.getHours()).padStart(2, "0");
+      const minutes = String(d.getMinutes()).padStart(2, "0");
+      return `${month}-${day} ${hours}:${minutes}`;
+    };
+    return `${formatDate(start)} ~ ${formatDate(end)}`;
+  };
+
   // 同步教室分配(计算差异:新增批量 assign,取消逐个 unassign)
   const syncClassroomAssignments = async (examId: string) => {
     const toAdd: string[] = [];
@@ -236,8 +278,7 @@ export default function ExamForm() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const doSubmit = async () => {
     setSubmitError("");
 
     if (!validate()) return;
@@ -270,6 +311,45 @@ export default function ExamForm() {
         error instanceof Error ? error.message : "操作失败,请重试"
       );
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitError("");
+
+    if (!validate()) return;
+
+    // 编辑模式且有教室分配变化时，先检测冲突
+    if (isEdit && id && hasClassroomChanges && selectedClassroomIds.size > 0) {
+      setConflictsLoading(true);
+      try {
+        const toAdd: string[] = [];
+        selectedClassroomIds.forEach((cid) => {
+          if (!originalClassroomIds.has(cid)) toAdd.push(cid);
+        });
+
+        if (toAdd.length > 0) {
+          const res = await examClassroomApi.checkConflicts(id, toAdd);
+          if (res.data.conflicts.length > 0) {
+            setConflicts(res.data.conflicts);
+            setShowConflictDialog(true);
+            setConflictsLoading(false);
+            return;
+          }
+        }
+      } catch {
+        // 冲突检测失败，继续提交
+      } finally {
+        setConflictsLoading(false);
+      }
+    }
+
+    await doSubmit();
+  };
+
+  const handleConfirmWithConflicts = async () => {
+    setShowConflictDialog(false);
+    await doSubmit();
   };
 
   return (
@@ -389,26 +469,83 @@ export default function ExamForm() {
                   已选 {selectedClassroomIds.size} / {availableClassrooms.length} 间
                 </span>
               </div>
-              {availableClassrooms.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const allIds = availableClassrooms.map((c) => c.id);
-                    const allSelected = allIds.every((cid) =>
-                      selectedClassroomIds.has(cid)
-                    );
-                    toggleGroup(allIds, !allSelected);
-                  }}
-                  className="text-xs font-medium text-black dark:text-white hover:underline"
-                >
-                  {availableClassrooms.every((c) =>
-                    selectedClassroomIds.has(c.id)
-                  )
-                    ? "取消全选"
-                    : "全选"}
-                </button>
-              )}
+              <div className="flex items-center gap-3">
+                {isEdit && availableClassrooms.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleCheckConflicts}
+                    disabled={conflictsLoading || selectedClassroomIds.size === 0}
+                    className="text-xs font-medium text-black dark:text-white hover:underline disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                  >
+                    {conflictsLoading ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <AlertCircle className="w-3 h-3" />
+                    )}
+                    检测冲突
+                  </button>
+                )}
+                {availableClassrooms.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const allIds = availableClassrooms.map((c) => c.id);
+                      const allSelected = allIds.every((cid) =>
+                        selectedClassroomIds.has(cid)
+                      );
+                      toggleGroup(allIds, !allSelected);
+                    }}
+                    className="text-xs font-medium text-black dark:text-white hover:underline"
+                  >
+                    {availableClassrooms.every((c) =>
+                      selectedClassroomIds.has(c.id)
+                    )
+                      ? "取消全选"
+                      : "全选"}
+                  </button>
+                )}
+              </div>
             </div>
+
+            {/* 冲突警告 */}
+            {conflicts.length > 0 && (
+              <div className="mb-4 p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-lg">
+                <div className="flex items-start gap-2 mb-3">
+                  <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-medium text-red-700 dark:text-red-300">
+                      检测到 {conflicts.length} 个时段冲突
+                    </h4>
+                    <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                      以下教室在相同时段已分配给其他考试
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {conflicts.map((conflict, idx) => (
+                    <div
+                      key={`${conflict.examId}-${conflict.classroomId}-${idx}`}
+                      className="flex items-center justify-between px-3 py-2 bg-white dark:bg-black/50 rounded border border-red-100 dark:border-red-900/50 text-sm"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Building className="w-3.5 h-3.5 text-red-500 dark:text-red-400 shrink-0" />
+                        <span className="text-zinc-900 dark:text-zinc-100 font-medium">
+                          {conflict.buildingName} {conflict.classroomName}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-zinc-800 dark:text-zinc-200 text-xs">
+                          {conflict.subject}
+                        </div>
+                        <div className="text-red-600 dark:text-red-400 text-xs">
+                          {formatConflictTime(conflict.examDate, conflict.duration)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {classroomsLoading ? (
               <div className="flex items-center justify-center py-8">
@@ -523,10 +660,10 @@ export default function ExamForm() {
           </button>
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || pendingSubmit}
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-black dark:bg-white text-white dark:text-black text-sm font-medium rounded-lg hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors disabled:opacity-50"
           >
-            {loading ? (
+            {loading || pendingSubmit ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
                 保存中...
@@ -540,6 +677,76 @@ export default function ExamForm() {
           </button>
         </div>
       </form>
+
+      {/* 冲突确认对话框 */}
+      {showConflictDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 dark:bg-black/70">
+          <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden">
+            <div className="p-6 border-b border-zinc-200 dark:border-zinc-700">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-red-100 dark:bg-red-950">
+                  <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-serif font-bold text-black dark:text-white">
+                    存在时段冲突
+                  </h3>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                    检测到 {conflicts.length} 个教室时段冲突
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 max-h-64 overflow-y-auto">
+              <p className="text-sm text-zinc-700 dark:text-zinc-300 mb-4">
+                以下教室在相同时段已分配给其他考试，是否仍要继续分配？
+              </p>
+              <div className="space-y-2">
+                {conflicts.map((conflict, idx) => (
+                  <div
+                    key={`dialog-${conflict.examId}-${conflict.classroomId}-${idx}`}
+                    className="flex items-center justify-between px-3 py-2 bg-zinc-50 dark:bg-zinc-950 rounded border border-zinc-200 dark:border-zinc-800 text-sm"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Building className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400 shrink-0" />
+                      <span className="text-zinc-900 dark:text-zinc-100 font-medium">
+                        {conflict.buildingName} {conflict.classroomName}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-zinc-800 dark:text-zinc-200 text-xs">
+                        {conflict.subject}
+                      </div>
+                      <div className="text-zinc-500 dark:text-zinc-400 text-xs">
+                        {formatConflictTime(conflict.examDate, conflict.duration)}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="p-6 border-t border-zinc-200 dark:border-zinc-700 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowConflictDialog(false);
+                  setPendingSubmit(false);
+                }}
+                className="px-4 py-2 text-sm font-medium text-black dark:text-white bg-white dark:bg-black border border-zinc-300 dark:border-zinc-600 hover:border-black dark:hover:border-white rounded-lg transition-colors"
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmWithConflicts}
+                className="px-4 py-2 text-sm font-medium text-white dark:text-red-300 bg-red-600 dark:bg-red-950 border border-red-500 dark:border-red-600 hover:bg-red-500 dark:hover:bg-red-900 rounded-lg transition-colors"
+              >
+                仍要继续
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 }

@@ -9,10 +9,18 @@ import type { FastifyInstance } from "fastify";
 import bcrypt from "bcryptjs";
 import { pool } from "../config/database.js";
 import { successResponse, errorResponse } from "../utils/response.js";
+import { logAdminActionWithIp } from "../utils/audit-log.js";
 
 export default async function authRoutes(fastify: FastifyInstance) {
-  // 管理员登录
-  fastify.post("/login", async (request, reply) => {
+  // 管理员登录 - 严格限流（每 IP 每分钟 5 次）
+  fastify.post("/login", {
+    config: {
+      rateLimit: {
+        max: 5,
+        timeWindow: "1 minute",
+      },
+    },
+  }, async (request, reply) => {
     try {
       const { username, password } = request.body as {
         username: string;
@@ -44,9 +52,13 @@ export default async function authRoutes(fastify: FastifyInstance) {
 
       // 生成 JWT token
       const token = fastify.jwt.sign(
-        { id: admin.id, username: admin.username },
+        { id: admin.id, username: admin.username, role: "admin" },
         { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
       );
+
+      // 记录登录日志
+      const ip = request.headers["x-forwarded-for"]?.toString().split(",")[0].trim() || request.ip;
+      logAdminActionWithIp(admin.id, admin.username, "admin_login", ip);
 
       return reply.send(
         successResponse(

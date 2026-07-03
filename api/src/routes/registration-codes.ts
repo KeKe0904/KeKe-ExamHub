@@ -14,6 +14,7 @@ import {
   type RegistrationCodeRow,
 } from "../utils/response.js";
 import { authMiddleware } from "../middleware/auth.js";
+import { logAdminAction } from "../utils/audit-log.js";
 
 // 生成随机注册码(8位大写字母+数字,易读格式 XXXX-XXXX)
 function generateCode(): string {
@@ -85,6 +86,7 @@ export default async function registrationCodeRoutes(
     { preHandler: [authMiddleware] },
     async (request, reply) => {
       try {
+        const user = (request as any).user;
         const { count = 1 } = request.body as { count?: number };
 
         const generateCount = Math.min(Math.max(Number(count) || 1, 1), 50);
@@ -98,6 +100,10 @@ export default async function registrationCodeRoutes(
           );
           codes.push(code);
         }
+
+        logAdminAction(user.id, user.username, "registration_code_create", {
+          count: codes.length,
+        });
 
         return reply.status(201).send(
           successResponse(
@@ -118,17 +124,19 @@ export default async function registrationCodeRoutes(
     { preHandler: [authMiddleware] },
     async (request, reply) => {
       try {
+        const user = (request as any).user;
         const { id } = request.params as { id: string };
 
         // 检查是否已使用
         const [rows] = await pool.execute(
-          "SELECT is_used FROM registration_codes WHERE id = ?",
+          "SELECT code, is_used FROM registration_codes WHERE id = ?",
           [id]
         );
         if ((rows as any[]).length === 0) {
           return reply.status(404).send(errorResponse("注册码不存在"));
         }
-        if ((rows as any[])[0].is_used) {
+        const codeData = (rows as any[])[0];
+        if (codeData.is_used) {
           return reply
             .status(409)
             .send(errorResponse("已使用的注册码无法删除"));
@@ -137,6 +145,11 @@ export default async function registrationCodeRoutes(
         await pool.execute("DELETE FROM registration_codes WHERE id = ?", [
           id,
         ]);
+
+        logAdminAction(user.id, user.username, "registration_code_delete", {
+          registrationCodeId: id,
+          code: codeData.code,
+        });
 
         return reply.send(successResponse(null, "注册码删除成功"));
       } catch (error) {

@@ -8,6 +8,12 @@ export function formatDateTime(dateStr: string): string {
   return format(date, "yyyy年MM月dd日 HH:mm", { locale: zhCN });
 }
 
+// 格式化时间
+export function formatTime(dateStr: string): string {
+  const date = parseISO(dateStr);
+  return format(date, "HH:mm");
+}
+
 // 格式化日期
 export function formatDate(dateStr: string): string {
   const date = parseISO(dateStr);

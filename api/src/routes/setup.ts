@@ -283,12 +283,20 @@ export default async function setupRoutes(fastify: FastifyInstance) {
           location VARCHAR(100) NOT NULL,
           invigilator VARCHAR(50) NOT NULL,
           notes TEXT,
+          is_active BOOLEAN DEFAULT TRUE,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
           INDEX idx_exam_date (exam_date),
           INDEX idx_subject (subject)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
+
+      // 已有表则添加 is_active 字段
+      try {
+        await pool.query("ALTER TABLE exams ADD COLUMN is_active BOOLEAN DEFAULT TRUE");
+      } catch {
+        // 字段已存在则忽略
+      }
 
       // 创建 announcements 表（公告）
       await pool.query(`
@@ -298,11 +306,42 @@ export default async function setupRoutes(fastify: FastifyInstance) {
           content TEXT NOT NULL,
           is_pinned BOOLEAN DEFAULT FALSE,
           is_active BOOLEAN DEFAULT TRUE,
+          publish_at DATETIME NULL COMMENT '定时发布时间(NULL表示立即发布)',
+          expire_at DATETIME NULL COMMENT '自动下架时间(NULL表示永不过期)',
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-          INDEX idx_created_at (created_at)
+          INDEX idx_created_at (created_at),
+          INDEX idx_publish_at (publish_at),
+          INDEX idx_expire_at (expire_at)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
+
+      // 已有表则添加 publish_at 字段
+      try {
+        await pool.query("ALTER TABLE announcements ADD COLUMN publish_at DATETIME NULL COMMENT '定时发布时间(NULL表示立即发布)'");
+      } catch {
+        // 字段已存在则忽略
+      }
+
+      // 已有表则添加 expire_at 字段
+      try {
+        await pool.query("ALTER TABLE announcements ADD COLUMN expire_at DATETIME NULL COMMENT '自动下架时间(NULL表示永不过期)'");
+      } catch {
+        // 字段已存在则忽略
+      }
+
+      // 已有表则添加索引
+      try {
+        await pool.query("ALTER TABLE announcements ADD INDEX idx_publish_at (publish_at)");
+      } catch {
+        // 索引已存在则忽略
+      }
+
+      try {
+        await pool.query("ALTER TABLE announcements ADD INDEX idx_expire_at (expire_at)");
+      } catch {
+        // 索引已存在则忽略
+      }
 
       // 创建 settings 表（系统设置，键值对存储）
       await pool.query(`
@@ -365,7 +404,25 @@ export default async function setupRoutes(fastify: FastifyInstance) {
           assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           PRIMARY KEY (exam_id, classroom_id),
           FOREIGN KEY (exam_id) REFERENCES exams(id) ON DELETE CASCADE,
-          FOREIGN KEY (classroom_id) REFERENCES classrooms(id) ON DELETE CASCADE
+          FOREIGN KEY (classroom_id) REFERENCES classrooms(id) ON DELETE CASCADE,
+          INDEX idx_classroom_id (classroom_id),
+          INDEX idx_exam_classroom (exam_id, classroom_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      `);
+
+      // 管理员操作日志表
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS admin_logs (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          admin_id INT NOT NULL,
+          admin_username VARCHAR(50) NOT NULL,
+          action VARCHAR(50) NOT NULL,
+          details JSON NULL,
+          ip_address VARCHAR(50) DEFAULT '',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          INDEX idx_admin_id (admin_id),
+          INDEX idx_action (action),
+          INDEX idx_created_at (created_at)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
 

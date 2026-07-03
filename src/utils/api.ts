@@ -6,7 +6,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 // Cookie 工具导入
 import { getCookie, setCookie, removeCookie, COOKIE_KEYS, COOKIE_EXPIRES } from "./cookie";
 // 类型导入
-import type { Building, RegistrationCode, Classroom, ClassroomLoginResult, ClassroomInfo } from "@/types";
+import type { Building, RegistrationCode, Classroom, ClassroomLoginResult, ClassroomInfo, ExamConflict, Announcement, DashboardStats } from "@/types";
 
 // 401 未授权处理器（由 authStore 注册）
 let unauthorizedHandler: (() => void) | null = null;
@@ -191,6 +191,25 @@ export const examApi = {
       method: "DELETE",
     }),
 
+  // 批量删除考试
+  batchDelete: (ids: string[]) =>
+    request<ApiResponse<{ count: number }>>("/exams/batch", {
+      method: "DELETE",
+      body: JSON.stringify({ ids: ids.map(Number) }),
+    }),
+
+  // 批量修改考试
+  batchUpdate: (ids: string[], updates: {
+    examDate?: string;
+    duration?: number;
+    location?: string;
+    invigilator?: string;
+  }) =>
+    request<ApiResponse<{ count: number }>>("/exams/batch", {
+      method: "PUT",
+      body: JSON.stringify({ ids: ids.map(Number), updates }),
+    }),
+
   // 获取统计数据
   getStats: () =>
     request<ApiResponse<{
@@ -199,6 +218,10 @@ export const examApi = {
       ongoing: number;
       ended: number;
     }>>("/exams/stats/overview"),
+
+  // 获取大屏数据
+  getDashboardStats: () =>
+    request<ApiResponse<DashboardStats>>("/exams/stats/dashboard"),
 };
 
 // 服务器监控 API
@@ -613,10 +636,10 @@ export const examClassroomApi = {
     }),
 
   // 分配教室（批量）
-  assign: (examId: string, classroomIds: string[]) =>
+  assign: (examId: string, classroomIds: string[], checkConflicts: boolean = false) =>
     request<ApiResponse<null>>(`/exams/${examId}/classrooms`, {
       method: "POST",
-      body: JSON.stringify({ classroomIds }),
+      body: JSON.stringify({ classroomIds, checkConflicts }),
     }),
 
   // 取消分配
@@ -631,6 +654,18 @@ export const examClassroomApi = {
     request<ApiResponse<Classroom[]>>("/exams/classrooms/available", {
       method: "GET",
     }),
+
+  // 检测考试教室分配冲突
+  checkConflicts: (examId: string, classroomIds?: string[]) => {
+    const query = new URLSearchParams();
+    if (classroomIds && classroomIds.length > 0) {
+      query.set("classroomIds", classroomIds.join(","));
+    }
+    const queryString = query.toString();
+    return request<ApiResponse<{ conflicts: ExamConflict[] }>>(
+      `/exams/${examId}/conflicts${queryString ? `?${queryString}` : ""}`
+    );
+  },
 };
 
 // ==================== 仓库更新检查 API ====================
@@ -656,4 +691,96 @@ export const repoCheckApi = {
     request<ApiResponse<RepoCheckResult>>("/environment/repo-check", {
       method: "GET",
     }),
+};
+
+// ==================== 操作日志 API（管理员） ====================
+
+export interface AuditLog {
+  id: number;
+  adminId: number;
+  adminUsername: string;
+  action: string;
+  details: Record<string, any> | null;
+  ipAddress: string;
+  createdAt: string;
+}
+
+export interface AuditLogListResponse {
+  list: AuditLog[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  actionLabels: Record<string, string>;
+}
+
+export const auditLogApi = {
+  getList: (params?: {
+    page?: number;
+    pageSize?: number;
+    action?: string;
+    adminId?: string;
+    startDate?: string;
+    endDate?: string;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.page) query.set("page", String(params.page));
+    if (params?.pageSize) query.set("pageSize", String(params.pageSize));
+    if (params?.action) query.set("action", params.action);
+    if (params?.adminId) query.set("adminId", params.adminId);
+    if (params?.startDate) query.set("startDate", params.startDate);
+    if (params?.endDate) query.set("endDate", params.endDate);
+    const queryString = query.toString();
+    return request<ApiResponse<AuditLogListResponse>>(
+      `/audit-logs${queryString ? `?${queryString}` : ""}`
+    );
+  },
+};
+
+// ==================== 公告管理 API ====================
+
+export const announcementApi = {
+  // 获取公开公告列表
+  getPublic: () =>
+    request<ApiResponse<Announcement[]>>("/announcements", { method: "GET" }),
+
+  // 获取单个公告
+  getById: (id: string) =>
+    request<ApiResponse<Announcement>>(`/announcements/${id}`, { method: "GET" }),
+
+  // 获取所有公告（管理后台）
+  getAll: () =>
+    request<ApiResponse<Announcement[]>>("/announcements/admin/all", { method: "GET" }),
+
+  // 创建公告
+  create: (data: {
+    title: string;
+    content: string;
+    isPinned?: boolean;
+    isActive?: boolean;
+    publishAt?: string | null;
+    expireAt?: string | null;
+  }) =>
+    request<ApiResponse<Announcement>>("/announcements", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  // 更新公告
+  update: (id: string, data: {
+    title: string;
+    content: string;
+    isPinned?: boolean;
+    isActive?: boolean;
+    publishAt?: string | null;
+    expireAt?: string | null;
+  }) =>
+    request<ApiResponse<Announcement>>(`/announcements/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+
+  // 删除公告
+  delete: (id: string) =>
+    request<ApiResponse<null>>(`/announcements/${id}`, { method: "DELETE" }),
 };

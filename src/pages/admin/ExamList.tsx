@@ -16,6 +16,12 @@ import {
   X,
   AlertTriangle,
   Loader2,
+  Check,
+  Settings,
+  Calendar,
+  Clock,
+  MapPin,
+  User,
 } from "@/components/MathIcon";
 import AdminLayout from "@/components/Layout/AdminLayout";
 import StatusBadge from "@/components/StatusBadge";
@@ -28,11 +34,40 @@ import {
 import type { Exam } from "@/types";
 
 export default function ExamList() {
-  const { exams, loading, fetchExams, deleteExam } = useExamStore();
+  const { exams, loading, fetchExams, deleteExam, batchDeleteExams, batchUpdateExams } = useExamStore();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Exam | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showBatchDelete, setShowBatchDelete] = useState(false);
+  const [showBatchEdit, setShowBatchEdit] = useState(false);
+  const [batchActionLoading, setBatchActionLoading] = useState(false);
+
+  const [batchUpdates, setBatchUpdates] = useState<{
+    examDate: boolean;
+    duration: boolean;
+    location: boolean;
+    invigilator: boolean;
+  }>({
+    examDate: false,
+    duration: false,
+    location: false,
+    invigilator: false,
+  });
+
+  const [batchValues, setBatchValues] = useState<{
+    examDate: string;
+    duration: string;
+    location: string;
+    invigilator: string;
+  }>({
+    examDate: "",
+    duration: "",
+    location: "",
+    invigilator: "",
+  });
 
   // 初始加载
   useEffect(() => {
@@ -57,17 +92,111 @@ export default function ExamList() {
       );
   }, [exams, searchQuery]);
 
+  const allSelected = filteredExams.length > 0 && filteredExams.every((exam) => selectedIds.has(exam.id));
+  const someSelected = selectedIds.size > 0 && !allSelected;
+
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleToggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredExams.map((e) => e.id)));
+    }
+  };
+
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
       await deleteExam(deleteTarget.id);
       setDeleteTarget(null);
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(deleteTarget.id);
+        return next;
+      });
     } catch (error) {
       console.error("删除失败:", error);
     } finally {
       setDeleting(false);
     }
+  };
+
+  const handleBatchDelete = async () => {
+    if (selectedIds.size === 0) return;
+    setBatchActionLoading(true);
+    try {
+      await batchDeleteExams(Array.from(selectedIds));
+      setShowBatchDelete(false);
+      setSelectedIds(new Set());
+    } catch (error) {
+      console.error("批量删除失败:", error);
+    } finally {
+      setBatchActionLoading(false);
+    }
+  };
+
+  const handleBatchUpdate = async () => {
+    if (selectedIds.size === 0) return;
+
+    const updates: {
+      examDate?: string;
+      duration?: number;
+      location?: string;
+      invigilator?: string;
+    } = {};
+
+    if (batchUpdates.examDate && batchValues.examDate) {
+      updates.examDate = new Date(batchValues.examDate).toISOString();
+    }
+    if (batchUpdates.duration && batchValues.duration) {
+      updates.duration = parseInt(batchValues.duration, 10);
+    }
+    if (batchUpdates.location && batchValues.location) {
+      updates.location = batchValues.location;
+    }
+    if (batchUpdates.invigilator && batchValues.invigilator) {
+      updates.invigilator = batchValues.invigilator;
+    }
+
+    if (Object.keys(updates).length === 0) return;
+
+    setBatchActionLoading(true);
+    try {
+      await batchUpdateExams(Array.from(selectedIds), updates);
+      setShowBatchEdit(false);
+      resetBatchForm();
+    } catch (error) {
+      console.error("批量修改失败:", error);
+    } finally {
+      setBatchActionLoading(false);
+    }
+  };
+
+  const resetBatchForm = () => {
+    setBatchUpdates({
+      examDate: false,
+      duration: false,
+      location: false,
+      invigilator: false,
+    });
+    setBatchValues({
+      examDate: "",
+      duration: "",
+      location: "",
+      invigilator: "",
+    });
   };
 
   return (
@@ -103,6 +232,40 @@ export default function ExamList() {
         </div>
       </div>
 
+      {selectedIds.size > 0 && (
+        <div className="bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 p-4 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-black dark:text-white">
+                已选择 <span className="text-zinc-600 dark:text-zinc-300">{selectedIds.size}</span> 项
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setSelectedIds(new Set())}
+                className="px-3 py-1.5 text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white border border-zinc-200 dark:border-zinc-600 rounded-lg hover:border-zinc-300 dark:hover:border-zinc-500 transition-colors"
+              >
+                取消选择
+              </button>
+              <button
+                onClick={() => setShowBatchEdit(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-black dark:text-white border border-zinc-300 dark:border-zinc-600 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-950 transition-colors"
+              >
+                <Settings className="w-4 h-4" />
+                批量修改
+              </button>
+              <button
+                onClick={() => setShowBatchDelete(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-600 dark:text-red-400 border border-red-300 dark:border-red-700 rounded-lg hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                批量删除
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-16">
@@ -114,6 +277,17 @@ export default function ExamList() {
             <table className="w-full">
               <thead>
                 <tr className="bg-zinc-50 dark:bg-black border-b border-zinc-200 dark:border-zinc-600">
+                  <th className="px-4 py-3 w-12">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      ref={(el) => {
+                        if (el) el.indeterminate = someSelected;
+                      }}
+                      onChange={handleToggleSelectAll}
+                      className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-600 text-black dark:text-white focus:ring-black dark:focus:ring-white cursor-pointer"
+                    />
+                  </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">
                     考试科目
                   </th>
@@ -138,8 +312,18 @@ export default function ExamList() {
                 {filteredExams.map((exam) => (
                   <tr
                     key={exam.id}
-                    className="hover:bg-zinc-50 dark:hover:bg-zinc-950 transition-colors"
+                    className={`hover:bg-zinc-50 dark:hover:bg-zinc-950 transition-colors ${
+                      selectedIds.has(exam.id) ? "bg-zinc-50 dark:bg-zinc-950" : ""
+                    }`}
                   >
+                    <td className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(exam.id)}
+                        onChange={() => handleToggleSelect(exam.id)}
+                        className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-600 text-black dark:text-white focus:ring-black dark:focus:ring-white cursor-pointer"
+                      />
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-lg bg-zinc-100 dark:bg-black flex items-center justify-center flex-shrink-0">
@@ -211,6 +395,35 @@ export default function ExamList() {
           deleting={deleting}
         />
       )}
+
+      {showBatchDelete && (
+        <BatchDeleteDialog
+          count={selectedIds.size}
+          onConfirm={handleBatchDelete}
+          onCancel={() => setShowBatchDelete(false)}
+          loading={batchActionLoading}
+        />
+      )}
+
+      {showBatchEdit && (
+        <BatchEditDialog
+          count={selectedIds.size}
+          updates={batchUpdates}
+          values={batchValues}
+          onToggleField={(field) => {
+            setBatchUpdates((prev) => ({ ...prev, [field]: !prev[field as keyof typeof prev] }));
+          }}
+          onValueChange={(field, value) => {
+            setBatchValues((prev) => ({ ...prev, [field]: value }));
+          }}
+          onConfirm={handleBatchUpdate}
+          onCancel={() => {
+            setShowBatchEdit(false);
+            resetBatchForm();
+          }}
+          loading={batchActionLoading}
+        />
+      )}
     </AdminLayout>
   );
 }
@@ -264,6 +477,243 @@ function DeleteConfirmDialog({
               </>
             ) : (
               "确认删除"
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface BatchDeleteDialogProps {
+  count: number;
+  onConfirm: () => void;
+  onCancel: () => void;
+  loading: boolean;
+}
+
+function BatchDeleteDialog({
+  count,
+  onConfirm,
+  onCancel,
+  loading,
+}: BatchDeleteDialogProps) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white dark:bg-black rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-600 max-w-md w-full p-6 animate-scale-in">
+        <div className="flex items-start gap-4 mb-4">
+          <div className="w-12 h-12 rounded-full bg-red-50 dark:bg-red-950 flex items-center justify-center flex-shrink-0">
+            <AlertTriangle className="w-6 h-6 text-red-500 dark:text-red-400" />
+          </div>
+          <div>
+            <h3 className="font-serif text-lg font-bold text-black dark:text-white mb-1">
+              确认批量删除
+            </h3>
+            <p className="text-sm text-zinc-600 dark:text-zinc-300">
+              确定要删除选中的 <span className="font-medium text-black dark:text-white">{count}</span> 场考试吗？此操作无法撤销。
+            </p>
+          </div>
+        </div>
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={onCancel}
+            disabled={loading}
+            className="px-4 py-2 text-sm font-medium text-black dark:text-white bg-white dark:bg-black border border-zinc-300 dark:border-zinc-600 hover:border-black dark:hover:border-white rounded-lg transition-colors disabled:opacity-50"
+          >
+            取消
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className="px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-white dark:bg-black border border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                删除中...
+              </>
+            ) : (
+              "确认删除"
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface BatchEditDialogProps {
+  count: number;
+  updates: {
+    examDate: boolean;
+    duration: boolean;
+    location: boolean;
+    invigilator: boolean;
+  };
+  values: {
+    examDate: string;
+    duration: string;
+    location: string;
+    invigilator: string;
+  };
+  onToggleField: (field: string) => void;
+  onValueChange: (field: string, value: string) => void;
+  onConfirm: () => void;
+  onCancel: () => void;
+  loading: boolean;
+}
+
+function BatchEditDialog({
+  count,
+  updates,
+  values,
+  onToggleField,
+  onValueChange,
+  onConfirm,
+  onCancel,
+  loading,
+}: BatchEditDialogProps) {
+  const hasAnyField = Object.values(updates).some(Boolean);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white dark:bg-black rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-600 max-w-lg w-full p-6 animate-scale-in">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="font-serif text-lg font-bold text-black dark:text-white">
+            批量修改考试
+          </h3>
+          <button
+            onClick={onCancel}
+            className="p-1 text-zinc-400 hover:text-black dark:hover:text-white rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-4">
+          已选择 <span className="font-medium text-black dark:text-white">{count}</span> 场考试，勾选要修改的字段并填写新值：
+        </p>
+
+        <div className="space-y-3 mb-6">
+          <div className="flex items-start gap-3 p-3 border border-zinc-200 dark:border-zinc-700 rounded-lg hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors">
+            <input
+              type="checkbox"
+              checked={updates.examDate}
+              onChange={() => onToggleField("examDate")}
+              className="mt-0.5 w-4 h-4 rounded border-zinc-300 dark:border-zinc-600 text-black dark:text-white focus:ring-black dark:focus:ring-white cursor-pointer"
+            />
+            <div className="flex-1">
+              <label className="flex items-center gap-2 text-sm font-medium text-black dark:text-white mb-2 cursor-pointer">
+                <Calendar className="w-4 h-4 text-zinc-500" />
+                考试时间
+              </label>
+              <input
+                type="datetime-local"
+                value={values.examDate}
+                onChange={(e) => onValueChange("examDate", e.target.value)}
+                disabled={!updates.examDate}
+                className="w-full px-3 py-2 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm text-zinc-700 dark:text-zinc-300 focus:outline-none focus:border-black dark:focus:border-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3 p-3 border border-zinc-200 dark:border-zinc-700 rounded-lg hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors">
+            <input
+              type="checkbox"
+              checked={updates.duration}
+              onChange={() => onToggleField("duration")}
+              className="mt-0.5 w-4 h-4 rounded border-zinc-300 dark:border-zinc-600 text-black dark:text-white focus:ring-black dark:focus:ring-white cursor-pointer"
+            />
+            <div className="flex-1">
+              <label className="flex items-center gap-2 text-sm font-medium text-black dark:text-white mb-2 cursor-pointer">
+                <Clock className="w-4 h-4 text-zinc-500" />
+                考试时长
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  value={values.duration}
+                  onChange={(e) => onValueChange("duration", e.target.value)}
+                  disabled={!updates.duration}
+                  placeholder="请输入时长"
+                  min="1"
+                  className="flex-1 px-3 py-2 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm text-zinc-700 dark:text-zinc-300 focus:outline-none focus:border-black dark:focus:border-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+                <span className="text-sm text-zinc-500 dark:text-zinc-400 w-8">分钟</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3 p-3 border border-zinc-200 dark:border-zinc-700 rounded-lg hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors">
+            <input
+              type="checkbox"
+              checked={updates.location}
+              onChange={() => onToggleField("location")}
+              className="mt-0.5 w-4 h-4 rounded border-zinc-300 dark:border-zinc-600 text-black dark:text-white focus:ring-black dark:focus:ring-white cursor-pointer"
+            />
+            <div className="flex-1">
+              <label className="flex items-center gap-2 text-sm font-medium text-black dark:text-white mb-2 cursor-pointer">
+                <MapPin className="w-4 h-4 text-zinc-500" />
+                考试地点
+              </label>
+              <input
+                type="text"
+                value={values.location}
+                onChange={(e) => onValueChange("location", e.target.value)}
+                disabled={!updates.location}
+                placeholder="请输入新地点"
+                className="w-full px-3 py-2 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm text-zinc-700 dark:text-zinc-300 focus:outline-none focus:border-black dark:focus:border-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3 p-3 border border-zinc-200 dark:border-zinc-700 rounded-lg hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors">
+            <input
+              type="checkbox"
+              checked={updates.invigilator}
+              onChange={() => onToggleField("invigilator")}
+              className="mt-0.5 w-4 h-4 rounded border-zinc-300 dark:border-zinc-600 text-black dark:text-white focus:ring-black dark:focus:ring-white cursor-pointer"
+            />
+            <div className="flex-1">
+              <label className="flex items-center gap-2 text-sm font-medium text-black dark:text-white mb-2 cursor-pointer">
+                <User className="w-4 h-4 text-zinc-500" />
+                监考老师
+              </label>
+              <input
+                type="text"
+                value={values.invigilator}
+                onChange={(e) => onValueChange("invigilator", e.target.value)}
+                disabled={!updates.invigilator}
+                placeholder="请输入新监考老师"
+                className="w-full px-3 py-2 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm text-zinc-700 dark:text-zinc-300 focus:outline-none focus:border-black dark:focus:border-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={onCancel}
+            disabled={loading}
+            className="px-4 py-2 text-sm font-medium text-black dark:text-white bg-white dark:bg-black border border-zinc-300 dark:border-zinc-600 hover:border-black dark:hover:border-white rounded-lg transition-colors disabled:opacity-50"
+          >
+            取消
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading || !hasAnyField}
+            className="px-4 py-2 text-sm font-medium text-white dark:text-black bg-black dark:bg-white border border-black dark:border-white hover:bg-zinc-800 dark:hover:bg-zinc-200 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                修改中...
+              </>
+            ) : (
+              <>
+                <Check className="w-4 h-4" />
+                确认修改
+              </>
             )}
           </button>
         </div>

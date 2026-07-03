@@ -682,6 +682,17 @@ export function ChevronUp({ className, size = defaultSize }: IconProps) {
 // 检查圆圈（别名，与 CheckCircle2 相同）
 export const CheckCircle = CheckCircle2;
 
+// X 圆圈
+export function XCircle({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M 9 9 L 15 15" />
+      <path d="M 15 9 L 9 15" />
+    </svg>
+  );
+}
+
 // 全屏图标 - 用四角折线表示
 export function Maximize({ className, size = defaultSize }: IconProps) {
   return (
@@ -867,11 +878,215 @@ export function Cookie({ className, size = defaultSize }: IconProps) {
   );
 }
 
+// 加粗
+export function Bold({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z" />
+      <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z" />
+    </svg>
+  );
+}
+
+// 斜体
+export function Italic({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <line x1="19" y1="4" x2="10" y2="4" />
+      <line x1="14" y1="20" x2="5" y2="20" />
+      <line x1="15" y1="4" x2="9" y2="20" />
+    </svg>
+  );
+}
+
+// 下划线
+export function Underline({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3" />
+      <line x1="4" y1="21" x2="20" y2="21" />
+    </svg>
+  );
+}
+
+// 删除线
+export function Strikethrough({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M4 12h16" />
+      <path d="M17.5 7.5c-.5-2-2-3.5-5.5-3.5-5 0-6.5 3.5-6.5 3.5s2 3.5 6.5 3.5c3 0 5.5 1.5 5.5 3.5s-1.5 3.5-5.5 3.5c-4 0-6-2.5-6.5-3.5" />
+    </svg>
+  );
+}
+
+// 标题 1
+export function Heading1({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M4 5v14" />
+      <path d="M12 5v14" />
+      <path d="M4 12h8" />
+      <path d="M17 8l3-2v12" />
+    </svg>
+  );
+}
+
+// 标题 2
+export function Heading2({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M4 5v14" />
+      <path d="M12 5v14" />
+      <path d="M4 12h8" />
+      <path d="M17 9h4l-2.5 4a2.5 2.5 0 1 1 0 5" />
+    </svg>
+  );
+}
+
+// 标题 3
+export function Heading3({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M4 5v14" />
+      <path d="M12 5v14" />
+      <path d="M4 12h8" />
+      <path d="M17 8h2.5a2 2 0 1 1 0 4h-2.5h2.5a2 2 0 1 1 0 4H17" />
+    </svg>
+  );
+}
+
+// 列表（无序列表）
+export function List({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <line x1="8" y1="6" x2="21" y2="6" />
+      <line x1="8" y1="12" x2="21" y2="12" />
+      <line x1="8" y1="18" x2="21" y2="18" />
+      <circle cx="4" cy="6" r="1" fill="currentColor" />
+      <circle cx="4" cy="12" r="1" fill="currentColor" />
+      <circle cx="4" cy="18" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+// 有序列表
+export function ListOrdered({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <line x1="10" y1="6" x2="21" y2="6" />
+      <line x1="10" y1="12" x2="21" y2="12" />
+      <line x1="10" y1="18" x2="21" y2="18" />
+      <path d="M4 6h2v2M5 4v6" />
+      <path d="M4 10h2l-2 4h2" />
+      <path d="M4 16h2v2H4v2" />
+    </svg>
+  );
+}
+
+// 引用
+export function Quote({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M3 6c0-2 2-3 4-3s4 1 4 3-2 3-4 3c0 2 0 4 0 6" />
+      <path d="M13 6c0-2 2-3 4-3s4 1 4 3-2 3-4 3c0 2 0 4 0 6" />
+    </svg>
+  );
+}
+
+// 链接
+export function Link({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    </svg>
+  );
+}
+
+// 表格
+export function Table({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <line x1="3" y1="9" x2="21" y2="9" />
+      <line x1="3" y1="15" x2="21" y2="15" />
+      <line x1="9" y1="3" x2="9" y2="21" />
+      <line x1="15" y1="3" x2="15" y2="21" />
+    </svg>
+  );
+}
+
+// 左对齐
+export function AlignLeft({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <line x1="3" y1="12" x2="15" y2="12" />
+      <line x1="3" y1="18" x2="18" y2="18" />
+    </svg>
+  );
+}
+
+// 居中对齐
+export function AlignCenter({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <line x1="6" y1="12" x2="18" y2="12" />
+      <line x1="4" y1="18" x2="20" y2="18" />
+    </svg>
+  );
+}
+
+// 右对齐
+export function AlignRight({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <line x1="9" y1="12" x2="21" y2="12" />
+      <line x1="6" y1="18" x2="21" y2="18" />
+    </svg>
+  );
+}
+
+// 调色板
+export function Palette({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <circle cx="13.5" cy="6.5" r="1.5" />
+      <circle cx="17.5" cy="10.5" r="1.5" />
+      <circle cx="8.5" cy="7.5" r="1.5" />
+      <circle cx="6.5" cy="12.5" r="1.5" />
+      <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.5-.6 1.5-1.5 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.8.7-1.5 1.5-1.5H16c3.3 0 6-2.7 6-6 0-5-4.5-8.8-10-8.8z" />
+    </svg>
+  );
+}
+
+// 撤销
+export function Undo({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M3 7v6h6" />
+      <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6.7 3L3 13" />
+    </svg>
+  );
+}
+
+// 重做
+export function Redo({ className, size = defaultSize }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M21 7v6h-6" />
+      <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6.7 3L21 13" />
+    </svg>
+  );
+}
+
 // 导出图标对象，方便批量使用
 export const MathIcons = {
   Sunrise, Sun, Moon, Calendar, Clock, User, MapPin, Search,
   ArrowRight, ArrowLeft, Hourglass, Sparkles, GraduationCap,
-  Menu, X, Check, CheckCircle2, CheckCircle, Server, Database, Globe,
+  Menu, X, Check, CheckCircle2, CheckCircle, XCircle, Server, Database, Globe,
   Terminal, RefreshCw, Plus, LogOut, LayoutDashboard, FileText,
   CalendarX, Loader2, CalendarCheck, TrendingUp, Eye, EyeOff,
   Lock, Edit, Trash2, Settings, AlertCircle, AlertTriangle,
@@ -880,6 +1095,11 @@ export const MathIcons = {
   Package, GitBranch, Download, RotateCcw, Code, Shield, Box, Copy,
   Cpu, HardDrive, Network, Activity, Thermometer,
   Monitor, ChevronRight, Cookie,
+  Bold, Italic, Underline, Strikethrough,
+  Heading1, Heading2, Heading3,
+  List, ListOrdered, Quote, Link, Table,
+  AlignLeft, AlignCenter, AlignRight,
+  Palette, Undo, Redo,
 };
 
 export default MathIcons;

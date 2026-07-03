@@ -14,6 +14,7 @@ import {
   type ClassroomRow,
 } from "../utils/response.js";
 import { authMiddleware } from "../middleware/auth.js";
+import { logAdminAction } from "../utils/audit-log.js";
 
 // 带教学楼名称的教室行类型
 type ClassroomWithBuilding = ClassroomRow & { building_name: string };
@@ -73,6 +74,7 @@ export default async function classroomAdminRoutes(
     { preHandler: [authMiddleware] },
     async (request, reply) => {
       try {
+        const user = (request as any).user;
         const { id } = request.params as { id: string };
 
         const [rows] = await pool.execute(
@@ -100,9 +102,17 @@ export default async function classroomAdminRoutes(
           [id]
         );
 
+        const updatedClassroom = (updated as ClassroomWithBuilding[])[0];
+
+        logAdminAction(user.id, user.username, "classroom_approve", {
+          classroomId: id,
+          buildingName: updatedClassroom.building_name,
+          roomNumber: updatedClassroom.room_number,
+        });
+
         return reply.send(
           successResponse(
-            formatClassroom((updated as ClassroomWithBuilding[])[0]),
+            formatClassroom(updatedClassroom),
             "审核通过"
           )
         );
@@ -119,6 +129,7 @@ export default async function classroomAdminRoutes(
     { preHandler: [authMiddleware] },
     async (request, reply) => {
       try {
+        const user = (request as any).user;
         const { id } = request.params as { id: string };
         const { reason } = request.body as { reason?: string };
 
@@ -140,9 +151,18 @@ export default async function classroomAdminRoutes(
           [id]
         );
 
+        const updatedClassroom = (updated as ClassroomWithBuilding[])[0];
+
+        logAdminAction(user.id, user.username, "classroom_reject", {
+          classroomId: id,
+          buildingName: updatedClassroom.building_name,
+          roomNumber: updatedClassroom.room_number,
+          reason: reason || "",
+        });
+
         return reply.send(
           successResponse(
-            formatClassroom((updated as ClassroomWithBuilding[])[0]),
+            formatClassroom(updatedClassroom),
             "已驳回"
           )
         );
@@ -159,7 +179,15 @@ export default async function classroomAdminRoutes(
     { preHandler: [authMiddleware] },
     async (request, reply) => {
       try {
+        const user = (request as any).user;
         const { id } = request.params as { id: string };
+
+        // 获取教室信息
+        const [classroomRows] = await pool.execute(
+          "SELECT c.*, b.name AS building_name FROM classrooms c JOIN buildings b ON c.building_id = b.id WHERE c.id = ?",
+          [id]
+        );
+        const classroom = (classroomRows as any[])[0];
 
         // 获取注册码ID,删除教室后释放注册码
         const [rows] = await pool.execute(
@@ -182,6 +210,12 @@ export default async function classroomAdminRoutes(
             [regCodeId]
           );
         }
+
+        logAdminAction(user.id, user.username, "classroom_delete", {
+          classroomId: id,
+          buildingName: classroom?.building_name || "",
+          roomNumber: classroom?.room_number || "",
+        });
 
         return reply.send(successResponse(null, "教室删除成功"));
       } catch (error) {

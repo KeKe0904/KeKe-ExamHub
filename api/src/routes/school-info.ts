@@ -9,6 +9,7 @@ import type { FastifyInstance } from "fastify";
 import { pool } from "../config/database.js";
 import { successResponse, errorResponse } from "../utils/response.js";
 import { authMiddleware } from "../middleware/auth.js";
+import { logAdminAction } from "../utils/audit-log.js";
 
 // 默认学校信息结构
 const DEFAULT_SCHOOL_INFO = {
@@ -47,6 +48,7 @@ export default async function schoolInfoRoutes(fastify: FastifyInstance) {
     preHandler: [authMiddleware],
   }, async (request, reply) => {
     try {
+      const user = (request as any).user;
       const fields = request.body as Record<string, string>;
 
       // 只允许已知字段
@@ -67,6 +69,10 @@ export default async function schoolInfoRoutes(fastify: FastifyInstance) {
          ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)`,
         [JSON.stringify(info)]
       );
+
+      logAdminAction(user.id, user.username, "school_info_update", {
+        updatedFields: Object.keys(info),
+      });
 
       return reply.send(successResponse(info, "学校信息更新成功"));
     } catch (error) {

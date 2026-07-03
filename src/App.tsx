@@ -12,6 +12,7 @@ import Monitor from "@/pages/Monitor";
 import SchoolInfo from "@/pages/SchoolInfo";
 import Login from "@/pages/admin/Login";
 import Dashboard from "@/pages/admin/Dashboard";
+import DataDashboard from "@/pages/admin/DataDashboard";
 import ExamList from "@/pages/admin/ExamList";
 import ExamForm from "@/pages/admin/ExamForm";
 import Settings from "@/pages/admin/Settings";
@@ -22,6 +23,7 @@ import Environment from "@/pages/admin/Environment";
 import Buildings from "@/pages/admin/Buildings";
 import RegistrationCodes from "@/pages/admin/RegistrationCodes";
 import Classrooms from "@/pages/admin/Classrooms";
+import AuditLogs from "@/pages/admin/AuditLogs";
 import ClassroomLogin from "@/pages/classroom/Login";
 import ClassroomRegister from "@/pages/classroom/Register";
 import ClassroomHome from "@/pages/classroom/Home";
@@ -56,6 +58,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/data-dashboard"
+          element={
+            <ProtectedRoute>
+              <DataDashboard />
             </ProtectedRoute>
           }
         />
@@ -156,6 +166,15 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Classrooms />
+            </ProtectedRoute>
+          }
+        />
+        {/* 操作日志路由 */}
+        <Route
+          path="/admin/audit-logs"
+          element={
+            <ProtectedRoute>
+              <AuditLogs />
             </ProtectedRoute>
           }
         />

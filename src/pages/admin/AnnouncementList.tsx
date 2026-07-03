@@ -15,20 +15,13 @@ import {
   Loader2,
   AlertTriangle,
   X,
+  Clock,
+  CheckCircle,
+  XCircle,
 } from "@/components/MathIcon";
 import AdminLayout from "@/components/Layout/AdminLayout";
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
-
-interface Announcement {
-  id: number;
-  title: string;
-  content: string;
-  isPinned: boolean;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+import { announcementApi } from "@/utils/api";
+import type { Announcement, AnnouncementStatus } from "@/types";
 
 export default function AnnouncementList() {
   const navigate = useNavigate();
@@ -38,15 +31,10 @@ export default function AnnouncementList() {
   const [deleteTarget, setDeleteTarget] = useState<Announcement | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const getToken = () => sessionStorage.getItem("examhub-token") || "";
-
   const fetchAnnouncements = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/announcements/admin/all`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
-      });
-      const data = await res.json();
+      const data = await announcementApi.getAll();
       if (data.success) {
         setAnnouncements(data.data);
       }
@@ -65,15 +53,9 @@ export default function AnnouncementList() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      const res = await fetch(`${API_BASE}/announcements/${deleteTarget.id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${getToken()}` },
-      });
-      const data = await res.json();
-      if (data.success) {
-        setAnnouncements(announcements.filter((a) => a.id !== deleteTarget.id));
-        setDeleteTarget(null);
-      }
+      await announcementApi.delete(String(deleteTarget.id));
+      setAnnouncements(announcements.filter((a) => a.id !== deleteTarget.id));
+      setDeleteTarget(null);
     } catch (error) {
       console.error("删除公告失败:", error);
     } finally {
@@ -90,6 +72,32 @@ export default function AnnouncementList() {
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  };
+
+  const getStatusBadge = (status: AnnouncementStatus) => {
+    switch (status) {
+      case "active":
+        return (
+          <span className="inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded border border-black dark:border-white text-black dark:text-white bg-white dark:bg-black">
+            <CheckCircle className="w-3 h-3" />
+            显示中
+          </span>
+        );
+      case "scheduled":
+        return (
+          <span className="inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded border border-zinc-400 dark:border-zinc-500 text-zinc-600 dark:text-zinc-300 bg-zinc-50 dark:bg-black">
+            <Clock className="w-3 h-3" />
+            定时中
+          </span>
+        );
+      case "expired":
+        return (
+          <span className="inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded border border-zinc-300 dark:border-zinc-600 text-zinc-400 dark:text-zinc-400 bg-zinc-50 dark:bg-black">
+            <XCircle className="w-3 h-3" />
+            已过期
+          </span>
+        );
+    }
   };
 
   return (
@@ -158,16 +166,14 @@ export default function AnnouncementList() {
                         )}
                         <span className="font-medium text-black dark:text-white">{a.title}</span>
                       </div>
-                      <p className="text-xs text-zinc-400 dark:text-zinc-400 mt-1 line-clamp-1">{a.content}</p>
+                      <div className="text-xs text-zinc-400 dark:text-zinc-400 mt-1 line-clamp-1 announcement-content" dangerouslySetInnerHTML={{ __html: a.content }} />
                     </td>
                     <td className="px-4 py-3">
-                      {a.isActive ? (
-                        <span className="text-xs px-2 py-1 rounded border border-black dark:border-white text-black dark:text-white bg-white dark:bg-black">显示中</span>
-                      ) : (
-                        <span className="text-xs px-2 py-1 rounded border border-zinc-300 dark:border-zinc-600 text-zinc-400 dark:text-zinc-400 bg-zinc-50 dark:bg-black">已隐藏</span>
-                      )}
+                      {getStatusBadge(a.status)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-zinc-500 dark:text-zinc-300">{formatDate(a.createdAt)}</td>
+                    <td className="px-4 py-3 text-sm text-zinc-500 dark:text-zinc-300">
+                      {a.publishAt ? formatDate(a.publishAt) : formatDate(a.createdAt)}
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-2">
                         <Link
