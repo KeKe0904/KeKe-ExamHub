@@ -8,7 +8,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 // 公共端页面
 import Home from "@/pages/Home";
-import Announcements from "@/pages/Announcements";
 import ExamDetail from "@/pages/ExamDetail";
 import Monitor from "@/pages/Monitor";
 import SchoolInfo from "@/pages/SchoolInfo";
@@ -65,7 +64,6 @@ export default function App() {
 
         {/* ============ 公共端（无需登录） ============ */}
         <Route path="/" element={<Home />} />
-        <Route path="/announcements" element={<Announcements />} />
         <Route path="/exam/:id" element={<ExamDetail />} />
         <Route path="/exam/:id/monitor" element={<Monitor />} />
         <Route path="/school-info" element={<SchoolInfo />} />
