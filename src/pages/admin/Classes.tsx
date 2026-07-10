@@ -268,7 +268,7 @@ export default function Classes() {
         </div>
       ) : classes.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-20 h-20 rounded-full bg-zinc-100 dark:bg-black flex items-center justify-center mb-4">
+          <div className="w-20 h-20 rounded-full bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center mb-4">
             <GraduationCap className="w-10 h-10 text-zinc-400" />
           </div>
           <h3 className="text-lg font-medium text-zinc-600 dark:text-zinc-300 mb-2">
@@ -280,7 +280,7 @@ export default function Classes() {
         </div>
       ) : (
         <>
-          <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg overflow-hidden">
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[640px]">
               <thead>
@@ -359,7 +359,7 @@ export default function Classes() {
                         }`}
                       >
                         <span
-                          className={`inline-block h-4 w-4 transform rounded-full bg-white dark:bg-black transition-transform ${
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white dark:bg-zinc-900 transition-transform ${
                             cls.isActive ? "translate-x-6" : "translate-x-1"
                           }`}
                         />
@@ -399,14 +399,14 @@ export default function Classes() {
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-3 py-1.5 text-sm font-medium text-zinc-600 dark:text-zinc-300 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-950 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1.5 text-sm font-medium text-zinc-600 dark:text-zinc-300 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-950 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   上一页
                 </button>
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="px-3 py-1.5 text-sm font-medium text-zinc-600 dark:text-zinc-300 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-950 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1.5 text-sm font-medium text-zinc-600 dark:text-zinc-300 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-950 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   下一页
                 </button>
@@ -422,7 +422,7 @@ export default function Classes() {
             className="absolute inset-0 bg-black/50"
             onClick={() => setShowAddModal(false)}
           />
-          <div className="relative z-10 w-full max-w-md bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg p-6 animate-slide-down">
+          <div className="relative z-10 w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 rounded-lg p-6 animate-slide-down">
             <h2 className="text-lg font-semibold text-black dark:text-white mb-4">
               添加班级
             </h2>
@@ -490,7 +490,7 @@ export default function Classes() {
             <div className="flex items-center justify-end gap-2 mt-6">
               <button
                 onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 text-sm font-medium text-black dark:text-white bg-white dark:bg-black border border-zinc-300 dark:border-zinc-600 hover:border-black dark:hover:border-white rounded-lg transition-colors"
+                className="px-4 py-2 text-sm font-medium text-black dark:text-white bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-600 hover:border-black dark:hover:border-white rounded-lg transition-colors"
               >
                 取消
               </button>
@@ -517,7 +517,7 @@ export default function Classes() {
             className="absolute inset-0 bg-black/50"
             onClick={() => setShowEditModal(false)}
           />
-          <div className="relative z-10 w-full max-w-md bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg p-6 animate-slide-down">
+          <div className="relative z-10 w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 rounded-lg p-6 animate-slide-down">
             <h2 className="text-lg font-semibold text-black dark:text-white mb-4">
               编辑班级
             </h2>
@@ -583,7 +583,7 @@ export default function Classes() {
             <div className="flex items-center justify-end gap-2 mt-6">
               <button
                 onClick={() => setShowEditModal(false)}
-                className="px-4 py-2 text-sm font-medium text-black dark:text-white bg-white dark:bg-black border border-zinc-300 dark:border-zinc-600 hover:border-black dark:hover:border-white rounded-lg transition-colors"
+                className="px-4 py-2 text-sm font-medium text-black dark:text-white bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-600 hover:border-black dark:hover:border-white rounded-lg transition-colors"
               >
                 取消
               </button>

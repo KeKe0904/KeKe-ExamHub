@@ -539,7 +539,7 @@ export default function Settings() {
       </div>
 
       {/* 管理员头像 */}
-      <section className="bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 p-6">
+      <section className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 p-6">
         <h2 className="text-lg font-semibold text-black dark:text-white mb-4 flex items-center gap-2">
           <User className="w-4 h-4" />
           管理员头像
@@ -553,7 +553,7 @@ export default function Settings() {
                 className="w-20 h-20 rounded-full object-cover border-2 border-zinc-200 dark:border-zinc-600"
               />
             ) : (
-              <div className="w-20 h-20 rounded-full bg-zinc-100 dark:bg-black border-2 border-zinc-200 dark:border-zinc-600 flex items-center justify-center">
+              <div className="w-20 h-20 rounded-full bg-zinc-100 dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-600 flex items-center justify-center">
                 <User className="w-8 h-8 text-zinc-400 dark:text-zinc-400" />
               </div>
             )}
@@ -586,7 +586,7 @@ export default function Settings() {
       </section>
 
       {/* 修改密码 */}
-      <section className="bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 p-6">
+      <section className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 p-6">
         <h2 className="text-lg font-semibold text-black dark:text-white mb-4 flex items-center gap-2">
           <Lock className="w-4 h-4" />
           修改密码
@@ -598,7 +598,7 @@ export default function Settings() {
               type="text"
               value={username || ""}
               disabled
-              className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-black text-sm text-zinc-500 dark:text-zinc-300"
+              className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-900 text-sm text-zinc-500 dark:text-zinc-300"
             />
           </div>
           <div>
@@ -609,7 +609,7 @@ export default function Settings() {
                 value={oldPassword}
                 onChange={(e) => setOldPassword(e.target.value)}
                 placeholder="请输入旧密码"
-                className="w-full px-3 py-2.5 pr-10 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-black text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+                className="w-full px-3 py-2.5 pr-10 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-zinc-900 text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
               />
               <button
                 type="button"
@@ -628,7 +628,7 @@ export default function Settings() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="至少6位"
-                className="w-full px-3 py-2.5 pr-10 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-black text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+                className="w-full px-3 py-2.5 pr-10 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-zinc-900 text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
               />
               <button
                 type="button"
@@ -647,7 +647,7 @@ export default function Settings() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="再次输入新密码"
-                className="w-full px-3 py-2.5 pr-10 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-black text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+                className="w-full px-3 py-2.5 pr-10 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-zinc-900 text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
               />
               <button
                 type="button"
@@ -675,7 +675,7 @@ export default function Settings() {
       </section>
 
       {/* 学校名字 */}
-      <section className="bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 p-6">
+      <section className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 p-6">
         <h2 className="text-lg font-semibold text-black dark:text-white mb-4 flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4" />
           学校名字
@@ -689,7 +689,7 @@ export default function Settings() {
               onChange={(e) => setSchoolName(e.target.value)}
               placeholder="请输入学校名称（如：XX大学）"
               maxLength={100}
-              className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-black text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+              className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-zinc-900 text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
             />
             <p className="mt-1.5 text-xs text-zinc-400 dark:text-zinc-400">
               将显示在前台首页和管理后台标题中
@@ -712,7 +712,7 @@ export default function Settings() {
       </section>
 
       {/* 站点信息 */}
-      <section className="bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 p-6">
+      <section className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 p-6">
         <h2 className="text-lg font-semibold text-black dark:text-white mb-4 flex items-center gap-2">
           <Globe className="w-4 h-4" />
           站点信息
@@ -727,7 +727,7 @@ export default function Settings() {
               onChange={(e) => setSiteTitle(e.target.value)}
               placeholder="留空则使用学校名字作为标题"
               maxLength={200}
-              className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-black text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+              className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-zinc-900 text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
             />
             <p className="mt-1.5 text-xs text-zinc-400 dark:text-zinc-400">
               显示在浏览器标签页标题中（优先级高于学校名字）
@@ -738,7 +738,7 @@ export default function Settings() {
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">站点图标 (Favicon)</label>
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-lg border border-zinc-200 dark:border-zinc-600 flex items-center justify-center overflow-hidden bg-zinc-50 dark:bg-black">
+              <div className="w-16 h-16 rounded-lg border border-zinc-200 dark:border-zinc-600 flex items-center justify-center overflow-hidden bg-zinc-50 dark:bg-zinc-900">
                 {siteFavicon ? (
                   <img
                     src={siteFavicon}
@@ -799,7 +799,7 @@ export default function Settings() {
       </section>
 
       {/* 首页文案 */}
-      <section className="bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 p-6">
+      <section className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 p-6">
         <h2 className="text-lg font-semibold text-black dark:text-white mb-4 flex items-center gap-2">
           <Sparkles className="w-4 h-4" />
           首页文案
@@ -815,7 +815,7 @@ export default function Settings() {
               onChange={(e) => setHomeBadgeText(e.target.value)}
               placeholder="留空则使用默认：数字化考试信息管理平台"
               maxLength={50}
-              className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-black text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+              className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-zinc-900 text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
             />
             <p className="mt-1.5 text-xs text-zinc-400 dark:text-zinc-400">
               首页标题上方的圆角小徽章文字，简短一句话
@@ -831,7 +831,7 @@ export default function Settings() {
               placeholder="留空则使用默认：让考试信息 / 一目了然"
               rows={2}
               maxLength={100}
-              className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none resize-none bg-white dark:bg-black text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+              className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none resize-none bg-white dark:bg-zinc-900 text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
             />
             <p className="mt-1.5 text-xs text-zinc-400 dark:text-zinc-400">
               支持换行（每行一句），按行显示在首页主标题位置
@@ -847,7 +847,7 @@ export default function Settings() {
               placeholder="留空则使用默认副标题（含学校名称）"
               rows={3}
               maxLength={300}
-              className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none resize-none bg-white dark:bg-black text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+              className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none resize-none bg-white dark:bg-zinc-900 text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
             />
             <p className="mt-1.5 text-xs text-zinc-400 dark:text-zinc-400">
               首页主标题下方的描述文案，留空时自动拼接学校名称
@@ -863,7 +863,7 @@ export default function Settings() {
               onChange={(e) => setHomeStatLabels(e.target.value)}
               placeholder="如：考试总数,即将开始,进行中（用逗号分隔，留空使用默认）"
               maxLength={60}
-              className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-black text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+              className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-zinc-900 text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
             />
             <p className="mt-1.5 text-xs text-zinc-400 dark:text-zinc-400">
               首页底部 3 个统计卡片下方的标签文字，按英文/中文逗号分隔
@@ -886,7 +886,7 @@ export default function Settings() {
       </section>
 
       {/* Cookie 弹窗设置 */}
-      <section className="bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 p-6">
+      <section className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 p-6">
         <h2 className="text-lg font-semibold text-black dark:text-white mb-4 flex items-center gap-2">
           <Cookie className="w-4 h-4" />
           Cookie 弹窗设置
@@ -912,7 +912,7 @@ export default function Settings() {
             >
               <span
                 className={cn(
-                  "absolute top-0.5 w-5 h-5 rounded-full bg-white dark:bg-black shadow-sm transition-transform",
+                  "absolute top-0.5 w-5 h-5 rounded-full bg-white dark:bg-zinc-900 shadow-sm transition-transform",
                   cookieConsentEnabled ? "left-[20px]" : "left-[2px]"
                 )}
               />
@@ -933,7 +933,7 @@ export default function Settings() {
       </section>
 
       {/* 学校信息 */}
-      <section className="bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 p-6">
+      <section className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 p-6">
         <h2 className="text-lg font-semibold text-black dark:text-white mb-4 flex items-center gap-2">
           <Building className="w-4 h-4" />
           学校信息
@@ -948,7 +948,7 @@ export default function Settings() {
                 onChange={(e) => setSchoolType(e.target.value)}
                 placeholder="如：综合性大学、理工类..."
                 maxLength={50}
-                className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-black text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+                className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-zinc-900 text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
               />
             </div>
             <div>
@@ -959,7 +959,7 @@ export default function Settings() {
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="学校联系电话"
                 maxLength={30}
-                className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-black text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+                className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-zinc-900 text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
               />
             </div>
           </div>
@@ -971,7 +971,7 @@ export default function Settings() {
               onChange={(e) => setAddress(e.target.value)}
               placeholder="学校地址"
               maxLength={200}
-              className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-black text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+              className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-zinc-900 text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
             />
           </div>
           <div>
@@ -982,7 +982,7 @@ export default function Settings() {
               onChange={(e) => setWebsite(e.target.value)}
               placeholder="https://www.example.edu.cn"
               maxLength={200}
-              className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-black text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+              className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-zinc-900 text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
             />
           </div>
           <div>
@@ -993,7 +993,7 @@ export default function Settings() {
               placeholder="学校简介..."
               rows={3}
               maxLength={2000}
-              className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none resize-none bg-white dark:bg-black text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+              className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none resize-none bg-white dark:bg-zinc-900 text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
             />
           </div>
           <div>
@@ -1004,7 +1004,7 @@ export default function Settings() {
               placeholder="如：主教学楼、理科楼、文科楼等..."
               rows={3}
               maxLength={2000}
-              className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none resize-none bg-white dark:bg-black text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+              className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none resize-none bg-white dark:bg-zinc-900 text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1016,7 +1016,7 @@ export default function Settings() {
                 placeholder="图书馆相关信息..."
                 rows={3}
                 maxLength={2000}
-                className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none resize-none bg-white dark:bg-black text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+                className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none resize-none bg-white dark:bg-zinc-900 text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
               />
             </div>
             <div>
@@ -1027,7 +1027,7 @@ export default function Settings() {
                 placeholder="校园环境、设施等..."
                 rows={3}
                 maxLength={2000}
-                className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none resize-none bg-white dark:bg-black text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+                className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none resize-none bg-white dark:bg-zinc-900 text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
               />
             </div>
           </div>
@@ -1039,7 +1039,7 @@ export default function Settings() {
               placeholder="如：社团活动、校园文化..."
               rows={3}
               maxLength={2000}
-              className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none resize-none bg-white dark:bg-black text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+              className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none resize-none bg-white dark:bg-zinc-900 text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
             />
           </div>
           <p className="text-xs text-zinc-400 dark:text-zinc-400">
@@ -1062,7 +1062,7 @@ export default function Settings() {
       </section>
 
       {/* 尾栏配置 */}
-      <section className="bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 p-6">
+      <section className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 p-6">
         <h2 className="text-lg font-semibold text-black dark:text-white mb-4 flex items-center gap-2">
           <LinkIcon className="w-4 h-4" />
           尾栏配置
@@ -1078,7 +1078,7 @@ export default function Settings() {
               onChange={(e) => setFooterText(e.target.value)}
               placeholder="如：让考试信息展示更高效"
               maxLength={100}
-              className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-black text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+              className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-zinc-900 text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
             />
             <p className="mt-1.5 text-xs text-zinc-400 dark:text-zinc-400">
               显示在尾栏版权信息后面，作为站点口号/描述
@@ -1096,7 +1096,7 @@ export default function Settings() {
                 onChange={(e) => setFooterIcp(e.target.value)}
                 placeholder="如：京ICP备XXXXXXX号-X"
                 maxLength={50}
-                className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-black text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+                className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-zinc-900 text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
               />
               <p className="mt-1.5 text-xs text-zinc-400 dark:text-zinc-400">
                 工信部备案号，会自动链接到 beian.miit.gov.cn
@@ -1112,7 +1112,7 @@ export default function Settings() {
                 onChange={(e) => setFooterPublicSecurity(e.target.value)}
                 placeholder="如：京公网安备 XXXXXXXXXXXXX号"
                 maxLength={50}
-                className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-black text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+                className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-zinc-900 text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
               />
               <p className="mt-1.5 text-xs text-zinc-400 dark:text-zinc-400">
                 公安备案号，纯文本展示
@@ -1152,7 +1152,7 @@ export default function Settings() {
                       onChange={(e) => handleFooterLinkChange(idx, "name", e.target.value)}
                       placeholder="链接名称"
                       maxLength={50}
-                      className="flex-shrink-0 w-32 px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-black text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+                      className="flex-shrink-0 w-32 px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-zinc-900 text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                     />
                     <input
                       type="url"
@@ -1160,7 +1160,7 @@ export default function Settings() {
                       onChange={(e) => handleFooterLinkChange(idx, "url", e.target.value)}
                       placeholder="https://example.com"
                       maxLength={200}
-                      className="flex-1 min-w-0 px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-black text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+                      className="flex-1 min-w-0 px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-zinc-900 text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                     />
                     <button
                       type="button"

@@ -97,7 +97,7 @@ export default function DateTimePicker({
       className={`relative overflow-hidden rounded-lg border transition-all duration-300 ${
         error
           ? "border-red-300 bg-red-50/30"
-          : "border-zinc-200 dark:border-zinc-600 bg-white dark:bg-black hover:border-zinc-400 dark:hover:border-zinc-500"
+          : "border-zinc-200 dark:border-zinc-600 bg-white dark:bg-zinc-900 hover:border-zinc-400 dark:hover:border-zinc-500"
       }`}
     >
       <div className="relative p-5 lg:p-6">
@@ -117,7 +117,7 @@ export default function DateTimePicker({
         {/* 日历和时间选择 */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[auto_1fr]">
           {/* 日历视图 */}
-          <div className="rounded-lg border border-zinc-200 dark:border-zinc-600 bg-white dark:bg-black p-3">
+          <div className="rounded-lg border border-zinc-200 dark:border-zinc-600 bg-white dark:bg-zinc-900 p-3">
             <DayPicker
               mode="single"
               locale={zhCN}
@@ -150,7 +150,7 @@ export default function DateTimePicker({
                       className={`flex flex-col items-center gap-1 rounded-lg border px-2 py-2.5 transition-all ${
                         isActive
                           ? "border-black bg-black text-white"
-                          : "border-zinc-200 dark:border-zinc-600 bg-white dark:bg-black text-zinc-600 dark:text-zinc-300 hover:border-black dark:hover:border-white"
+                          : "border-zinc-200 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300 hover:border-black dark:hover:border-white"
                       }`}
                     >
                       <Icon className="h-5 w-5" />
@@ -180,7 +180,7 @@ export default function DateTimePicker({
                       className={`rounded-lg border py-1.5 text-xs font-medium transition-all ${
                         isActive
                           ? "border-black bg-black text-white"
-                          : "border-zinc-200 dark:border-zinc-600 bg-white dark:bg-black text-zinc-600 dark:text-zinc-300 hover:border-black dark:hover:border-white"
+                          : "border-zinc-200 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300 hover:border-black dark:hover:border-white"
                       }`}
                     >
                       {String(h).padStart(2, "0")}
@@ -206,7 +206,7 @@ export default function DateTimePicker({
                       className={`rounded-lg border py-1.5 text-xs font-medium transition-all ${
                         isActive
                           ? "border-black bg-black text-white"
-                          : "border-zinc-200 dark:border-zinc-600 bg-white dark:bg-black text-zinc-600 dark:text-zinc-300 hover:border-black dark:hover:border-white"
+                          : "border-zinc-200 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300 hover:border-black dark:hover:border-white"
                       }`}
                     >
                       :{String(m).padStart(2, "0")}

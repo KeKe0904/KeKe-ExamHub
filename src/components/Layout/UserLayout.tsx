@@ -167,7 +167,7 @@ export default function UserLayout({ children }: UserLayoutProps) {
 
       <main className="flex-1">{children}</main>
 
-      <footer className="bg-zinc-900 dark:bg-black text-zinc-400 dark:text-zinc-500 py-6 sm:py-8 safe-bottom border-t border-zinc-800 dark:border-zinc-900">
+      <footer className="bg-zinc-900 dark:bg-zinc-900 text-zinc-400 dark:text-zinc-500 py-6 sm:py-8 safe-bottom border-t border-zinc-800 dark:border-zinc-900">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           {/* 友情链接区 */}
           {hasFooterLinks && (

@@ -219,7 +219,7 @@ export default function TeacherLayout({ children }: TeacherLayoutProps) {
 
         <main className="flex-1">{children}</main>
 
-        <footer className="bg-zinc-900 dark:bg-black border-t border-zinc-800 dark:border-zinc-900 py-3 sm:py-4 shrink-0 safe-bottom transition-colors">
+        <footer className="bg-zinc-900 dark:bg-zinc-900 border-t border-zinc-800 dark:border-zinc-900 py-3 sm:py-4 shrink-0 safe-bottom transition-colors">
           <div className="px-3 sm:px-6 lg:px-8 flex items-center justify-between text-xs sm:text-sm text-zinc-400 dark:text-zinc-500 gap-2">
             <span className="truncate">{displayName} · 教师端</span>
             <span className="truncate text-right">工号：{teacher?.teacherNo || "--"}</span>

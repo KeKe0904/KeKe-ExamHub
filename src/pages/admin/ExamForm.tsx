@@ -705,7 +705,7 @@ export default function ExamForm() {
       </div>
 
       <form onSubmit={handleSubmit} className="max-w-3xl">
-        <div className="bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 p-6 lg:p-8 space-y-6">
+        <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 p-6 lg:p-8 space-y-6">
           <FormField
             label="考试科目"
             icon={<FileText className="w-4 h-4" />}
@@ -802,7 +802,7 @@ export default function ExamForm() {
 
                 {/* 教师选择下拉面板 */}
                 {showTeacherPicker && (
-                  <div className="absolute z-30 top-full left-0 right-0 mt-1 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg shadow-lg overflow-hidden">
+                  <div className="absolute z-30 top-full left-0 right-0 mt-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 rounded-lg shadow-lg overflow-hidden">
                     {/* 搜索和筛选 */}
                     <div className="p-3 border-b border-zinc-200 dark:border-zinc-700 space-y-2">
                       <div className="relative">
@@ -1050,7 +1050,7 @@ export default function ExamForm() {
                   {conflicts.map((conflict, idx) => (
                     <div
                       key={`${conflict.examId}-${conflict.classroomId}-${idx}`}
-                      className="flex items-center justify-between px-3 py-2 bg-white dark:bg-black/50 rounded border border-red-100 dark:border-red-900/50 text-sm"
+                      className="flex items-center justify-between px-3 py-2 bg-white dark:bg-zinc-900/50 rounded border border-red-100 dark:border-red-900/50 text-sm"
                     >
                       <div className="flex items-center gap-2">
                         <Building className="w-3.5 h-3.5 text-red-500 dark:text-red-400 shrink-0" />
@@ -1372,7 +1372,7 @@ export default function ExamForm() {
                                       e.target.value
                                     )
                                   }
-                                  className="w-14 px-2 py-1 text-xs border border-zinc-200 dark:border-zinc-700 rounded focus:outline-none focus:border-black dark:focus:border-white bg-white dark:bg-black text-black dark:text-white"
+                                  className="w-14 px-2 py-1 text-xs border border-zinc-200 dark:border-zinc-700 rounded focus:outline-none focus:border-black dark:focus:border-white bg-white dark:bg-zinc-900 text-black dark:text-white"
                                   placeholder="--"
                                 />
                               </td>
@@ -1424,7 +1424,7 @@ export default function ExamForm() {
             type="button"
             onClick={() => navigate(-1)}
             disabled={loading}
-            className="px-5 py-2.5 text-sm font-medium text-black dark:text-white bg-white dark:bg-black border border-zinc-300 dark:border-zinc-600 hover:border-black dark:hover:border-white rounded-lg transition-colors disabled:opacity-50"
+            className="px-5 py-2.5 text-sm font-medium text-black dark:text-white bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-600 hover:border-black dark:hover:border-white rounded-lg transition-colors disabled:opacity-50"
           >
             取消
           </button>
@@ -1450,8 +1450,8 @@ export default function ExamForm() {
 
       {/* 冲突确认对话框 */}
       {showConflictDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 dark:bg-black/70">
-          <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 dark:bg-zinc-900/70">
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden">
             <div className="p-6 border-b border-zinc-200 dark:border-zinc-700">
               <div className="flex items-center gap-3">
                 <div className="flex items-center justify-center w-10 h-10 rounded-full bg-red-100 dark:bg-red-950">
@@ -1502,7 +1502,7 @@ export default function ExamForm() {
                   setShowConflictDialog(false);
                   setPendingSubmit(false);
                 }}
-                className="px-4 py-2 text-sm font-medium text-black dark:text-white bg-white dark:bg-black border border-zinc-300 dark:border-zinc-600 hover:border-black dark:hover:border-white rounded-lg transition-colors"
+                className="px-4 py-2 text-sm font-medium text-black dark:text-white bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-600 hover:border-black dark:hover:border-white rounded-lg transition-colors"
               >
                 取消
               </button>

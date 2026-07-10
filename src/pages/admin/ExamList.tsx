@@ -219,7 +219,7 @@ export default function ExamList() {
         </Link>
       </div>
 
-      <div className="bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 p-4 mb-6">
+      <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 p-4 mb-6">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 dark:text-zinc-400" />
           <input
@@ -227,13 +227,13 @@ export default function ExamList() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="搜索考试科目、地点、监考老师..."
-            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm text-zinc-700 dark:text-zinc-300 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-black dark:focus:border-white transition-all"
+            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm text-zinc-700 dark:text-zinc-300 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-black dark:focus:border-white transition-all"
           />
         </div>
       </div>
 
       {selectedIds.size > 0 && (
-        <div className="bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 p-4 mb-6">
+        <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 p-4 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <span className="text-sm font-medium text-black dark:text-white">
@@ -268,7 +268,7 @@ export default function ExamList() {
         </div>
       )}
 
-      <div className="bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 overflow-hidden">
+      <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-16">
             <Loader2 className="w-8 h-8 text-black dark:text-white animate-spin" />
@@ -278,7 +278,7 @@ export default function ExamList() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-zinc-50 dark:bg-black border-b border-zinc-200 dark:border-zinc-600">
+                <tr className="bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-600">
                   <th className="px-4 py-3 w-12">
                     <input
                       type="checkbox"
@@ -328,7 +328,7 @@ export default function ExamList() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-zinc-100 dark:bg-black flex items-center justify-center flex-shrink-0">
+                        <div className="w-9 h-9 rounded-lg bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center flex-shrink-0">
                           <FileText className="w-4 h-4 text-black dark:text-white" />
                         </div>
                         <div>
@@ -444,8 +444,8 @@ function DeleteConfirmDialog({
   deleting,
 }: DeleteConfirmDialogProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white dark:bg-black rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-600 max-w-md w-full p-6 animate-scale-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-zinc-900/60 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-600 max-w-md w-full p-6 animate-scale-in">
         <div className="flex items-start gap-4 mb-4">
           <div className="w-12 h-12 rounded-full bg-red-50 dark:bg-red-950 flex items-center justify-center flex-shrink-0">
             <AlertTriangle className="w-6 h-6 text-red-500 dark:text-red-400" />
@@ -463,14 +463,14 @@ function DeleteConfirmDialog({
           <button
             onClick={onCancel}
             disabled={deleting}
-            className="px-4 py-2 text-sm font-medium text-black dark:text-white bg-white dark:bg-black border border-zinc-300 dark:border-zinc-600 hover:border-black dark:hover:border-white rounded-lg transition-colors disabled:opacity-50"
+            className="px-4 py-2 text-sm font-medium text-black dark:text-white bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-600 hover:border-black dark:hover:border-white rounded-lg transition-colors disabled:opacity-50"
           >
             取消
           </button>
           <button
             onClick={onConfirm}
             disabled={deleting}
-            className="px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-white dark:bg-black border border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+            className="px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-white dark:bg-zinc-900 border border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
           >
             {deleting ? (
               <>
@@ -501,8 +501,8 @@ function BatchDeleteDialog({
   loading,
 }: BatchDeleteDialogProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white dark:bg-black rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-600 max-w-md w-full p-6 animate-scale-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-zinc-900/60 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-600 max-w-md w-full p-6 animate-scale-in">
         <div className="flex items-start gap-4 mb-4">
           <div className="w-12 h-12 rounded-full bg-red-50 dark:bg-red-950 flex items-center justify-center flex-shrink-0">
             <AlertTriangle className="w-6 h-6 text-red-500 dark:text-red-400" />
@@ -520,14 +520,14 @@ function BatchDeleteDialog({
           <button
             onClick={onCancel}
             disabled={loading}
-            className="px-4 py-2 text-sm font-medium text-black dark:text-white bg-white dark:bg-black border border-zinc-300 dark:border-zinc-600 hover:border-black dark:hover:border-white rounded-lg transition-colors disabled:opacity-50"
+            className="px-4 py-2 text-sm font-medium text-black dark:text-white bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-600 hover:border-black dark:hover:border-white rounded-lg transition-colors disabled:opacity-50"
           >
             取消
           </button>
           <button
             onClick={onConfirm}
             disabled={loading}
-            className="px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-white dark:bg-black border border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+            className="px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-white dark:bg-zinc-900 border border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
           >
             {loading ? (
               <>
@@ -578,8 +578,8 @@ function BatchEditDialog({
   const hasAnyField = Object.values(updates).some(Boolean);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white dark:bg-black rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-600 max-w-lg w-full p-6 animate-scale-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-zinc-900/60 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-600 max-w-lg w-full p-6 animate-scale-in">
         <div className="flex items-center justify-between mb-6">
           <h3 className="font-serif text-lg font-bold text-black dark:text-white">
             批量修改考试
@@ -614,7 +614,7 @@ function BatchEditDialog({
                 value={values.examDate}
                 onChange={(e) => onValueChange("examDate", e.target.value)}
                 disabled={!updates.examDate}
-                className="w-full px-3 py-2 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm text-zinc-700 dark:text-zinc-300 focus:outline-none focus:border-black dark:focus:border-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm text-zinc-700 dark:text-zinc-300 focus:outline-none focus:border-black dark:focus:border-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
           </div>
@@ -639,7 +639,7 @@ function BatchEditDialog({
                   disabled={!updates.duration}
                   placeholder="请输入时长"
                   min="1"
-                  className="flex-1 px-3 py-2 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm text-zinc-700 dark:text-zinc-300 focus:outline-none focus:border-black dark:focus:border-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm text-zinc-700 dark:text-zinc-300 focus:outline-none focus:border-black dark:focus:border-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <span className="text-sm text-zinc-500 dark:text-zinc-400 w-8">分钟</span>
               </div>
@@ -664,7 +664,7 @@ function BatchEditDialog({
                 onChange={(e) => onValueChange("location", e.target.value)}
                 disabled={!updates.location}
                 placeholder="请输入新地点"
-                className="w-full px-3 py-2 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm text-zinc-700 dark:text-zinc-300 focus:outline-none focus:border-black dark:focus:border-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm text-zinc-700 dark:text-zinc-300 focus:outline-none focus:border-black dark:focus:border-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
           </div>
@@ -687,7 +687,7 @@ function BatchEditDialog({
                 onChange={(e) => onValueChange("invigilator", e.target.value)}
                 disabled={!updates.invigilator}
                 placeholder="请输入新监考老师"
-                className="w-full px-3 py-2 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm text-zinc-700 dark:text-zinc-300 focus:outline-none focus:border-black dark:focus:border-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm text-zinc-700 dark:text-zinc-300 focus:outline-none focus:border-black dark:focus:border-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
           </div>
@@ -697,7 +697,7 @@ function BatchEditDialog({
           <button
             onClick={onCancel}
             disabled={loading}
-            className="px-4 py-2 text-sm font-medium text-black dark:text-white bg-white dark:bg-black border border-zinc-300 dark:border-zinc-600 hover:border-black dark:hover:border-white rounded-lg transition-colors disabled:opacity-50"
+            className="px-4 py-2 text-sm font-medium text-black dark:text-white bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-600 hover:border-black dark:hover:border-white rounded-lg transition-colors disabled:opacity-50"
           >
             取消
           </button>

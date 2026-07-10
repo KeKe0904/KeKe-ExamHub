@@ -105,7 +105,7 @@ export default function ClassroomLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black dark:bg-black p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-black dark:bg-zinc-900 p-4 relative overflow-hidden">
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
@@ -123,7 +123,7 @@ export default function ClassroomLogin() {
           返回首页
         </Link>
 
-        <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg shadow-lg p-8 animate-scale-in">
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 rounded-lg shadow-lg p-8 animate-scale-in">
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-black dark:bg-white mb-4">
               <Building className="w-8 h-8 text-white dark:text-black" />
@@ -197,7 +197,7 @@ export default function ClassroomLogin() {
                   value={buildingId}
                   onChange={(e) => setBuildingId(e.target.value)}
                   disabled={loading || buildingsLoading}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm text-zinc-700 dark:text-zinc-300 focus:outline-none focus:border-black dark:focus:border-white transition-all disabled:opacity-50"
+                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm text-zinc-700 dark:text-zinc-300 focus:outline-none focus:border-black dark:focus:border-white transition-all disabled:opacity-50"
                 >
                   {buildingsLoading && <option>加载中...</option>}
                   {!buildingsLoading && buildings.length === 0 && (
@@ -222,7 +222,7 @@ export default function ClassroomLogin() {
                 onChange={(e) => setRoomNumber(e.target.value)}
                 placeholder="例如:301"
                 disabled={loading}
-                className="w-full px-4 py-2.5 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm text-zinc-700 dark:text-zinc-300 placeholder:text-zinc-400 focus:outline-none focus:border-black dark:focus:border-white transition-all disabled:opacity-50"
+                className="w-full px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm text-zinc-700 dark:text-zinc-300 placeholder:text-zinc-400 focus:outline-none focus:border-black dark:focus:border-white transition-all disabled:opacity-50"
               />
             </div>
 
@@ -238,7 +238,7 @@ export default function ClassroomLogin() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="请输入密码"
                   disabled={loading}
-                  className="w-full pl-10 pr-10 py-2.5 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm text-zinc-700 dark:text-zinc-300 placeholder:text-zinc-400 focus:outline-none focus:border-black dark:focus:border-white transition-all disabled:opacity-50"
+                  className="w-full pl-10 pr-10 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm text-zinc-700 dark:text-zinc-300 placeholder:text-zinc-400 focus:outline-none focus:border-black dark:focus:border-white transition-all disabled:opacity-50"
                 />
                 <button
                   type="button"

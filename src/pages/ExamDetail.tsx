@@ -102,7 +102,7 @@ export default function ExamDetail() {
         <div className="flex items-center justify-between mb-6 no-print">
           <button
             onClick={() => navigate("/")}
-            className="inline-flex items-center gap-2 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-300 bg-zinc-50 dark:bg-black border border-zinc-300 dark:border-zinc-600 rounded-lg hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white transition-colors"
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-600 rounded-lg hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             返回列表
@@ -111,7 +111,7 @@ export default function ExamDetail() {
             {monitorOpen && (
               <button
                 onClick={() => navigate(`/exam/${exam.id}/monitor`)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-50 dark:bg-black border border-zinc-300 dark:border-zinc-600 text-black dark:text-white text-sm font-medium rounded-lg hover:border-black dark:hover:border-white transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-600 text-black dark:text-white text-sm font-medium rounded-lg hover:border-black dark:hover:border-white transition-colors"
               >
                 <Maximize className="w-4 h-4" />
                 监考模式
@@ -131,7 +131,7 @@ export default function ExamDetail() {
           {/* 左侧:考试信息 */}
           <div className="lg:col-span-2 space-y-6">
             {/* 主信息卡片 */}
-            <div className="bg-zinc-50 dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 shadow-sm p-6 lg:p-8 animate-fade-in">
+            <div className="bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 shadow-sm p-6 lg:p-8 animate-fade-in">
               <div className="flex items-center gap-3 mb-6">
                 <StatusBadge status={currentStatus} />
               </div>
@@ -166,9 +166,9 @@ export default function ExamDetail() {
 
             {/* 注意事项卡片 */}
             {exam.notes && (
-              <div className="bg-zinc-50 dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 shadow-sm p-6 lg:p-8 animate-fade-in">
+              <div className="bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 shadow-sm p-6 lg:p-8 animate-fade-in">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-black flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center">
                     <Info className="w-4 h-4 text-zinc-700 dark:text-zinc-300" />
                   </div>
                   <h2 className="font-serif text-lg font-bold text-black dark:text-white">
@@ -188,7 +188,7 @@ export default function ExamDetail() {
             <Countdown exam={{ ...exam, status: currentStatus }} />
 
             {/* 快速信息 */}
-            <div className="bg-zinc-50 dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 shadow-sm p-6">
+            <div className="bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 shadow-sm p-6">
               <div className="flex items-center gap-2 mb-4">
                 <FileText className="w-4 h-4 text-zinc-500 dark:text-zinc-300" />
                 <h3 className="font-medium text-zinc-700 dark:text-zinc-300">考试概要</h3>
@@ -235,8 +235,8 @@ interface InfoItemProps {
 
 function InfoItem({ icon, label, value }: InfoItemProps) {
   return (
-    <div className="flex items-start gap-3 p-3 rounded-lg bg-zinc-100 dark:bg-black border border-zinc-200 dark:border-zinc-600">
-      <div className="w-10 h-10 rounded-lg bg-zinc-100 dark:bg-black text-zinc-700 dark:text-zinc-300 flex items-center justify-center flex-shrink-0">
+    <div className="flex items-start gap-3 p-3 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600">
+      <div className="w-10 h-10 rounded-lg bg-zinc-100 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 flex items-center justify-center flex-shrink-0">
         {icon}
       </div>
       <div className="min-w-0">

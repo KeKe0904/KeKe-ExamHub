@@ -79,21 +79,21 @@ export default function AnnouncementList() {
     switch (status) {
       case "active":
         return (
-          <span className="inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded border border-black dark:border-white text-black dark:text-white bg-white dark:bg-black">
+          <span className="inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded border border-black dark:border-white text-black dark:text-white bg-white dark:bg-zinc-900">
             <CheckCircle className="w-3 h-3" />
             显示中
           </span>
         );
       case "scheduled":
         return (
-          <span className="inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded border border-zinc-400 dark:border-zinc-500 text-zinc-600 dark:text-zinc-300 bg-zinc-50 dark:bg-black">
+          <span className="inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded border border-zinc-400 dark:border-zinc-500 text-zinc-600 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-900">
             <Clock className="w-3 h-3" />
             定时中
           </span>
         );
       case "expired":
         return (
-          <span className="inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded border border-zinc-300 dark:border-zinc-600 text-zinc-400 dark:text-zinc-400 bg-zinc-50 dark:bg-black">
+          <span className="inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded border border-zinc-300 dark:border-zinc-600 text-zinc-400 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900">
             <XCircle className="w-3 h-3" />
             已过期
           </span>
@@ -127,7 +127,7 @@ export default function AnnouncementList() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="搜索公告标题或内容..."
-            className="w-full pl-10 pr-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-black text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+            className="w-full pl-10 pr-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-zinc-900 text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
           />
         </div>
 
@@ -137,7 +137,7 @@ export default function AnnouncementList() {
             <Loader2 className="w-8 h-8 text-black dark:text-white animate-spin" />
           </div>
         ) : filteredAnnouncements.length === 0 ? (
-          <div className="text-center py-20 border border-zinc-200 dark:border-zinc-600 rounded-lg bg-white dark:bg-black">
+          <div className="text-center py-20 border border-zinc-200 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-900">
             <p className="text-zinc-500 dark:text-zinc-300">暂无公告</p>
             <Link
               to="/admin/announcements/new"
@@ -147,11 +147,11 @@ export default function AnnouncementList() {
             </Link>
           </div>
         ) : (
-          <div className="border border-zinc-200 dark:border-zinc-600 rounded-lg overflow-hidden bg-white dark:bg-black">
+          <div className="border border-zinc-200 dark:border-zinc-600 rounded-lg overflow-hidden bg-white dark:bg-zinc-900">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[640px]">
               <thead>
-                <tr className="border-b border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-black">
+                <tr className="border-b border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-900">
                   <th className="text-left px-4 py-3 text-xs font-medium text-zinc-500 dark:text-zinc-300 uppercase">标题</th>
                   <th className="text-left px-4 py-3 text-xs font-medium text-zinc-500 dark:text-zinc-300 uppercase">状态</th>
                   <th className="text-left px-4 py-3 text-xs font-medium text-zinc-500 dark:text-zinc-300 uppercase">发布时间</th>
@@ -164,7 +164,7 @@ export default function AnnouncementList() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         {a.isPinned && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-black dark:bg-white text-white dark:text-black font-medium">置顶</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-200 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 font-medium">置顶</span>
                         )}
                         <span className="font-medium text-black dark:text-white">{a.title}</span>
                       </div>
@@ -203,10 +203,10 @@ export default function AnnouncementList() {
 
       {/* 删除确认弹窗 */}
       {deleteTarget && (
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 p-6 max-w-md w-full relative">
+        <div className="fixed inset-0 bg-black/50 dark:bg-zinc-900/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 p-6 max-w-md w-full relative">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-black flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5 text-black dark:text-white" />
               </div>
               <h3 className="text-lg font-bold text-black dark:text-white">确认删除</h3>

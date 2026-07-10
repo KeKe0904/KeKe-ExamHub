@@ -217,8 +217,8 @@ export default function Setup() {
   // 已安装提示
   if (installed === true) {
     return (
-      <div className="min-h-screen bg-black dark:bg-black flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 p-8 text-center">
+      <div className="min-h-screen bg-black dark:bg-zinc-900 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 p-8 text-center">
           <CheckCircle2 className="w-16 h-16 text-black dark:text-white mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-black dark:text-white mb-2">系统已安装</h1>
           <p className="text-zinc-500 dark:text-zinc-300 mb-6">KeKe ExamHub 已经完成安装配置</p>
@@ -244,8 +244,8 @@ export default function Setup() {
   // 欢迎页
   if (step === "welcome") {
     return (
-      <div className="min-h-screen bg-black dark:bg-black flex items-center justify-center p-4">
-        <div className="max-w-lg w-full bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 p-8">
+      <div className="min-h-screen bg-black dark:bg-zinc-900 flex items-center justify-center p-4">
+        <div className="max-w-lg w-full bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 p-8">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-12 h-12 rounded-lg bg-black dark:bg-white flex items-center justify-center">
               <Terminal className="w-6 h-6 text-white dark:text-black" />
@@ -298,8 +298,8 @@ export default function Setup() {
   // 安装中
   if (step === "installing") {
     return (
-      <div className="min-h-screen bg-black dark:bg-black flex items-center justify-center p-4">
-        <div className="max-w-lg w-full bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 p-8">
+      <div className="min-h-screen bg-black dark:bg-zinc-900 flex items-center justify-center p-4">
+        <div className="max-w-lg w-full bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 p-8">
           <div className="flex flex-col items-center text-center">
             <Loader2 className="w-12 h-12 text-black dark:text-white animate-spin mb-4" />
             <h2 className="text-xl font-bold text-black dark:text-white mb-2">正在安装...</h2>
@@ -330,8 +330,8 @@ export default function Setup() {
     const isTimeout = restartStatus === "timeout";
 
     return (
-      <div className="min-h-screen bg-black dark:bg-black flex items-center justify-center p-4">
-        <div className="max-w-lg w-full bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 p-8 text-center">
+      <div className="min-h-screen bg-black dark:bg-zinc-900 flex items-center justify-center p-4">
+        <div className="max-w-lg w-full bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 p-8 text-center">
           {isRestarting ? (
             <Loader2 className="w-16 h-16 text-black dark:text-white mx-auto mb-4 animate-spin" />
           ) : (
@@ -345,13 +345,13 @@ export default function Setup() {
           </p>
 
           {installResult && (
-            <div className="mb-6 p-4 rounded-lg border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-black text-left">
+            <div className="mb-6 p-4 rounded-lg border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-900 text-left">
               <p className="text-sm text-zinc-600 dark:text-zinc-300">{installResult.message}</p>
             </div>
           )}
 
           {isRestarting && (
-            <div className="mb-6 p-4 rounded-lg border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-black">
+            <div className="mb-6 p-4 rounded-lg border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-900">
               <div className="flex items-center justify-center gap-2 text-sm text-zinc-600 dark:text-zinc-300">
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span>正在等待后端重启完成...</span>
@@ -360,7 +360,7 @@ export default function Setup() {
           )}
 
           {isRestartDone && (
-            <div className="rounded-lg border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-black p-4 mb-6 text-left">
+            <div className="rounded-lg border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-900 p-4 mb-6 text-left">
               <p className="text-xs font-medium text-zinc-500 dark:text-zinc-300 mb-2">下一步操作：</p>
               <ol className="space-y-1 text-sm text-zinc-600 dark:text-zinc-300 list-decimal list-inside">
                 <li>访问首页：点击下方按钮</li>
@@ -406,8 +406,8 @@ export default function Setup() {
 
   // 主安装流程
   return (
-    <div className="min-h-screen bg-black dark:bg-black flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 p-8">
+    <div className="min-h-screen bg-black dark:bg-zinc-900 flex items-center justify-center p-4">
+      <div className="max-w-2xl w-full bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 p-8">
         {/* 步骤指示器 */}
         <div className="flex items-center justify-between mb-8">
           {steps.map((s, i) => {
@@ -422,8 +422,8 @@ export default function Setup() {
                       isActive
                         ? "border-black dark:border-white bg-black dark:bg-white text-white dark:text-black"
                         : isDone
-                        ? "border-black dark:border-white bg-white dark:bg-black text-black dark:text-white"
-                        : "border-zinc-300 dark:border-zinc-600 bg-white dark:bg-black text-zinc-400 dark:text-zinc-400"
+                        ? "border-black dark:border-white bg-white dark:bg-zinc-900 text-black dark:text-white"
+                        : "border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-400 dark:text-zinc-400"
                     }`}
                   >
                     {isDone ? <Check className="w-5 h-5" /> : <Icon className="w-4 h-4" />}
@@ -439,7 +439,7 @@ export default function Setup() {
                 {i < steps.length - 1 && (
                   <div
                     className={`flex-1 h-0.5 mx-2 ${
-                      isDone ? "bg-black dark:bg-white" : "bg-zinc-200 dark:bg-black"
+                      isDone ? "bg-black dark:bg-white" : "bg-zinc-200 dark:bg-zinc-900"
                     }`}
                   />
                 )}
@@ -548,7 +548,7 @@ export default function Setup() {
                     type="text"
                     value={dbConfig.host}
                     onChange={(e) => setDbConfig({ ...dbConfig, host: e.target.value })}
-                    className="w-full px-3 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-black text-black dark:text-white"
+                    className="w-full px-3 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-zinc-900 text-black dark:text-white"
                     placeholder="localhost"
                   />
                 </div>
@@ -562,7 +562,7 @@ export default function Setup() {
                     onChange={(e) =>
                       setDbConfig({ ...dbConfig, port: Number(e.target.value) })
                     }
-                    className="w-full px-3 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-black text-black dark:text-white"
+                    className="w-full px-3 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-zinc-900 text-black dark:text-white"
                     placeholder="3306"
                   />
                 </div>
@@ -576,7 +576,7 @@ export default function Setup() {
                   type="text"
                   value={dbConfig.user}
                   onChange={(e) => setDbConfig({ ...dbConfig, user: e.target.value })}
-                  className="w-full px-3 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-black text-black dark:text-white"
+                  className="w-full px-3 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-zinc-900 text-black dark:text-white"
                   placeholder="root"
                 />
               </div>
@@ -591,7 +591,7 @@ export default function Setup() {
                   onChange={(e) =>
                     setDbConfig({ ...dbConfig, password: e.target.value })
                   }
-                  className="w-full px-3 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-black text-black dark:text-white"
+                  className="w-full px-3 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-zinc-900 text-black dark:text-white"
                   placeholder="输入数据库密码"
                 />
               </div>
@@ -606,7 +606,7 @@ export default function Setup() {
                   onChange={(e) =>
                     setDbConfig({ ...dbConfig, database: e.target.value })
                   }
-                  className="w-full px-3 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-black text-black dark:text-white"
+                  className="w-full px-3 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-zinc-900 text-black dark:text-white"
                   placeholder="examhub"
                 />
                 <p className="text-xs text-zinc-400 dark:text-zinc-400 mt-1">
@@ -619,7 +619,7 @@ export default function Setup() {
                 <div
                   className={`p-3 rounded-lg border text-sm ${
                     dbTestResult.success
-                      ? "border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-black text-black dark:text-white"
+                      ? "border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-900 text-black dark:text-white"
                       : "border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400"
                   }`}
                 >
@@ -686,7 +686,7 @@ export default function Setup() {
                   type="text"
                   value={admin.username}
                   onChange={(e) => setAdmin({ ...admin, username: e.target.value })}
-                  className="w-full px-3 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-black text-black dark:text-white"
+                  className="w-full px-3 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-zinc-900 text-black dark:text-white"
                   placeholder="admin"
                 />
               </div>
@@ -699,7 +699,7 @@ export default function Setup() {
                   type="password"
                   value={admin.password}
                   onChange={(e) => setAdmin({ ...admin, password: e.target.value })}
-                  className="w-full px-3 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-black text-black dark:text-white"
+                  className="w-full px-3 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-zinc-900 text-black dark:text-white"
                   placeholder="输入密码（至少6位）"
                 />
               </div>
@@ -714,7 +714,7 @@ export default function Setup() {
                   onChange={(e) =>
                     setAdmin({ ...admin, confirmPassword: e.target.value })
                   }
-                  className="w-full px-3 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-black text-black dark:text-white"
+                  className="w-full px-3 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-zinc-900 text-black dark:text-white"
                   placeholder="再次输入密码"
                 />
                 {admin.confirmPassword && admin.password !== admin.confirmPassword && (
@@ -768,7 +768,7 @@ function EnvItem({
 }) {
   return (
     <div className="flex items-center gap-3 p-3 rounded-lg border border-zinc-200 dark:border-zinc-600">
-      <div className="w-10 h-10 rounded-lg bg-zinc-100 dark:bg-black flex items-center justify-center">
+      <div className="w-10 h-10 rounded-lg bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center">
         <Icon className="w-5 h-5 text-black dark:text-white" />
       </div>
       <div className="flex-1">
@@ -783,7 +783,7 @@ function EnvItem({
           </>
         ) : status === "warn" ? (
           <>
-            <span className="w-2 h-2 rounded-full bg-zinc-400 dark:bg-black0" />
+            <span className="w-2 h-2 rounded-full bg-zinc-400 dark:bg-zinc-9000" />
             <span className="text-xs font-medium text-zinc-400 dark:text-zinc-400">可选</span>
           </>
         ) : (

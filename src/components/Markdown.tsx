@@ -65,7 +65,7 @@ const MarkdownBase = function Markdown({ content, className, streaming }: Markdo
       const codeText = codeLines.join("\n");
       blocks.push(
         <div key={key++} className="my-2 relative group">
-          <pre className="p-3 rounded-lg bg-zinc-900 dark:bg-black text-zinc-100 text-xs overflow-x-auto font-mono">
+          <pre className="p-3 rounded-lg bg-zinc-900 dark:bg-zinc-900 text-zinc-100 text-xs overflow-x-auto font-mono">
             <code>{codeText}</code>
           </pre>
           {codeLang && (

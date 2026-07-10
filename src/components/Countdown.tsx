@@ -31,7 +31,7 @@ export default function Countdown({ exam }: CountdownProps) {
 
   if (countdown.isFinished) {
     return (
-      <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg p-6 text-center">
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 rounded-lg p-6 text-center">
         <Hourglass className="w-10 h-10 text-zinc-400 dark:text-zinc-500 mx-auto mb-3" />
         <p className="text-zinc-500 dark:text-zinc-400 text-sm">考试已结束</p>
       </div>
@@ -45,8 +45,8 @@ export default function Countdown({ exam }: CountdownProps) {
       className={cn(
         "rounded-lg p-6 text-center",
         isOngoing
-          ? "bg-white dark:bg-black border border-black dark:border-white"
-          : "bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600"
+          ? "bg-white dark:bg-zinc-900 border border-black dark:border-white"
+          : "bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600"
       )}
     >
       <div className="flex items-center justify-center gap-2 mb-4">

@@ -127,7 +127,7 @@ export default function RegistrationCodes() {
 
       {/* 生成表单 */}
       {showGenerate && (
-        <div className="mb-6 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg p-6 animate-slide-down">
+        <div className="mb-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 rounded-lg p-6 animate-slide-down">
           <h2 className="text-lg font-semibold text-black dark:text-white mb-4">
             生成注册码
           </h2>
@@ -155,7 +155,7 @@ export default function RegistrationCodes() {
                   setShowGenerate(false);
                   setGenerateCount(1);
                 }}
-                className="px-4 py-2.5 text-sm font-medium text-black dark:text-white bg-white dark:bg-black border border-zinc-300 dark:border-zinc-600 hover:border-black dark:hover:border-white rounded-lg transition-colors"
+                className="px-4 py-2.5 text-sm font-medium text-black dark:text-white bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-600 hover:border-black dark:hover:border-white rounded-lg transition-colors"
               >
                 取消
               </button>
@@ -205,7 +205,7 @@ export default function RegistrationCodes() {
         </div>
       ) : codes.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-20 h-20 rounded-full bg-zinc-100 dark:bg-black flex items-center justify-center mb-4">
+          <div className="w-20 h-20 rounded-full bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center mb-4">
             <CalendarX className="w-10 h-10 text-zinc-400" />
           </div>
           <h3 className="text-lg font-medium text-zinc-600 dark:text-zinc-300 mb-2">
@@ -218,7 +218,7 @@ export default function RegistrationCodes() {
           {codes.map((code) => (
             <div
               key={code.id}
-              className={`bg-white dark:bg-black border rounded-lg p-4 transition-all ${
+              className={`bg-white dark:bg-zinc-900 border rounded-lg p-4 transition-all ${
                 code.isUsed
                   ? "border-zinc-200 dark:border-zinc-600 opacity-60"
                   : "border-zinc-300 dark:border-zinc-600 hover:border-black dark:hover:border-white"
@@ -229,7 +229,7 @@ export default function RegistrationCodes() {
                   <div
                     className={`w-8 h-8 rounded-lg flex items-center justify-center ${
                       code.isUsed
-                        ? "bg-zinc-100 dark:bg-black"
+                        ? "bg-zinc-100 dark:bg-zinc-900"
                         : "bg-black dark:bg-white"
                     }`}
                   >
@@ -242,7 +242,7 @@ export default function RegistrationCodes() {
                   <span
                     className={`text-xs font-medium px-2 py-0.5 rounded ${
                       code.isUsed
-                        ? "bg-zinc-100 dark:bg-black text-zinc-500 dark:text-zinc-300"
+                        ? "bg-zinc-100 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-300"
                         : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300"
                     }`}
                   >

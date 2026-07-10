@@ -96,7 +96,7 @@ export default function TeacherExams() {
                 <span
                   className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold ${
                     activeTab === tab.key
-                      ? "bg-white/20 dark:bg-black/20 text-white dark:text-zinc-900"
+                      ? "bg-white/20 dark:bg-zinc-900/20 text-white dark:text-zinc-900"
                       : "bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
                   }`}
                 >

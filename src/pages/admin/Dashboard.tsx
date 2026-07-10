@@ -196,7 +196,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      <div className="bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 p-4 sm:p-6">
+      <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 p-4 sm:p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <FileText className="w-5 h-5 text-black dark:text-white" />
@@ -223,7 +223,7 @@ export default function Dashboard() {
                 className="flex items-center justify-between p-3 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-950 transition-colors gap-3"
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-zinc-100 dark:bg-black flex items-center justify-center flex-shrink-0">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center flex-shrink-0">
                     <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-black dark:text-white" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -252,7 +252,7 @@ export default function Dashboard() {
 
 function StatCardSkeleton() {
   return (
-    <div className="bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 p-4 sm:p-5">
+    <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 p-4 sm:p-5">
       <div className="skeleton w-10 h-10 sm:w-12 sm:h-12 rounded-lg mb-2 sm:mb-3" />
       <div className="skeleton h-7 sm:h-8 w-16 rounded mb-2" />
       <div className="skeleton h-4 w-20 rounded" />
@@ -302,12 +302,12 @@ function StatCard({ icon, value, label, color }: StatCardProps) {
       border: "border-zinc-300 dark:border-zinc-200",
     },
     green: {
-      bg: "bg-zinc-50 dark:bg-black",
+      bg: "bg-zinc-50 dark:bg-zinc-900",
       text: "text-zinc-900 dark:text-white",
       border: "border-zinc-200 dark:border-zinc-600",
     },
     gray: {
-      bg: "bg-zinc-50 dark:bg-black",
+      bg: "bg-zinc-50 dark:bg-zinc-900",
       text: "text-zinc-500 dark:text-zinc-400",
       border: "border-zinc-200 dark:border-zinc-700",
     },
@@ -316,7 +316,7 @@ function StatCard({ icon, value, label, color }: StatCardProps) {
   const colors = colorClasses[color];
 
   return (
-    <div className="bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 p-4 sm:p-5">
+    <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 p-4 sm:p-5">
       <div
         className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center mb-2 sm:mb-3 border ${colors.bg} ${colors.text} ${colors.border}`}
       >

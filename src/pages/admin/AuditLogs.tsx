@@ -120,7 +120,7 @@ export default function AuditLogs() {
         </div>
 
         {/* 筛选栏 */}
-        <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg p-4">
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 rounded-lg p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
@@ -183,7 +183,7 @@ export default function AuditLogs() {
             </button>
             <button
               onClick={handleReset}
-              className="px-4 py-2 text-sm font-medium text-black dark:text-white bg-white dark:bg-black border border-zinc-300 dark:border-zinc-600 hover:border-black dark:hover:border-white rounded-lg transition-colors"
+              className="px-4 py-2 text-sm font-medium text-black dark:text-white bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-600 hover:border-black dark:hover:border-white rounded-lg transition-colors"
             >
               重置
             </button>
@@ -203,7 +203,7 @@ export default function AuditLogs() {
             <Loader2 className="w-8 h-8 text-black dark:text-white animate-spin" />
           </div>
         ) : logs.length === 0 ? (
-          <div className="text-center py-20 border border-zinc-200 dark:border-zinc-600 rounded-lg bg-white dark:bg-black">
+          <div className="text-center py-20 border border-zinc-200 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-900">
             <div className="w-16 h-16 rounded-full bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center mx-auto mb-4">
               <FileText className="w-8 h-8 text-zinc-400" />
             </div>
@@ -211,7 +211,7 @@ export default function AuditLogs() {
           </div>
         ) : (
           <>
-            <div className="border border-zinc-200 dark:border-zinc-600 rounded-lg overflow-hidden bg-white dark:bg-black">
+            <div className="border border-zinc-200 dark:border-zinc-600 rounded-lg overflow-hidden bg-white dark:bg-zinc-900">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-950">

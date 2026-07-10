@@ -108,7 +108,7 @@ export default function Invigilation() {
   }, []);
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-white dark:bg-black text-black dark:text-white flex flex-col transition-colors">
+    <div ref={containerRef} className="min-h-screen bg-white dark:bg-zinc-900 text-black dark:text-white flex flex-col transition-colors">
       {/* 顶部栏 */}
       <header className="border-b border-zinc-200 dark:border-zinc-800 px-4 sm:px-6 lg:px-12 py-3 sm:py-4 flex items-center justify-between shrink-0 safe-top transition-colors">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">

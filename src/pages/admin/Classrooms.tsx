@@ -147,7 +147,7 @@ export default function Classrooms() {
 
       {/* 驳回弹窗 */}
       {rejectingId && (
-        <div className="mb-4 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg p-6 animate-slide-down">
+        <div className="mb-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 rounded-lg p-6 animate-slide-down">
           <h2 className="text-lg font-semibold text-black dark:text-white mb-4">
             驳回原因
           </h2>
@@ -164,7 +164,7 @@ export default function Classrooms() {
                 setRejectingId(null);
                 setRejectReason("");
               }}
-              className="px-4 py-2 text-sm font-medium text-black dark:text-white bg-white dark:bg-black border border-zinc-300 dark:border-zinc-600 hover:border-black dark:hover:border-white rounded-lg transition-colors"
+              className="px-4 py-2 text-sm font-medium text-black dark:text-white bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-600 hover:border-black dark:hover:border-white rounded-lg transition-colors"
             >
               取消
             </button>
@@ -214,7 +214,7 @@ export default function Classrooms() {
         </div>
       ) : classrooms.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-20 h-20 rounded-full bg-zinc-100 dark:bg-black flex items-center justify-center mb-4">
+          <div className="w-20 h-20 rounded-full bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center mb-4">
             <CalendarX className="w-10 h-10 text-zinc-400" />
           </div>
           <h3 className="text-lg font-medium text-zinc-600 dark:text-zinc-300 mb-2">
@@ -225,7 +225,7 @@ export default function Classrooms() {
           </p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg overflow-hidden">
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px]">
             <thead>
@@ -255,7 +255,7 @@ export default function Classrooms() {
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-black flex items-center justify-center shrink-0">
+                        <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center shrink-0">
                           <Building className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
                         </div>
                         <div>

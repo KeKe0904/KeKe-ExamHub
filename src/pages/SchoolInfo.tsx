@@ -43,9 +43,9 @@ export default function SchoolInfo() {
 
   return (
     <UserLayout>
-      <div className="min-h-screen bg-zinc-50 dark:bg-black">
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
         {/* 页面标题 */}
-        <section className="bg-zinc-100 dark:bg-black border-b border-zinc-200 dark:border-zinc-600">
+        <section className="bg-zinc-100 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-600">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <h1 className="text-3xl font-bold text-black dark:text-white font-serif">学校信息</h1>
             <p className="mt-2 text-zinc-500 dark:text-zinc-300">{displayName}</p>
@@ -65,7 +65,7 @@ export default function SchoolInfo() {
               {(info.description || info.school_type) && (
                 <section>
                   {info.school_type && (
-                    <span className="inline-block px-3 py-1 rounded-full bg-zinc-100 dark:bg-black text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3">
+                    <span className="inline-block px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-900 text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3">
                       {info.school_type}
                     </span>
                   )}
@@ -77,7 +77,7 @@ export default function SchoolInfo() {
 
               {/* 联系信息 */}
               {(info.address || info.phone || info.website) && (
-                <section className="bg-zinc-100 dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 p-6">
+                <section className="bg-zinc-100 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 p-6">
                   <h2 className="text-lg font-semibold text-black dark:text-white mb-4">联系方式</h2>
                   <div className="space-y-3">
                     {info.address && (

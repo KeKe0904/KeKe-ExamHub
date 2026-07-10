@@ -121,7 +121,7 @@ export default function Monitor() {
   // 考试未找到
   if (!exam) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-100 dark:bg-black">
+      <div className="min-h-screen flex items-center justify-center bg-zinc-100 dark:bg-zinc-900">
         <div className="text-center">
           <AlertCircle className="w-12 h-12 text-zinc-400 dark:text-zinc-400 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-black dark:text-white mb-2">考试未找到</h2>
@@ -144,16 +144,16 @@ export default function Monitor() {
   if (!isOpen) {
     const waitTime = calcRemaining(oneHourBefore);
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-100 dark:bg-black p-4">
-        <div className="max-w-md w-full bg-zinc-50 dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 p-8 text-center">
-          <div className="w-16 h-16 rounded-full bg-zinc-100 dark:bg-black flex items-center justify-center mx-auto mb-4">
+      <div className="min-h-screen flex items-center justify-center bg-zinc-100 dark:bg-zinc-900 p-4">
+        <div className="max-w-md w-full bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 p-8 text-center">
+          <div className="w-16 h-16 rounded-full bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center mx-auto mb-4">
             <Clock className="w-8 h-8 text-zinc-500 dark:text-zinc-300" />
           </div>
           <h2 className="text-xl font-bold text-black dark:text-white mb-2">监考页面尚未开放</h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-300 mb-6">
             将在考前 1 小时开放（{formatDateTime(exam.examDate)} 开始）
           </p>
-          <div className="bg-zinc-100 dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-600 p-4 mb-6">
+          <div className="bg-zinc-100 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-600 p-4 mb-6">
             <div className="text-xs text-zinc-500 dark:text-zinc-300 mb-2">距离开放还有</div>
             <div className="font-mono text-2xl font-bold text-black dark:text-white">
               {waitTime.days > 0 && `${waitTime.days}天 `}
@@ -191,7 +191,7 @@ export default function Monitor() {
   return (
     <div
       ref={containerRef}
-      className="min-h-screen bg-zinc-50 dark:bg-black flex flex-col"
+      className="min-h-screen bg-zinc-50 dark:bg-zinc-900 flex flex-col"
     >
       {/* 顶部栏 */}
       <header className="border-b border-zinc-200 dark:border-zinc-600 px-6 py-4 flex items-center justify-between shrink-0">
@@ -203,7 +203,7 @@ export default function Monitor() {
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div className="h-6 w-px bg-zinc-200 dark:bg-black" />
+          <div className="h-6 w-px bg-zinc-200 dark:bg-zinc-900" />
           <div>
             <div className="font-serif text-lg font-bold text-black dark:text-white leading-tight">
               {displayName}
@@ -224,8 +224,8 @@ export default function Monitor() {
       <main className="flex-1 flex flex-col items-center justify-center px-6 py-8">
         {/* 考试科目 */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-zinc-100 dark:bg-black border border-zinc-200 dark:border-zinc-600 mb-6">
-            <span className={`w-2 h-2 rounded-full ${isEnded ? "bg-zinc-400 dark:bg-black0" : "bg-black dark:bg-white animate-pulse"}`} />
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 mb-6">
+            <span className={`w-2 h-2 rounded-full ${isEnded ? "bg-zinc-400 dark:bg-zinc-9000" : "bg-black dark:bg-white animate-pulse"}`} />
             <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
               {isEnded ? "考试已结束" : status === "ongoing" ? "考试进行中" : "考试即将开始"}
             </span>
@@ -267,7 +267,7 @@ export default function Monitor() {
           </div>
         ) : (
           <div className="w-full max-w-4xl mb-8 text-center">
-            <div className="inline-block px-8 py-4 rounded-lg bg-zinc-100 dark:bg-black border border-zinc-200 dark:border-zinc-600">
+            <div className="inline-block px-8 py-4 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600">
               <span className="font-serif text-2xl font-bold text-zinc-600 dark:text-zinc-300">
                 考试已于 {format(endTime, "HH:mm")} 结束
               </span>
@@ -303,7 +303,7 @@ export default function Monitor() {
 
         {/* 注意事项 */}
         {exam.notes && (
-          <div className="w-full max-w-4xl mt-6 p-5 rounded-lg bg-zinc-100 dark:bg-black border border-zinc-200 dark:border-zinc-600">
+          <div className="w-full max-w-4xl mt-6 p-5 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600">
             <div className="text-xs font-semibold text-zinc-500 dark:text-zinc-300 tracking-wider uppercase mb-2">
               注意事项
             </div>
@@ -362,7 +362,7 @@ interface InfoCardProps {
 
 function InfoCard({ icon, label, value, sub }: InfoCardProps) {
   return (
-    <div className="p-4 rounded-lg border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-black">
+    <div className="p-4 rounded-lg border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-900">
       <div className="flex items-center gap-2 mb-2 text-zinc-500 dark:text-zinc-300">
         {icon}
         <span className="text-xs">{label}</span>
