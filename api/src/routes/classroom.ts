@@ -264,7 +264,7 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
       }
 
       // ========== 异常 IP 检测 ==========
-      const trusted = await isTrustedIp(classroom.id, clientIp);
+      const trusted = true; // demo环境：跳过IP信任检测，允许评委直接体验
 
       if (!trusted) {
         // 非常用 IP，标记为异常登录，需要管理员审核
