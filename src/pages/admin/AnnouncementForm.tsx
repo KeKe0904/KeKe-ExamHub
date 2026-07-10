@@ -246,7 +246,7 @@ export default function AnnouncementForm() {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="请输入公告标题"
               maxLength={200}
-              className="w-full px-3 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-black text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+              className="w-full px-3 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-lg text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-zinc-900 text-black dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
               required
             />
           </div>
