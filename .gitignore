@@ -97,3 +97,4 @@ $RECYCLE.BIN/
 *.njsproj
 *.sln
 *.sw?
+screenshot*.json
