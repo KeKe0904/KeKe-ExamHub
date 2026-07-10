@@ -223,8 +223,6 @@
 
 ![项目结构](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/trae-project-structure.png)
 
-**Session ID**：`25b2ab2e105a420bb4039e34abaeafbc`
-
 ### 4.2 数据库：从 8 张表演进到 20 张表
 
 报名的时候我只规划了 8 张表：admins、exams、announcements、settings、buildings、registration_codes、classrooms、exam_classrooms。
@@ -242,8 +240,6 @@
 > 从 8 张到 20 张表，**每一张都是跟 TRAE 对话中确定的设计**。
 
 ![数据库设计 init.sql](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/trae-database-design.png)
-
-**Session ID**：`e367049616805cbd2edb56cc6bc26e32`
 
 ### 4.3 四端认证：81 项越权测试全部 403
 
@@ -269,8 +265,6 @@ teacherAuthMiddleware   → 只放行 role === "teacher"
 
 ![四端认证中间件 auth.ts](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/trae-auth-middleware.png)
 
-**Session ID**：`cabd16065735213a30edd80ba4ab8ba8`
-
 ### 4.4 教室端监考大屏：反复调出来的视觉效果
 
 教室端是整个项目最"有画面感"的部分。监考模式要全屏、字要大、剩余时间少了要变红提醒。
@@ -286,8 +280,6 @@ teacherAuthMiddleware   → 只放行 role === "teacher"
 > 在教室一体机上全屏跑起来，那效果真的比我当初想象的还好。
 
 ![教室端监考大屏](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/classroom-invigilation.png)
-
-**Session ID**：`85f79b69f314b39f198a244293ab513d`
 
 ### 4.5 AI 助手：27 个工具 + 三级安全
 
