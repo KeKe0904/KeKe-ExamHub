@@ -6,9 +6,11 @@
 
 ## 一、Demo 简介
 
-**KeKe ExamHub** 是一个面向中小学和考试机构的**全栈考试信息管理平台**，Web 形态，打开浏览器就能用。从报名时的 3 层入口、8 张表，到现在的**四端协同、18 张表、100+ API**，完全用 TRAE IDE 从零迭代开发。
+**KeKe ExamHub** 是一个面向中小学和考试机构的**全栈考试信息管理平台**。Web 形态，打开浏览器就能用，不挑硬件，不限品牌。
 
-**四端架构**：
+从报名时的 3 层入口、8 张表，到现在的**四端协同、18 张表、100+ API** — 这是一次完全用 TRAE IDE 从零迭代开发的全栈实践。
+
+### 四端架构
 
 | 端 | 入口 | 核心能力 |
 |----|------|---------|
@@ -20,17 +22,54 @@
 
 ### 产品截图
 
+**公众前台**
+
 | 截图 | 说明 |
 |------|------|
 | ![公众首页](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/public-home.png) | 公众前台考试列表，支持搜索筛选 |
-| ![管理员仪表盘](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/admin-dashboard.png) | 管理员后台主界面，全功能管理 |
-| ![管理员考试管理](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/admin-exams.png) | 考试管理，创建/编辑/分配教室 |
-| ![教室端监考大屏](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/classroom-invigilation.png) | **教室端监考模式，大屏倒计时（重点）** |
+| ![公告列表](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/public-announcements.png) | 公告列表页 |
+
+**管理员后台**
+
+| 截图 | 说明 |
+|------|------|
+| ![管理员登录](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/admin-login.png) | 管理员登录页 |
+| ![仪表盘](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/admin-dashboard.png) | 管理员仪表盘，全功能管理 |
+| ![考试管理](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/admin-exams.png) | 考试管理列表 |
+| ![创建考试](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/admin-exam-create.png) | 创建考试表单 |
+| ![公告管理](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/admin-announcements.png) | 公告管理 |
+| ![发布公告](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/admin-announcement-create.png) | 发布新公告 |
+| ![教室管理](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/admin-classrooms.png) | 教室管理，审核注册 |
+| ![教师管理](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/admin-teachers.png) | 教师管理 |
+| ![学生管理](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/admin-students.png) | 学生管理 |
+| ![注册码管理](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/admin-registration-codes.png) | 注册码批量生成 |
+| ![IP黑名单](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/admin-ip-blacklist.png) | IP 黑名单管理 |
+| ![域名管理](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/admin-domains.png) | 域名管理 + SSL |
+| ![操作日志](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/admin-logs.png) | 操作审计日志 |
+| ![系统设置](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/admin-settings.png) | 系统设置 |
+
+**教室端大屏**
+
+| 截图 | 说明 |
+|------|------|
+| ![教室端登录](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/classroom-login.png) | 教室端登录页 |
 | ![教室端首页](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/classroom-home.png) | 教室端首页，今日考试列表 |
-| ![AI 助手对话](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/ai-assistant.png) | AI 助手 Function Calling 操作后台 |
+| ![教室端监考大屏](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/classroom-invigilation.png) | **监考模式全屏倒计时（重点）** |
+
+**教师端 / 学生端**
+
+| 截图 | 说明 |
+|------|------|
+| ![教师端登录](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/teacher-login.png) | 教师端登录 |
+| ![教师端首页](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/teacher-home.png) | 教师端首页，监考任务 |
+| ![学生端登录](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/student-login.png) | 学生端登录 |
+| ![学生端首页](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/student-home.png) | 学生端首页，考试安排 |
+
+**安装向导**
+
+| 截图 | 说明 |
+|------|------|
 | ![安装向导](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/setup-wizard.png) | 浏览器安装向导，4 步完成部署 |
-| ![教师端首页](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/teacher-home.png) | 教师端，查看监考任务 |
-| ![学生端首页](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/student-home.png) | 学生端，个人考试安排 |
 
 ### 核心功能
 
@@ -127,17 +166,17 @@
 
 ## 三、Demo 体验地址
 
-**在线体验**：`[你的公网地址]`
+**在线体验**：`[待部署完成后填入]`
 
 ### 体验账号
 
 | 角色 | 入口 | 账号 | 密码 | 体验什么 |
 |------|------|------|------|---------|
 | 访客 | `/` | 无需登录 | - | 考试列表、公告、搜索筛选 |
-| 管理员 | `/admin/login` | `admin` | `[你设的密码]` | **核心体验，所有功能** |
-| 教师 | `/teacher/login` | `T001` | `[教师密码]` | 查看监考任务 |
-| 学生 | `/student/login` | `S20250001` | 学号后 6 位 | 个人考试安排 |
-| 教室端 | `/classroom/login` | 教学楼 + 教室号 | `[教室密码]` | **监考大屏，必看** |
+| 管理员 | `/admin/login` | `admin` | `[待填入]` | **核心体验，所有功能** |
+| 教师 | `/teacher/login` | `T001` | `[待填入]` | 查看监考任务 |
+| 学生 | `/student/login` | `S20250001` | `[待填入]` | 个人考试安排 |
+| 教室端 | `/classroom/login` | 教学楼 + 教室号 | `[待填入]` | **监考大屏，必看** |
 
 ### 建议体验顺序
 
@@ -354,14 +393,11 @@ https://forum.trae.cn/t/topic/47323
 
 ## 八、Session ID 汇总
 
-| 序号 | 开发节点 | Session ID |
-|------|---------|------------|
-| 1 | 竞品分析与项目搭建 | `25b2ab2e105a420bb4039e34abaeafbc` |
-| 2 | 数据库设计迭代（8→18 张表） | `e367049616805cbd2edb56cc6bc26e32` |
-| 3 | 四端 JWT 互斥认证体系 | `cabd16065735213a30edd80ba4ab8ba8` |
-| 4 | 教室端监考大屏设计 | `85f79b69f314b39f198a244293ab513d` |
-| 5 | AI 助手 Function Calling | `[待补充]` |
-| 6 | 一键部署脚本 v4.0 | `[待补充]` |
-| 7 | 发布前安全审计与修复 | `[待补充]` |
+| 序号 | Session ID |
+|------|------------|
+| 1 | `25b2ab2e105a420bb4039e34abaeafbc` |
+| 2 | `e367049616805cbd2edb56cc6bc26e32` |
+| 3 | `cabd16065735213a30edd80ba4ab8ba8` |
+| 4 | `85f79b69f314b39f198a244293ab513d` |
 
-> 以上均为 TRAE IDE 中的真实对话 Session ID，请在 TRAE 中双击对应会话复制后填入。
+> 以上均为 TRAE IDE 中的真实对话 Session ID。
