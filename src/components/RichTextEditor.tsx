@@ -159,9 +159,9 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
   const Divider = () => <div className="w-px h-5 bg-zinc-200 dark:bg-zinc-700 mx-1" />;
 
   return (
-    <div className="border border-zinc-200 dark:border-zinc-600 rounded-lg overflow-hidden bg-white dark:bg-black">
+    <div className="border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden bg-white dark:bg-zinc-900">
       {/* 工具栏 */}
-      <div className="flex flex-wrap items-center gap-1 p-2 border-b border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-black">
+      <div className="flex flex-wrap items-center gap-1 p-2 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800">
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           isActive={editor.isActive("bold")}
@@ -260,13 +260,13 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
             <LinkIcon className="w-4 h-4" />
           </ToolbarButton>
           {showLinkInput && (
-            <div className="absolute top-full left-0 mt-1 p-2 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg shadow-lg z-10 w-64">
+            <div className="absolute top-full left-0 mt-1 p-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg z-10 w-64">
               <input
                 type="text"
                 value={linkUrl}
                 onChange={(e) => setLinkUrl(e.target.value)}
                 placeholder="输入链接 URL..."
-                className="w-full px-2 py-1.5 text-sm border border-zinc-200 dark:border-zinc-600 rounded focus:outline-none focus:border-black dark:focus:border-white bg-white dark:bg-black text-black dark:text-white placeholder:text-zinc-400"
+                className="w-full px-2 py-1.5 text-sm border border-zinc-200 dark:border-zinc-600 rounded focus:outline-none focus:border-black dark:focus:border-white bg-white dark:bg-zinc-900 text-black dark:text-zinc-100 placeholder:text-zinc-400"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") setLink();
                 }}
@@ -341,7 +341,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
             <Palette className="w-4 h-4" />
           </ToolbarButton>
           {showColorPicker && (
-            <div className="absolute top-full left-0 mt-1 p-2 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg shadow-lg z-10">
+            <div className="absolute top-full left-0 mt-1 p-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg z-10">
               <div className="grid grid-cols-8 gap-1">
                 {COLORS.map((color) => (
                   <button
@@ -380,7 +380,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
       {/* 编辑区域 */}
       <EditorContent
         editor={editor}
-        className="min-h-[200px] text-sm text-black dark:text-white"
+        className="min-h-[200px] text-sm text-black dark:text-zinc-100"
       />
     </div>
   );

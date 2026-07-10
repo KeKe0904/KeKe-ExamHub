@@ -155,7 +155,7 @@ export default function AnnouncementForm() {
         </div>
 
         {/* 表单 */}
-        <form onSubmit={handleSubmit} className="space-y-5 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg p-6">
+        <form onSubmit={handleSubmit} className="space-y-5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
           {/* 标题 */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
@@ -172,7 +172,7 @@ export default function AnnouncementForm() {
                   使用模板
                 </button>
                 {showTemplatePanel && (
-                  <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-600 rounded-lg shadow-lg z-20 overflow-hidden">
+                  <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg z-20 overflow-hidden">
                     <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-700">
                       <h3 className="text-sm font-semibold text-black dark:text-white">选择模板</h3>
                       <button
