@@ -16,7 +16,7 @@
   - `setup.ts`：pm2 spawn 增加 `.on("error")` 防止 pm2 未安装时进程崩溃
   - `init.sql`：移除 `CREATE DATABASE` 和 `USE` 语句（用户数据库名可能不同）
   - `package.json`：build 脚本增加 `cp -r src/migrations dist/` 确保运行时可读取
-- **验证**：20 条 SQL 语句执行成功（18 CREATE TABLE + 2 INSERT IGNORE 示例数据）
+- **验证**：21 条 SQL 语句执行成功（20 CREATE TABLE + 1 INSERT IGNORE 示例数据）
 
 #### 2. 6 个分页列表接口 500 错误（P0）
 
@@ -242,7 +242,7 @@ mysql -u root -p examhub < api/src/migrations/init.sql
 2. **检查管理员密码**：若使用过 `admin123`，立即登录后台修改
 3. **清理示例数据**：若部署时使用了示例数据，删除示例教室账号（密码 `class123`）
 4. **配置 SITE_URL**：在 `api/.env` 中设置 `SITE_URL=https://你的域名`
-5. **升级 install.sh**：重新部署时使用最新的 install.sh v3.1
+5. **升级 install.sh**：重新部署时使用最新的 install.sh v4.0
 
 ### 验证
 - ✅ 后端 `tsc --noEmit` 类型检查通过
@@ -251,7 +251,7 @@ mysql -u root -p examhub < api/src/migrations/init.sql
 
 ---
 
-## [1.1.6] - 2026-07-07
+## [1.1.6.1] - 2026-07-07
 
 ### 安全审计修复
 

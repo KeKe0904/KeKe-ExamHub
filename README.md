@@ -209,8 +209,8 @@ npm run migrate
 迁移脚本会：
 1. 创建核心表（admins、exams、announcements、settings、buildings、registration_codes、classrooms、exam_classrooms）
 2. 插入默认管理员账号（admin / admin123）
-3. 插入示例考试、教学楼、教室、注册码数据
-4. 执行 `init.sql` 创建其余 20 张表（teacher_roles、teachers、classes、students、exam_students、exam_invigilators、ip_blacklist、classroom_login_logs、classroom_trusted_ips、classroom_countdowns、domains、admin_logs 等）
+3. 纯净系统：不插入任何示例数据
+4. 执行 `init.sql` 创建其余 12 张表（teacher_roles、teachers、classes、students、exam_students、exam_invigilators、ip_blacklist、classroom_login_logs、classroom_trusted_ips、classroom_countdowns、domains、admin_logs）
 5. 动态创建 admin_logs、domains 表
 
 ### 5.7 启动服务
@@ -434,7 +434,7 @@ KeKe-ExamHub/
 │   │   │   ├── domain-access.ts      # 域名访问控制（生产环境，拒绝 IP 直连）
 │   │   │   └── ip-blacklist.ts       # IP 黑名单中间件
 │   │   ├── migrations/
-│   │   │   ├── init.sql              # 数据库初始化 SQL（20 张表 + 示例数据）
+│   │   │   ├── init.sql              # 数据库初始化 SQL（20 张表）
 │   │   │   └── run.ts                # 迁移执行脚本
 │   │   ├── routes/                   # 23 个路由模块
 │   │   │   ├── ai.ts                 # AI 助手（管理员专用）
@@ -483,7 +483,7 @@ KeKe-ExamHub/
 │   │   │   ├── StudentLayout.tsx     # 学生端布局
 │   │   │   ├── TeacherLayout.tsx     # 教师端布局
 │   │   │   └── UserLayout.tsx        # 公共用户布局
-│   │   ├── ui/                       # UI 基础组件库（8 个）
+│   │   ├── ui/                       # UI 基础组件库（7 个）
 │   │   │   ├── Badge.tsx
 │   │   │   ├── Button.tsx
 │   │   │   ├── Card.tsx
@@ -572,7 +572,7 @@ KeKe-ExamHub/
 │   │   ├── date.ts                   # 日期格式化
 │   │   ├── localize-error.ts         # 错误本地化
 │   │   └── announcement-templates.ts # 公告模板
-│   ├── App.tsx                       # 路由定义（31 条路由）
+│   ├── App.tsx                       # 路由定义（39 条路由）
 │   ├── main.tsx                      # React 入口
 │   └── index.css                     # 全局样式 + 响应式断点
 ├── .env.example                      # 前端环境变量示例
@@ -590,7 +590,7 @@ KeKe-ExamHub/
 
 ## 八、前端路由总览
 
-共 **31 条路由**（10 公开 + 20 受保护 + 1 兜底），定义在 `src/App.tsx`。
+共 **39 条路由**（10 公开 + 28 受保护 + 1 兜底），定义在 `src/App.tsx`。
 
 ### 8.1 公开路由（无需登录）
 
@@ -1021,7 +1021,7 @@ pm2 save
 - 重写 `api/src/utils/acme.ts`，新增证书检测/上传/自签名兜底
 - 新增 `POST /api/domains/:id/upload-cert` 和 `POST /api/domains/:id/detect-cert`
 
-### v1.1.6 安全与 AI 修复（2026-07-07）
+### v1.1.6.1（2026-07-07）
 
 **安全审计修复**：
 - `server.ts`：JWT_SECRET 未配置或 <16 字符时拒绝启动
