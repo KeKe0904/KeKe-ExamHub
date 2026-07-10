@@ -164,14 +164,6 @@ CREATE TABLE IF NOT EXISTS teachers (
   FOREIGN KEY (role_id) REFERENCES teacher_roles(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 插入示例教师
-INSERT IGNORE INTO teachers (name, role_id, notes) VALUES
-('王教授', 2, '数学系主任'),
-('李老师', 3, '英语组组长'),
-('张教授', 7, '计算机教师'),
-('陈教授', 9, '历史教师'),
-('刘教授', 2, '线性代数教师');
-
 -- ==================== 考试-监考老师关联表 ====================
 CREATE TABLE IF NOT EXISTS exam_invigilators (
   id INT AUTO_INCREMENT PRIMARY KEY,

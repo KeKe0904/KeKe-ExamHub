@@ -44,7 +44,7 @@ KeKe ExamHub 是一个面向学校/考试机构的考试信息管理系统，采
 - **学生端**（`/student/*`）：查看本人考试安排、班级信息。
 - **教师端**（`/teacher/*`）：查看所授班级、学生名单、考试安排。
 
-系统支持**一键部署**（`install.sh v3.1`，8 步流程，含域名 DNS 校验 + SSL 证书三选项）、**JWT 四端互斥认证**（7 天有效期）、**AI 助手**（27 个工具，分级 safe/dangerous/forbidden）、**域名访问控制**（绑定域名后拒绝 IP 直连）等生产级特性。
+系统支持**一键部署**（`install.sh v4.0`，8 步流程，含域名 DNS 校验 + SSL 证书四选项 + 断点续传）、**JWT 四端互斥认证**（7 天有效期）、**AI 助手**（27 个工具，分级 safe/dangerous/forbidden）、**域名访问控制**（绑定域名后拒绝 IP 直连）等生产级特性。
 
 ---
 
@@ -210,7 +210,7 @@ npm run migrate
 1. 创建核心表（admins、exams、announcements、settings、buildings、registration_codes、classrooms、exam_classrooms）
 2. 插入默认管理员账号（admin / admin123）
 3. 插入示例考试、教学楼、教室、注册码数据
-4. 执行 `init.sql` 创建其余 18 张表（teacher_roles、teachers、classes、students、exam_students、exam_invigilators、ip_blacklist、classroom_login_logs、classroom_trusted_ips、classroom_countdowns、domains、admin_logs 等）
+4. 执行 `init.sql` 创建其余 20 张表（teacher_roles、teachers、classes、students、exam_students、exam_invigilators、ip_blacklist、classroom_login_logs、classroom_trusted_ips、classroom_countdowns、domains、admin_logs 等）
 5. 动态创建 admin_logs、domains 表
 
 ### 5.7 启动服务
@@ -579,7 +579,7 @@ KeKe-ExamHub/
 ├── CHANGELOG.md                      # 更新日志
 ├── LICENSE                           # MIT 许可证
 ├── README.md                         # 本文档
-├── install.sh                        # 一键部署脚本 v4.0（1280 行）
+├── install.sh                        # 一键部署脚本 v4.0（1279 行）
 ├── package.json                      # 前端包配置
 ├── tailwind.config.js                # Tailwind 配置
 ├── tsconfig.json                     # 前端 TS 配置

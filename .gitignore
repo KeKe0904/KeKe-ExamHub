@@ -67,6 +67,16 @@ upload.cjs
 ecosystem.config.cjs
 dist.zip
 
+# 截图/视频/预览脚本（开发调试用，不纳入仓库）
+screenshot*.cjs
+record-video*.cjs
+preview-server.cjs
+ppt-video.html
+
+# 参赛/宣传物料（非项目源码）
+assets/examhub-promo.mp4
+TRAE-forum-post.md
+
 # 构建输出调试文件
 build-output.txt
 
