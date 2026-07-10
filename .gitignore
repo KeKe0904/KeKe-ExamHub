@@ -25,6 +25,9 @@ api/.env.production
 api/.env.local
 .setup-complete
 
+# MCP/IDE 工具配置（可能包含服务器凭据，绝不提交）
+config.json
+
 # 部署数据目录（服务器信息、凭据、脚本、临时密码等）
 deploy-data/
 
