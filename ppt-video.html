@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KeKe ExamHub - 项目宣传</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    background: #0a0a0a;
+    font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+    overflow: hidden;
+    width: 1920px;
+    height: 1080px;
+  }
+
+  .slide {
+    position: absolute;
+    width: 1920px;
+    height: 1080px;
+    opacity: 0;
+    transition: opacity 0.8s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+  }
+
+  .slide.active {
+    opacity: 1;
+  }
+
+  /* Slide 1: 封面 */
+  #slide1 {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+    flex-direction: column;
+  }
+  #slide1 .glow {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  #slide1 h1 {
+    font-size: 96px;
+    font-weight: 800;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    z-index: 1;
+  }
+  #slide1 .subtitle {
+    font-size: 36px;
+    color: #94a3b8;
+    margin-top: 24px;
+    z-index: 1;
+  }
+  #slide1 .tagline {
+    font-size: 24px;
+    color: #64748b;
+    margin-top: 48px;
+    z-index: 1;
+  }
+  #slide1 .author {
+    position: absolute;
+    bottom: 60px;
+    font-size: 22px;
+    color: #475569;
+  }
+
+  /* Slide 2: 痛点 */
+  #slide2 {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    flex-direction: column;
+    padding: 80px;
+  }
+  #slide2 h2 {
+    font-size: 64px;
+    font-weight: 700;
+    color: #ef4444;
+    margin-bottom: 60px;
+  }
+  #slide2 .pain-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 30px;
+    width: 100%;
+  }
+  #slide2 .pain-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 40px 24px;
+    text-align: center;
+  }
+  #slide2 .pain-card .icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+  }
+  #slide2 .pain-card h3 {
+    font-size: 22px;
+    color: #f87171;
+    margin-bottom: 12px;
+  }
+  #slide2 .pain-card p {
+    font-size: 16px;
+    color: #94a3b8;
+    line-height: 1.6;
+  }
+
+  /* Slide 3: 解决方案 */
+  #slide3 {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    flex-direction: column;
+    padding: 80px;
+  }
+  #slide3 h2 {
+    font-size: 64px;
+    font-weight: 700;
+    color: #3b82f6;
+    margin-bottom: 50px;
+  }
+  #slide3 .solution-desc {
+    font-size: 28px;
+    color: #cbd5e1;
+    margin-bottom: 50px;
+    text-align: center;
+    max-width: 1200px;
+    line-height: 1.6;
+  }
+  #slide3 .arch-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 24px;
+    width: 100%;
+  }
+  #slide3 .arch-card {
+    background: rgba(59,130,246,0.08);
+    border: 1px solid rgba(59,130,246,0.2);
+    border-radius: 16px;
+    padding: 36px 20px;
+    text-align: center;
+  }
+  #slide3 .arch-card .num {
+    font-size: 36px;
+    font-weight: 800;
+    color: #60a5fa;
+    margin-bottom: 12px;
+  }
+  #slide3 .arch-card h3 {
+    font-size: 22px;
+    color: #fff;
+    margin-bottom: 10px;
+  }
+  #slide3 .arch-card p {
+    font-size: 15px;
+    color: #94a3b8;
+  }
+
+  /* Slide 4: 产品截图 */
+  #slide4 {
+    background: #0f0f0f;
+    flex-direction: column;
+    padding: 60px;
+  }
+  #slide4 h2 {
+    font-size: 56px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 40px;
+  }
+  #slide4 .screenshot-row {
+    display: flex;
+    gap: 30px;
+    width: 100%;
+    justify-content: center;
+  }
+  #slide4 .screenshot-item {
+    flex: 1;
+    max-width: 560px;
+  }
+  #slide4 .screenshot-item img {
+    width: 100%;
+    border-radius: 12px;
+    border: 2px solid rgba(255,255,255,0.1);
+  }
+  #slide4 .screenshot-item .label {
+    text-align: center;
+    font-size: 20px;
+    color: #94a3b8;
+    margin-top: 12px;
+  }
+
+  /* Slide 5: 核心功能 */
+  #slide5 {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    flex-direction: column;
+    padding: 80px;
+  }
+  #slide5 h2 {
+    font-size: 64px;
+    font-weight: 700;
+    color: #a78bfa;
+    margin-bottom: 50px;
+  }
+  #slide5 .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    width: 100%;
+  }
+  #slide5 .feature-card {
+    background: rgba(167,139,250,0.06);
+    border: 1px solid rgba(167,139,250,0.2);
+    border-radius: 16px;
+    padding: 36px;
+  }
+  #slide5 .feature-card h3 {
+    font-size: 26px;
+    color: #c4b5fd;
+    margin-bottom: 16px;
+  }
+  #slide5 .feature-card p {
+    font-size: 18px;
+    color: #94a3b8;
+    line-height: 1.6;
+  }
+  #slide5 .feature-card .highlight {
+    color: #f472b6;
+    font-weight: 600;
+  }
+
+  /* Slide 6: AI 助手 */
+  #slide6 {
+    background: linear-gradient(135deg, #0f172a 0%, #1a1a3e 100%);
+    flex-direction: column;
+    padding: 80px;
+  }
+  #slide6 h2 {
+    font-size: 64px;
+    font-weight: 700;
+    color: #22d3ee;
+    margin-bottom: 40px;
+  }
+  #slide6 .ai-content {
+    display: flex;
+    gap: 60px;
+    width: 100%;
+    align-items: center;
+  }
+  #slide6 .ai-left {
+    flex: 1;
+  }
+  #slide6 .ai-left img {
+    width: 100%;
+    border-radius: 12px;
+    border: 2px solid rgba(34,211,238,0.2);
+  }
+  #slide6 .ai-right {
+    flex: 1;
+  }
+  #slide6 .security-level {
+    margin-bottom: 30px;
+  }
+  #slide6 .security-level h3 {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+  #slide6 .security-level .safe { color: #4ade80; }
+  #slide6 .security-level .dangerous { color: #fbbf24; }
+  #slide6 .security-level .forbidden { color: #ef4444; }
+  #slide6 .security-level p {
+    font-size: 20px;
+    color: #94a3b8;
+    margin-left: 20px;
+  }
+  #slide6 .ai-stats {
+    margin-top: 30px;
+    display: flex;
+    gap: 40px;
+  }
+  #slide6 .ai-stat .num {
+    font-size: 56px;
+    font-weight: 800;
+    color: #22d3ee;
+  }
+  #slide6 .ai-stat .label {
+    font-size: 18px;
+    color: #64748b;
+  }
+
+  /* Slide 7: 数据 */
+  #slide7 {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+    flex-direction: column;
+    padding: 80px;
+  }
+  #slide7 h2 {
+    font-size: 64px;
+    font-weight: 700;
+    color: #fbbf24;
+    margin-bottom: 60px;
+  }
+  #slide7 .data-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 40px;
+    width: 100%;
+  }
+  #slide7 .data-card {
+    text-align: center;
+  }
+  #slide7 .data-card .num {
+    font-size: 72px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+  #slide7 .data-card .label {
+    font-size: 22px;
+    color: #94a3b8;
+  }
+  #slide7 .efficiency {
+    margin-top: 60px;
+    display: flex;
+    gap: 60px;
+    justify-content: center;
+  }
+  #slide7 .eff-item {
+    text-align: center;
+  }
+  #slide7 .eff-item .x {
+    font-size: 64px;
+    font-weight: 800;
+    color: #4ade80;
+  }
+  #slide7 .eff-item .desc {
+    font-size: 18px;
+    color: #64748b;
+    margin-top: 4px;
+  }
+
+  /* Slide 8: 安全审计 */
+  #slide8 {
+    background: linear-gradient(135deg, #1a0a0a 0%, #1a1a2e 100%);
+    flex-direction: column;
+    padding: 80px;
+  }
+  #slide8 h2 {
+    font-size: 64px;
+    font-weight: 700;
+    color: #ef4444;
+    margin-bottom: 50px;
+  }
+  #slide8 .security-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  #slide8 .security-table th {
+    background: rgba(239,68,68,0.1);
+    color: #f87171;
+    padding: 16px 24px;
+    font-size: 22px;
+    text-align: left;
+    border: 1px solid rgba(239,68,68,0.2);
+  }
+  #slide8 .security-table td {
+    padding: 14px 24px;
+    font-size: 18px;
+    color: #cbd5e1;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  #slide8 .security-table .level-critical { color: #ef4444; font-weight: 700; }
+  #slide8 .security-table .level-high { color: #fbbf24; font-weight: 600; }
+  #slide8 .security-table .level-mid { color: #4ade80; }
+  #slide8 .result-badge {
+    margin-top: 40px;
+    font-size: 32px;
+    color: #4ade80;
+    font-weight: 700;
+  }
+
+  /* Slide 9: TRAE */
+  #slide9 {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+    flex-direction: column;
+    padding: 80px;
+  }
+  #slide9 h2 {
+    font-size: 64px;
+    font-weight: 700;
+    color: #60a5fa;
+    margin-bottom: 40px;
+  }
+  #slide9 .trae-timeline {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+  }
+  #slide9 .trae-step {
+    flex: 1;
+    background: rgba(96,165,250,0.06);
+    border: 1px solid rgba(96,165,250,0.15);
+    border-radius: 16px;
+    padding: 28px 20px;
+    text-align: center;
+  }
+  #slide9 .trae-step .step-num {
+    font-size: 32px;
+    font-weight: 800;
+    color: #60a5fa;
+    margin-bottom: 8px;
+  }
+  #slide9 .trae-step h3 {
+    font-size: 20px;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+  #slide9 .trae-step p {
+    font-size: 15px;
+    color: #94a3b8;
+    line-height: 1.5;
+  }
+
+  /* Slide 10: 结尾 */
+  #slide10 {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+    flex-direction: column;
+  }
+  #slide10 .glow {
+    position: absolute;
+    width: 800px;
+    height: 800px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(96,165,250,0.1) 0%, transparent 70%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  #slide10 h1 {
+    font-size: 80px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    z-index: 1;
+  }
+  #slide10 .info {
+    margin-top: 40px;
+    font-size: 26px;
+    color: #94a3b8;
+    z-index: 1;
+    text-align: center;
+    line-height: 1.8;
+  }
+  #slide10 .github {
+    margin-top: 30px;
+    font-size: 28px;
+    color: #60a5fa;
+    z-index: 1;
+  }
+  #slide10 .author {
+    position: absolute;
+    bottom: 60px;
+    font-size: 22px;
+    color: #475569;
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3b82f6, #a78bfa);
+    width: 0%;
+    transition: width 0.3s;
+    z-index: 100;
+  }
+</style>
+</head>
+<body>
+
+<!-- Slide 1: 封面 -->
+<div class="slide active" id="slide1">
+  <div class="glow"></div>
+  <h1>KeKe ExamHub</h1>
+  <div class="subtitle">学校考试信息数字化管理平台</div>
+  <div class="tagline">一套代码，四端协同 — 把教室万元大屏变成数字考试终端</div>
+  <div class="author">落梦陳 (KeKe0904) | TRAE IDE 全程开发 | MIT 开源</div>
+</div>
+
+<!-- Slide 2: 痛点 -->
+<div class="slide" id="slide2">
+  <h2>教室里的 5 个真问题</h2>
+  <div class="pain-grid">
+    <div class="pain-card">
+      <div class="icon">[1]</div>
+      <h3>信息一致性灾难</h3>
+      <p>36 间教室手写通知，2 小时起步，写错时间全年级错过考试</p>
+    </div>
+    <div class="pain-card">
+      <div class="icon">[2]</div>
+      <h3>万元一体机闲置</h3>
+      <p>希沃/鸿合一体机，上课投屏，下课黑屏，考试场景无人管</p>
+    </div>
+    <div class="pain-card">
+      <div class="icon">[3]</div>
+      <h3>传话游戏式传递</h3>
+      <p>教务处到学生 5 层传递，每层失真，反复确认大家都烦</p>
+    </div>
+    <div class="pain-card">
+      <div class="icon">[4]</div>
+      <h3>Excel 排表看不住</h3>
+      <p>同一教室排重、同一老师撞场，全靠人眼盯</p>
+    </div>
+    <div class="pain-card">
+      <div class="icon">[5]</div>
+      <h3>学生最后才知道</h3>
+      <p>通知纸会丢，口传会忘，黑板会擦，后排看不清</p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 3: 解决方案 -->
+<div class="slide" id="slide3">
+  <h2>KeKe ExamHub 解决方案</h2>
+  <div class="solution-desc">
+    一个 Web 平台，四端协同。管理员后台发布考试，教室端大屏自动显示倒计时，<br>
+    教师端查看监考任务，学生端查询考试安排。打开浏览器就能用，零硬件成本。
+  </div>
+  <div class="arch-grid">
+    <div class="arch-card">
+      <div class="num">01</div>
+      <h3>公众前台</h3>
+      <p>考试列表 + 公告<br>搜索筛选，任何人可浏览</p>
+    </div>
+    <div class="arch-card">
+      <div class="num">02</div>
+      <h3>管理员后台</h3>
+      <p>考试/教室/教师/学生<br>公告/IP/域名，全功能</p>
+    </div>
+    <div class="arch-card">
+      <div class="num">03</div>
+      <h3>教室端大屏</h3>
+      <p>监考模式全屏倒计时<br>5 分钟红色预警</p>
+    </div>
+    <div class="arch-card">
+      <div class="num">04</div>
+      <h3>教师端</h3>
+      <p>监考任务 + 班级学生<br>个人信息管理</p>
+    </div>
+    <div class="arch-card">
+      <div class="num">05</div>
+      <h3>学生端</h3>
+      <p>个人考试安排<br>时间、地点、座位号</p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 4: 产品截图 -->
+<div class="slide" id="slide4">
+  <h2>产品界面</h2>
+  <div class="screenshot-row">
+    <div class="screenshot-item">
+      <img src="https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/admin-dashboard.png" alt="管理员后台">
+      <div class="label">管理员后台仪表盘</div>
+    </div>
+    <div class="screenshot-item">
+      <img src="https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/classroom-invigilation.png" alt="教室端监考大屏">
+      <div class="label">教室端监考大屏</div>
+    </div>
+    <div class="screenshot-item">
+      <img src="https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/ai-assistant.png" alt="AI 助手">
+      <div class="label">AI 助手对话</div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 5: 核心功能 -->
+<div class="slide" id="slide5">
+  <h2>核心功能</h2>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <h3>考试全流程</h3>
+      <p>创建考试 > 分配多间教室 > 指派监考老师 > 学生按班级关联 > 教室端大屏实时倒计时</p>
+    </div>
+    <div class="feature-card">
+      <h3>AI 助手</h3>
+      <p><span class="highlight">27 个 Function Calling 工具</span>，分 safe / dangerous / forbidden 三级，危险操作弹窗二次确认</p>
+    </div>
+    <div class="feature-card">
+      <h3>四端认证</h3>
+      <p>四套独立 JWT 中间件，role 字段互斥，<span class="highlight">81 项越权测试全部 403</span></p>
+    </div>
+    <div class="feature-card">
+      <h3>教室安全</h3>
+      <p>注册码注册 + 管理员审核 + IP 信任机制 + IP 黑名单，多层防护</p>
+    </div>
+    <div class="feature-card">
+      <h3>一键部署</h3>
+      <p><span class="highlight">install.sh v4.0（1280 行）</span>，DNS 校验 + SSL 四选项 + 断点续传 + 日志落盘</p>
+    </div>
+    <div class="feature-card">
+      <h3>安装向导</h3>
+      <p>浏览器 /setup 4 步走：欢迎 > 环境检测 > 数据库配置 > 初始化建表</p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 6: AI 助手 -->
+<div class="slide" id="slide6">
+  <h2>AI 助手：27 个工具 + 三级安全</h2>
+  <div class="ai-content">
+    <div class="ai-left">
+      <img src="https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/ai-assistant.png" alt="AI 助手">
+    </div>
+    <div class="ai-right">
+      <div class="security-level">
+        <h3 class="safe">SAFE（13 个）</h3>
+        <p>纯查询操作，直接执行，不用问</p>
+      </div>
+      <div class="security-level">
+        <h3 class="dangerous">DANGEROUS（14 个）</h3>
+        <p>写入/修改操作，前端弹红色警告框，确认才执行</p>
+      </div>
+      <div class="security-level">
+        <h3 class="forbidden">FORBIDDEN</h3>
+        <p>删除考试、重装环境等高危操作，AI 直接拒绝</p>
+      </div>
+      <div class="ai-stats">
+        <div class="ai-stat">
+          <div class="num">27</div>
+          <div class="label">Function Calling 工具</div>
+        </div>
+        <div class="ai-stat">
+          <div class="num">3</div>
+          <div class="label">安全等级</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 7: 数据 -->
+<div class="slide" id="slide7">
+  <h2>用数据说话</h2>
+  <div class="data-grid">
+    <div class="data-card">
+      <div class="num">18000+</div>
+      <div class="label">行代码</div>
+    </div>
+    <div class="data-card">
+      <div class="num">18</div>
+      <div class="label">数据库表</div>
+    </div>
+    <div class="data-card">
+      <div class="num">100+</div>
+      <div class="label">API 端点</div>
+    </div>
+    <div class="data-card">
+      <div class="num">31</div>
+      <div class="label">前端路由</div>
+    </div>
+  </div>
+  <div class="efficiency">
+    <div class="eff-item">
+      <div class="x">24x</div>
+      <div class="desc">发布考试安排效率</div>
+    </div>
+    <div class="eff-item">
+      <div class="x">180x</div>
+      <div class="desc">修改考试时间效率</div>
+    </div>
+    <div class="eff-item">
+      <div class="x">100%</div>
+      <div class="desc">81 项功能测试通过</div>
+    </div>
+    <div class="eff-item">
+      <div class="x">10min</div>
+      <div class="desc">一键部署上线</div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 8: 安全审计 -->
+<div class="slide" id="slide8">
+  <h2>发布前安全审计：18 项漏洞全修复</h2>
+  <table class="security-table">
+    <tr><th>漏洞</th><th>级别</th><th>修复方式</th></tr>
+    <tr><td>acme.ts execSync 拼 shell，可注入命令</td><td class="level-critical">严重</td><td>改用 execFileSync 传参数数组</td></tr>
+    <tr><td>.env 存管理员明文密码</td><td class="level-critical">严重</td><td>安装完自动删除</td></tr>
+    <tr><td>域名参数无校验，可能路径遍历</td><td class="level-high">高</td><td>加正则校验域名格式</td></tr>
+    <tr><td>auth.ts 直接读 X-Forwarded-For，IP 可伪造</td><td class="level-high">高</td><td>统一用 getClientIp</td></tr>
+    <tr><td>前端公告 dangerouslySetInnerHTML 无净化</td><td class="level-high">高</td><td>加 DOMPurify 二次净化</td></tr>
+    <tr><td>注册码用 Math.random 可预测</td><td class="level-mid">中</td><td>改用 crypto.randomInt</td></tr>
+  </table>
+  <div class="result-badge">P0/P1 全部修复，安全审计通过</div>
+</div>
+
+<!-- Slide 9: TRAE -->
+<div class="slide" id="slide9">
+  <h2>全程使用 TRAE IDE 开发</h2>
+  <div class="trae-timeline">
+    <div class="trae-step">
+      <div class="step-num">01</div>
+      <h3>竞品分析</h3>
+      <p>跟 TRAE 一起调研市面产品，确认赛道空白</p>
+    </div>
+    <div class="trae-step">
+      <div class="step-num">02</div>
+      <h3>项目搭建</h3>
+      <p>React + Fastify + MySQL，半小时开始写业务</p>
+    </div>
+    <div class="trae-step">
+      <div class="step-num">03</div>
+      <h3>数据库迭代</h3>
+      <p>从 8 张表到 18 张表，逐步演进</p>
+    </div>
+    <div class="trae-step">
+      <div class="step-num">04</div>
+      <h3>四端认证</h3>
+      <p>四套 JWT 中间件，81 项越权测试全 403</p>
+    </div>
+    <div class="trae-step">
+      <div class="step-num">05</div>
+      <h3>监考大屏</h3>
+      <p>反复调字号、颜色、动画，大屏效果拉满</p>
+    </div>
+    <div class="trae-step">
+      <div class="step-num">06</div>
+      <h3>AI 助手</h3>
+      <p>27 个工具 + 三级安全体系</p>
+    </div>
+    <div class="trae-step">
+      <div class="step-num">07</div>
+      <h3>部署脚本</h3>
+      <p>从 200 行到 1280 行，迭代 4 个版本</p>
+    </div>
+    <div class="trae-step">
+      <div class="step-num">08</div>
+      <h3>安全审计</h3>
+      <p>TRAE 查漏洞、分析、修复、测试一条龙</p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 10: 结尾 -->
+<div class="slide" id="slide10">
+  <div class="glow"></div>
+  <h1>KeKe ExamHub</h1>
+  <div class="info">
+    开源免费，乡镇学校也能用得起<br>
+    把教室万元大屏从"投影仪"变成"数字考试终端"
+  </div>
+  <div class="github">github.com/KeKe0904/KeKe-ExamHub</div>
+  <div class="author">落梦陳 (KeKe0904) | B站/抖音：落梦陳 | MIT 协议</div>
+</div>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  const slideDuration = 5000; // 每张 5 秒
+
+  function nextSlide() {
+    slides[currentSlide].classList.remove('active');
+    currentSlide++;
+    if (currentSlide >= totalSlides) {
+      // 停在最后一页
+      slides[totalSlides - 1].classList.add('active');
+      document.getElementById('progressBar').style.width = '100%';
+      return;
+    }
+    slides[currentSlide].classList.add('active');
+    document.getElementById('progressBar').style.width = ((currentSlide + 1) / totalSlides * 100) + '%';
+    setTimeout(nextSlide, slideDuration);
+  }
+
+  // 等页面加载完后开始
+  window.addEventListener('load', () => {
+    document.getElementById('progressBar').style.width = (1 / totalSlides * 100) + '%';
+    setTimeout(nextSlide, slideDuration);
+  });
+</script>
+
+</body>
+</html>
