@@ -83,8 +83,8 @@ function formatStudentExam(row: StudentExamRow) {
     classroomName: row.classroom_name,
     seatNumber: row.seat_number || "",
     score: row.score,
-    status: examStatus,
-    examStudentStatus: row.status,
+    examStatus: examStatus,
+    status: row.status,
   };
 }
 
