@@ -1,0 +1,89 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies
+node_modules
+dist
+dist-ssr
+*.local
+
+# 环境变量和敏感配置
+.env
+.env.production
+.env.local
+.env.bak
+*.env.bak
+api/.env
+api/.env.bak
+api/.env.production
+api/.env.local
+.setup-complete
+
+# 部署数据目录（服务器信息、凭据、脚本、临时密码等）
+deploy-data/
+
+# Trae 部署工具目录
+.trae-deploy/
+
+# 部署和调试脚本（包含服务器密码）
+deploy-all.js
+deploy.js
+redeploy.js
+deploy.sh
+check-logs.js
+check-server.js
+check-git.js
+install-git.js
+fix-db.js
+fix-nginx.js
+test-create.js
+test-login.js
+create-repo.js
+upload-to-github.js
+backup_trae.ps1
+buildcheck.cjs
+checkenv.cjs
+checklock.cjs
+checkpm2.cjs
+checksrc.cjs
+deepdebug.cjs
+deployenv.cjs
+diagnose.cjs
+diagnose2.cjs
+patchserver.cjs
+restartapi.cjs
+restore.cjs
+simtest.cjs
+testbuild.cjs
+upload.cjs
+
+# PM2 运行时生成文件（由 install.sh 生成，每台服务器不同）
+ecosystem.config.cjs
+dist.zip
+
+# 构建输出调试文件
+build-output.txt
+
+# IDE 配置
+.trae/
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

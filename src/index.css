@@ -1,0 +1,607 @@
+@import "react-day-picker/style.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* === 响应式断点根字体 === */
+/* 手机端默认 16px，平板放大，桌面正常 */
+html {
+  font-size: 16px;
+  /* 防止水平溢出（与 body 双重保险） */
+  overflow-x: hidden;
+  /* 禁用 iOS Safari 双击放大（300ms 延迟） */
+  -webkit-text-size-adjust: 100%;
+  /* 触摸拖拽时不触发缩放手势 */
+  touch-action: pan-y pan-x;
+}
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+/* === 全局交互工具类 === */
+
+/* 统一卡片悬停效果 */
+.card-hover {
+  transition: all 0.2s ease;
+}
+.card-hover:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* 按钮按压效果 */
+.btn-press {
+  transition: transform 0.1s ease;
+}
+.btn-press:active {
+  transform: scale(0.98);
+}
+
+/* 骨架屏动画 */
+.skeleton {
+  background: linear-gradient(90deg, #f4f4f5 25%, #e4e4e7 50%, #f4f4f5 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* 淡入动画 */
+.animate-fade-in {
+  animation: fadeInUp 0.4s ease-out;
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 列表项交错动画 */
+.stagger-item {
+  opacity: 0;
+  animation: fadeInUp 0.4s ease-out forwards;
+}
+
+/* === 移动端优化：禁用文本选择高亮、点击高亮 === */
+@media (max-width: 768px) {
+  button, a, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+  /* 表单元素允许选择 */
+  input, textarea, select, [contenteditable="true"] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+  /* 减少非交互元素的误选择 */
+  .no-select-mobile {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
+/* === 移动端：触摸友好的最小点击尺寸（44px iOS HIG） === */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* === 平板端横向滚动条优化 === */
+@media (min-width: 768px) and (max-width: 1023px) {
+  ::-webkit-scrollbar {
+    height: 10px;
+    width: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #d4d4d8;
+    border-radius: 5px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #a1a1aa;
+  }
+  ::-webkit-scrollbar-track {
+    background: #f4f4f5;
+  }
+}
+
+/* === 安全区域适配（iPhone 刘海/底部横条） === */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* === 平板端（768px - 1023px）专属优化 === */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* 平板端适度增加触摸区域 */
+  .touch-target {
+    min-height: 40px;
+    min-width: 40px;
+  }
+  /* 平板端表单输入框优化 */
+  .form-input {
+    font-size: 0.95rem;
+    padding: 0.7rem 0.9rem;
+  }
+  /* 平板端标题适度放大 */
+  h1 {
+    line-height: 1.3;
+  }
+}
+
+/* === 手机端（< 768px）专属优化 === */
+@media (max-width: 767px) {
+  /* 手机端调整根字体为更易读的大小 */
+  html {
+    font-size: 15px;
+  }
+  /* 手机端缩小卡片圆角，节省空间 */
+  .rounded-xl {
+    border-radius: 0.75rem;
+  }
+  /* 手机端标题行高优化 */
+  h1 {
+    line-height: 1.35;
+  }
+  /* 手机端表格字体优化 */
+  table {
+    font-size: 0.8rem;
+  }
+  /* 手机端表单输入框 */
+  .form-input {
+    font-size: 0.95rem;
+    padding: 0.7rem 0.85rem;
+  }
+}
+
+/* === 小屏手机（< 400px）进一步优化 === */
+@media (max-width: 399px) {
+  html {
+    font-size: 14px;
+  }
+  /* 极小屏减少内边距 */
+  .form-input {
+    padding: 0.625rem 0.75rem;
+  }
+}
+
+/* === 横屏手机优化 === */
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
+  /* 横屏时减小顶部内边距，最大化内容区域 */
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}
+
+/* === 深色模式滚动条优化 === */
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #18181b;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #3f3f46;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #52525b;
+  }
+}
+
+:root {
+  font-family: "PingFang SC", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+  font-weight: 400;
+  color: #18181b;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #fafafa;
+  /* 防止移动端水平溢出 */
+  overflow-x: hidden;
+  /* 防止 iOS 过度滚动导致的橡皮筋效果引起的布局抖动 */
+  overscroll-behavior-x: none;
+  /* 确保宽度不超过视口 */
+  max-width: 100%;
+}
+
+/* === 修复 100vw / w-screen 导致的横向滚动条问题 === */
+/* 100vw 包含滚动条宽度，会触发横向滚动。用 100% 替代。 */
+* {
+  box-sizing: border-box;
+}
+
+/* 修复 flexbox 子元素默认 min-width: auto 导致的内容溢出问题
+   flex 子元素默认 min-width: auto，长文本/表格会撑开容器超出父级宽度
+   设置为 0 让 flex 子元素正确收缩到容器宽度 */
+.flex-1,
+.flex-auto,
+.grow {
+  min-width: 0;
+}
+
+/* 防止任何元素超出视口宽度（移动端尤其重要） */
+img,
+video,
+canvas,
+svg,
+iframe,
+table,
+pre {
+  max-width: 100%;
+}
+
+/* 横向滚动容器需要明确宽度限制，防止撑破父容器 */
+.overflow-x-auto,
+.overflow-x-scroll {
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
+}
+
+.backdrop-blur-glass {
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  background-color: #ffffff;
+  border: 1px solid #e4e4e7;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: #18181b;
+  transition: all 0.2s ease;
+}
+
+.form-input::placeholder {
+  color: #a1a1aa;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #18181b;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(24, 24, 27, 0.1);
+}
+
+.rdp-root {
+  --rdp-accent-color: #18181b;
+  --rdp-accent-background-color: #f4f4f5;
+  --rdp-day-height: 38px;
+  --rdp-day-width: 38px;
+  --rdp-day_button-height: 36px;
+  --rdp-day_button-width: 36px;
+  --rdp-day_button-border-radius: 0.5rem;
+  --rdp-day_button-border: 1px solid transparent;
+  --rdp-selected-border: 1px solid #18181b;
+  --rdp-nav_button-height: 2rem;
+  --rdp-nav_button-width: 2rem;
+  --rdp-nav-height: 2.5rem;
+  margin: 0;
+}
+
+.rdp-root .rdp-month_caption {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #18181b;
+}
+
+.rdp-root .rdp-weekday {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #71717a;
+}
+
+.rdp-root .rdp-day_button {
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  color: #18181b;
+}
+
+.rdp-root .rdp-day_button:hover {
+  border-color: #e4e4e7;
+  background-color: #fafafa;
+}
+
+.rdp-root .rdp-today {
+  font-weight: 700;
+  color: #18181b;
+}
+
+.rdp-root .rdp-selected .rdp-day_button {
+  background: #18181b;
+  color: white;
+  font-weight: 600;
+  border-color: #18181b;
+}
+
+.rdp-root .rdp-nav_button {
+  color: #52525b;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.rdp-root .rdp-nav_button:hover {
+  background-color: #f4f4f5;
+  border-color: #e4e4e7;
+}
+
+.rdp-root .rdp-chevron {
+  width: 18px;
+  height: 18px;
+}
+
+.ProseMirror {
+  outline: none;
+  padding: 1rem;
+  min-height: 200px;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  color: #a1a1aa;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.dark .ProseMirror p.is-editor-empty:first-child::before {
+  color: #71717a;
+}
+
+.ProseMirror h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin: 0.5rem 0;
+}
+
+.ProseMirror h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0.5rem 0;
+}
+
+.ProseMirror h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0.5rem 0;
+}
+
+.ProseMirror p {
+  margin: 0.5rem 0;
+}
+
+.ProseMirror ul,
+.ProseMirror ol {
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.ProseMirror ul {
+  list-style-type: disc;
+}
+
+.ProseMirror ol {
+  list-style-type: decimal;
+}
+
+.ProseMirror blockquote {
+  border-left: 3px solid #a1a1aa;
+  padding-left: 1rem;
+  margin: 0.5rem 0;
+  color: #71717a;
+  font-style: italic;
+}
+
+.dark .ProseMirror blockquote {
+  border-left-color: #52525b;
+  color: #a1a1aa;
+}
+
+.ProseMirror pre {
+  background: #27272a;
+  color: #f4f4f5;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin: 0.5rem 0;
+  overflow-x: auto;
+  font-family: monospace;
+}
+
+.ProseMirror code {
+  background: #f4f4f5;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-family: monospace;
+  font-size: 0.875rem;
+}
+
+.dark .ProseMirror code {
+  background: #27272a;
+}
+
+.ProseMirror pre code {
+  background: none;
+  padding: 0;
+}
+
+.ProseMirror a {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+.ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.ProseMirror table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.5rem 0;
+}
+
+.ProseMirror th,
+.ProseMirror td {
+  border: 1px solid #e4e4e7;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.dark .ProseMirror th,
+.dark .ProseMirror td {
+  border-color: #52525b;
+}
+
+.ProseMirror th {
+  background: #f4f4f5;
+  font-weight: 600;
+}
+
+.dark .ProseMirror th {
+  background: #27272a;
+}
+
+.announcement-content h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0.75rem 0;
+}
+
+.announcement-content h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0.75rem 0;
+}
+
+.announcement-content h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0.75rem 0;
+}
+
+.announcement-content p {
+  margin: 0.5rem 0;
+}
+
+.announcement-content ul,
+.announcement-content ol {
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.announcement-content ul {
+  list-style-type: disc;
+}
+
+.announcement-content ol {
+  list-style-type: decimal;
+}
+
+.announcement-content blockquote {
+  border-left: 3px solid #a1a1aa;
+  padding-left: 0.75rem;
+  margin: 0.5rem 0;
+  color: #71717a;
+  font-style: italic;
+}
+
+.dark .announcement-content blockquote {
+  border-left-color: #52525b;
+  color: #a1a1aa;
+}
+
+.announcement-content pre {
+  background: #27272a;
+  color: #f4f4f5;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin: 0.5rem 0;
+  overflow-x: auto;
+  font-family: monospace;
+  font-size: 0.875rem;
+}
+
+.announcement-content code {
+  background: #f4f4f5;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-family: monospace;
+  font-size: 0.875rem;
+}
+
+.dark .announcement-content code {
+  background: #27272a;
+}
+
+.announcement-content pre code {
+  background: none;
+  padding: 0;
+}
+
+.announcement-content a {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+.announcement-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.announcement-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.5rem 0;
+}
+
+.announcement-content th,
+.announcement-content td {
+  border: 1px solid #e4e4e7;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.dark .announcement-content th,
+.dark .announcement-content td {
+  border-color: #52525b;
+}
+
+.announcement-content th {
+  background: #f4f4f5;
+  font-weight: 600;
+}
+
+.dark .announcement-content th {
+  background: #27272a;
+}
