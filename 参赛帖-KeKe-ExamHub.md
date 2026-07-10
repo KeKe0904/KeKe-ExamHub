@@ -169,7 +169,7 @@
 
 ![项目结构](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/trae-project-structure.png)
 
-**Session ID**：`[待补充]`
+**Session ID**：`25b2ab2e105a420bb4039e34abaeafbc`
 
 ### 4.2 数据库：从 8 张表演进到 18 张表
 
@@ -189,7 +189,7 @@
 
 ![数据库设计 init.sql](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/trae-database-design.png)
 
-**Session ID**：`[待补充]`
+**Session ID**：`e367049616805cbd2edb56cc6bc26e32`
 
 ### 4.3 四端认证：81 项越权测试全部 403
 
@@ -215,7 +215,7 @@ teacherAuthMiddleware   → 只放行 role === "teacher"
 
 ![四端认证中间件 auth.ts](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/trae-auth-middleware.png)
 
-**Session ID**：`[待补充]`
+**Session ID**：`cabd16065735213a30edd80ba4ab8ba8`
 
 ### 4.4 教室端监考大屏：反复调出来的视觉效果
 
@@ -233,7 +233,7 @@ teacherAuthMiddleware   → 只放行 role === "teacher"
 
 ![教室端监考大屏](https://cdn.jsdelivr.net/gh/KeKe0904/KeKe-ExamHub@main/assets/screenshots/classroom-invigilation.png)
 
-**Session ID**：`[待补充]`
+**Session ID**：`85f79b69f314b39f198a244293ab513d`
 
 ### 4.5 AI 助手：27 个工具 + 三级安全
 
@@ -356,10 +356,10 @@ https://forum.trae.cn/t/topic/47323
 
 | 序号 | 开发节点 | Session ID |
 |------|---------|------------|
-| 1 | 竞品分析与项目搭建 | `[待补充]` |
-| 2 | 数据库设计迭代（8→18 张表） | `[待补充]` |
-| 3 | 四端 JWT 互斥认证体系 | `[待补充]` |
-| 4 | 教室端监考大屏设计 | `[待补充]` |
+| 1 | 竞品分析与项目搭建 | `25b2ab2e105a420bb4039e34abaeafbc` |
+| 2 | 数据库设计迭代（8→18 张表） | `e367049616805cbd2edb56cc6bc26e32` |
+| 3 | 四端 JWT 互斥认证体系 | `cabd16065735213a30edd80ba4ab8ba8` |
+| 4 | 教室端监考大屏设计 | `85f79b69f314b39f198a244293ab513d` |
 | 5 | AI 助手 Function Calling | `[待补充]` |
 | 6 | 一键部署脚本 v4.0 | `[待补充]` |
 | 7 | 发布前安全审计与修复 | `[待补充]` |
