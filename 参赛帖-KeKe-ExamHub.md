@@ -184,6 +184,19 @@
 
 > **整个项目从头到尾使用 TRAE IDE 开发**，从第一行代码到 v1.2.0 发布，包括安全审计和漏洞修复。
 
+### 开发过程一览
+
+以下为 TRAE IDE 中的真实开发过程截图：
+
+| 截图 | 说明 |
+|------|------|
+| ![开发过程 1](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-1.png) | TRAE IDE 开发过程（一） |
+| ![开发过程 2](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-2.png) | TRAE IDE 开发过程（二） |
+| ![开发过程 3](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-3.png) | TRAE IDE 开发过程（三） |
+| ![开发过程 4](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-4.png) | TRAE IDE 开发过程（四） |
+| ![开发过程 5](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-5.png) | TRAE IDE 开发过程（五） |
+| ![开发过程 6](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-6.png) | TRAE IDE 开发过程（六） |
+
 ### 4.1 项目启动：从竞品分析到骨架搭建
 
 开发前先与 TRAE 一起做了竞品分析，把市面上的智慧班牌系统逐一列出对比，**确认这个细分场景确实空白之后**，才开始搭建项目。
