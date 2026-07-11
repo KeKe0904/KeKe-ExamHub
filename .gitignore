@@ -75,6 +75,9 @@ screenshot*.cjs
 record-video*.cjs
 preview-server.cjs
 ppt-video.html
+debug-home-title.cjs
+reshoot-school-info.cjs
+test-invigilation-mode.cjs
 
 # 参赛/宣传物料（非项目源码）
 assets/examhub-promo.mp4
