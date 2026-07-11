@@ -30,50 +30,50 @@
 
 | 截图 | 说明 |
 |------|------|
-| ![公众首页](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/public-home.png?v=20260711) | 首页考试列表，支持搜索和筛选 |
-| ![学校信息](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/public-announcements.png?v=20260711) | 学校信息页 |
+| ![公众首页](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/public-home.png?v=20260712) | 首页考试列表，支持搜索和筛选 |
+| ![学校信息](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/public-announcements.png?v=20260712) | 学校信息页 |
 
 **管理员后台**
 
 | 截图 | 说明 |
 |------|------|
-| ![管理员登录](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-login.png?v=20260711) | 管理员登录 |
-| ![仪表盘](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-dashboard.png?v=20260711) | 仪表盘，全平台数据一览 |
-| ![考试管理](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-exams.png?v=20260711) | 考试管理列表 |
-| ![创建考试](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-exam-create.png?v=20260711) | 创建新考试 |
-| ![公告管理](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-announcements.png?v=20260711) | 公告管理 |
-| ![发布公告](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-announcement-create.png?v=20260711) | 发布新公告 |
-| ![教室管理](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-classrooms.png?v=20260711) | 教室管理，含注册审核 |
-| ![教师管理](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-teachers.png?v=20260711) | 教师管理 |
-| ![学生管理](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-students.png?v=20260711) | 学生管理 |
-| ![注册码管理](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-registration-codes.png?v=20260711) | 注册码批量生成 |
-| ![IP黑名单](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-ip-blacklist.png?v=20260711) | IP 黑名单管理 |
-| ![域名管理](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-domains.png?v=20260711) | 域名和 SSL 证书管理 |
-| ![操作日志](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-logs.png?v=20260711) | 操作审计日志 |
-| ![系统设置](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-settings.png?v=20260711) | 系统设置 |
+| ![管理员登录](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-login.png?v=20260712) | 管理员登录 |
+| ![仪表盘](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-dashboard.png?v=20260712) | 仪表盘，全平台数据一览 |
+| ![考试管理](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-exams.png?v=20260712) | 考试管理列表 |
+| ![创建考试](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-exam-create.png?v=20260712) | 创建新考试 |
+| ![公告管理](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-announcements.png?v=20260712) | 公告管理 |
+| ![发布公告](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-announcement-create.png?v=20260712) | 发布新公告 |
+| ![教室管理](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-classrooms.png?v=20260712) | 教室管理，含注册审核 |
+| ![教师管理](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-teachers.png?v=20260712) | 教师管理 |
+| ![学生管理](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-students.png?v=20260712) | 学生管理 |
+| ![注册码管理](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-registration-codes.png?v=20260712) | 注册码批量生成 |
+| ![IP黑名单](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-ip-blacklist.png?v=20260712) | IP 黑名单管理 |
+| ![域名管理](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-domains.png?v=20260712) | 域名和 SSL 证书管理 |
+| ![操作日志](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-logs.png?v=20260712) | 操作审计日志 |
+| ![系统设置](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/admin-settings.png?v=20260712) | 系统设置 |
 
 **教室端大屏**（重点）
 
 | 截图 | 说明 |
 |------|------|
-| ![教室端登录](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/classroom-login.png?v=20260711) | 教室端登录 |
-| ![教室端首页](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/classroom-home.png?v=20260711) | 今日考试列表 |
-| ![教室端监考大屏](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/classroom-invigilation.png?v=20260711) | **监考大屏，全屏倒计时（推荐体验）** |
+| ![教室端登录](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/classroom-login.png?v=20260712) | 教室端登录 |
+| ![教室端首页](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/classroom-home.png?v=20260712) | 今日考试列表 |
+| ![教室端监考大屏](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/classroom-invigilation.png?v=20260712) | **监考大屏，全屏倒计时（推荐体验）** |
 
 **教师端 / 学生端**
 
 | 截图 | 说明 |
 |------|------|
-| ![教师端登录](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/teacher-login.png?v=20260711) | 教师端登录 |
-| ![教师端首页](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/teacher-home.png?v=20260711) | 教师端监考任务 |
-| ![学生端登录](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/student-login.png?v=20260711) | 学生端登录 |
-| ![学生端首页](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/student-home.png?v=20260711) | 学生端考试安排 |
+| ![教师端登录](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/teacher-login.png?v=20260712) | 教师端登录 |
+| ![教师端首页](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/teacher-home.png?v=20260712) | 教师端监考任务 |
+| ![学生端登录](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/student-login.png?v=20260712) | 学生端登录 |
+| ![学生端首页](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/student-home.png?v=20260712) | 学生端考试安排 |
 
 **一键安装**
 
 | 截图 | 说明 |
 |------|------|
-| ![安装向导](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/setup-wizard.png?v=20260711) | 浏览器安装向导，4 步完成部署 |
+| ![安装向导](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/setup-wizard.png?v=20260712) | 浏览器安装向导，4 步完成部署 |
 
 ### 核心功能
 
@@ -204,12 +204,12 @@
 
 | 截图 | 说明 |
 |------|------|
-| ![开发过程 1](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-1.png?v=20260711) | TRAE IDE 开发过程（一） |
-| ![开发过程 2](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-2.png?v=20260711) | TRAE IDE 开发过程（二） |
-| ![开发过程 3](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-3.png?v=20260711) | TRAE IDE 开发过程（三） |
-| ![开发过程 4](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-4.png?v=20260711) | TRAE IDE 开发过程（四） |
-| ![开发过程 5](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-5.png?v=20260711) | TRAE IDE 开发过程（五） |
-| ![开发过程 6](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-6.png?v=20260711) | TRAE IDE 开发过程（六） |
+| ![开发过程 1](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-1.png?v=20260712) | TRAE IDE 开发过程（一） |
+| ![开发过程 2](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-2.png?v=20260712) | TRAE IDE 开发过程（二） |
+| ![开发过程 3](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-3.png?v=20260712) | TRAE IDE 开发过程（三） |
+| ![开发过程 4](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-4.png?v=20260712) | TRAE IDE 开发过程（四） |
+| ![开发过程 5](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-5.png?v=20260712) | TRAE IDE 开发过程（五） |
+| ![开发过程 6](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-6.png?v=20260712) | TRAE IDE 开发过程（六） |
 
 ### 4.1 从 0 搭骨架：连竞品分析都是 TRAE 陪我做的
 
@@ -273,7 +273,7 @@ teacherAuthMiddleware   → 只放行 role === "teacher"
 - Fullscreen API 一键全屏
 - 30 秒自动刷新，无需人工干预
 
-![教室端监考大屏](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/classroom-invigilation.png?v=20260711)
+![教室端监考大屏](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/classroom-invigilation.png?v=20260712)
 
 ### 4.5 AI 助手：27 个工具 + 三级安全
 
@@ -289,7 +289,7 @@ teacherAuthMiddleware   → 只放行 role === "teacher"
 
 技术上解决了多个难题：SSE 流式响应、工具执行超时、结果过长截断、上下文窗口滑动……都是与 TRAE 一起逐一解决的。
 
-![AI 助手](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/ai-assistant.png?v=20260711)
+![AI 助手](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/ai-assistant.png?v=20260712)
 
 ### 4.6 install.sh：迭代到 1279 行的部署脚本
 
@@ -304,7 +304,7 @@ teacherAuthMiddleware   → 只放行 role === "teacher"
 
 > **印象最深的 bug**：DNS 解析校验一直不通过，与 TRAE 排查近一小时，**最终发现是 GNU grep 的 ERE 模式不支持 `\d`，需要写成 `[0-9]`**。这种细节自己写的话不知要踩多久坑。
 
-![安装向导](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/setup-wizard.png?v=20260711)
+![安装向导](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/setup-wizard.png?v=20260712)
 
 ### 4.7 发布前的安全审计：TRAE 帮我查漏洞
 
