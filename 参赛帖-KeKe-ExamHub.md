@@ -1,6 +1,6 @@
 # 学习工作 · KeKe ExamHub — 学校考试信息数字化管理平台
 
-> 一套代码，五端协同。把教室里那块上万元的大屏，从"下课就黑屏"变成"考试信息终端"。
+> 一套代码，五端协同。让上万元的教室大屏，从"下课黑屏"变成"考试信息终端"。
 
 ---
 
@@ -223,12 +223,12 @@
 
 | 截图 | 说明 |
 |------|------|
-| ![开发过程 1](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-1.png?v=20260711-2) | TRAE IDE 开发过程（一） |
-| ![开发过程 2](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-2.png?v=20260711-2) | TRAE IDE 开发过程（二） |
-| ![开发过程 3](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-3.png?v=20260711-2) | TRAE IDE 开发过程（三） |
-| ![开发过程 4](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-4.png?v=20260711-2) | TRAE IDE 开发过程（四） |
-| ![开发过程 5](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-5.png?v=20260711-2) | TRAE IDE 开发过程（五） |
-| ![开发过程 6](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-6.png?v=20260711-2) | TRAE IDE 开发过程（六） |
+| ![开发过程 1](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-1.png?v=20260711-2) | 与 TRAE 一起做竞品分析，整理智慧班牌和在线考试系统的对比表格 |
+| ![开发过程 2](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-2.png?v=20260711-2) | TRAE 协助撰写大赛报名帖，生成内容并提交推送到 GitHub |
+| ![开发过程 3](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-3.png?v=20260711-2) | 项目文件结构一览，前端 + 后端 + 部署脚本共 20 个模块 |
+| ![开发过程 4](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-4.png?v=20260711-2) | 修复公众首页导航栏布局，调整 Logo 左对齐、导航项右对齐 |
+| ![开发过程 5](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-5.png?v=20260711-2) | 重构教室端首页，用纯黑背景配色自建组件替代公共组件 |
+| ![开发过程 6](https://gh-proxy.com/https://raw.githubusercontent.com/KeKe0904/KeKe-ExamHub/main/assets/screenshots/dev-process-6.png?v=20260711-2) | Git 推送代码到 GitHub 并清除 remote URL 中的 Token |
 
 ### 4.1 从 0 搭骨架：连竞品分析都是 TRAE 陪我做的
 
