@@ -113,6 +113,8 @@ interface RepoStatus {
   remoteCommit: string;
   remoteMessage: string;
   branch: string;
+  remoteDefaultBranch: string;
+  branchMismatch: boolean;
   remoteUrl: string;
   hasUpdate: boolean;
   commitsBehind: number;

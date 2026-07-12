@@ -588,14 +588,38 @@ export default async function environmentRoutes(app: FastifyInstance) {
             // 拉取最新代码（先 stash 避免 SFTP 上传导致的冲突，后自动重建）
             message = "拉取最新代码并重建";
             {
-              // 1. 先 stash 本地所有变更，防止 SFTP 覆盖导致的冲突
+              // 0. 检测并修复分支不匹配问题（master -> main 迁移）
+              const { stdout: currentBranch } = await safeExec("git rev-parse --abbrev-ref HEAD", CMD_TIMEOUT);
+              const branch = currentBranch.trim();
+              if (branch === "master") {
+                // 检查远程是否存在 main 分支
+                const { stdout: remoteBranches } = await safeExec("git branch -r", CMD_TIMEOUT);
+                if (remoteBranches.includes("origin/main")) {
+                  // 切换到 main 分支，跟踪 origin/main
+                  const { stdout: checkoutOut, stderr: checkoutErr } = await safeExec(
+                    "git checkout -B main origin/main 2>&1",
+                    CMD_TIMEOUT
+                  );
+                  log = `--- 分支迁移 ---\n从 master 切换到 main 分支\n${checkoutOut}${checkoutErr ? `\n${checkoutErr}` : ""}\n`;
+                  // 删除旧的 master 分支避免混淆
+                  await safeExec("git branch -D master 2>&1 || true", CMD_TIMEOUT);
+                }
+              }
+
+              // 1. 先 stash 本地所有变更，防止 SFTP 上传导致的冲突
               await safeExec("git stash push -m 'auto-stash-before-pull' 2>&1 || true", CMD_TIMEOUT);
               // 2. 恢复误 stash 的 lock 文件（保持依赖树稳定）
               await safeExec("git checkout -- api/package-lock.json package-lock.json 2>&1 || true", CMD_TIMEOUT);
-              // 3. git pull
-              const { stdout: pullOut, stderr: pullErr } = await safeExec("git pull", CMD_TIMEOUT);
-              log = pullOut + (pullErr ? `\n${pullErr}` : "");
-              // 4. 后端：安装依赖 + 编译 TypeScript
+              // 3. fetch 最新代码
+              await safeExec("git fetch origin main --quiet 2>&1 || true", CMD_TIMEOUT);
+              // 4. git pull（显式指定 origin main，避免无上游跟踪分支的错误）
+              const { stdout: pullOut, stderr: pullErr } = await safeExec("git pull origin main 2>&1", CMD_TIMEOUT);
+              log += `--- Git Pull ---\n${pullOut}${pullErr ? `\n${pullErr}` : ""}\n`;
+              // 检查 pull 是否成功（如果 pull 失败则不继续构建）
+              if (pullErr.toLowerCase().includes("error") || pullErr.toLowerCase().includes("fatal")) {
+                throw new Error(`git pull 失败: ${pullErr}`);
+              }
+              // 5. 后端：安装依赖 + 编译 TypeScript
               {
                 const { stdout: apiOut, stderr: apiErr } = await safeExec(
                   "cd api && NODE_ENV='' npm install --include=dev && NODE_ENV='' ./node_modules/.bin/tsc",
@@ -603,7 +627,7 @@ export default async function environmentRoutes(app: FastifyInstance) {
                 );
                 log += `\n--- 后端编译 ---\n${apiOut}${apiErr ? `\n${apiErr}` : ""}`;
               }
-              // 5. 前端：构建
+              // 6. 前端：构建
               {
                 const { stdout: feOut, stderr: feErr } = await safeExec(
                   "NODE_ENV='' npm install --include=dev && NODE_ENV='' ./node_modules/.bin/vite build",
@@ -611,10 +635,10 @@ export default async function environmentRoutes(app: FastifyInstance) {
                 );
                 log += `\n--- 前端构建 ---\n${feOut}${feErr ? `\n${feErr}` : ""}`;
               }
-              // 5.5. 清理 npm install 产生的 lock 文件变更，保持仓库干净
+              // 7. 清理 npm install 产生的 lock 文件变更，保持仓库干净
               await safeExec("git checkout -- api/package-lock.json package-lock.json 2>&1 || true", CMD_TIMEOUT);
               log += `\n--- 已清理 lock 文件变更 ---`;
-              // 6. 重载 Nginx + 延迟重启 PM2（避免杀死当前请求进程导致 502）
+              // 8. 重载 Nginx + 延迟重启 PM2（避免杀死当前请求进程导致 502）
               {
                 const { stdout: nginxOut } = await safeExec("nginx -s reload 2>&1", CMD_TIMEOUT);
                 log += `\n--- Nginx 重载 ---\n${nginxOut}`;
@@ -1070,8 +1094,19 @@ echo "DONE" >> "\$LOG"
         ? statusOut.trim().split("\n").slice(0, 10).map(line => line.trim().replace(/^[?MADRCU!\s]+/, ""))
         : [];
 
-      // git fetch 获取远程信息（不合并）
-      await safeExec("git fetch origin main --quiet 2>&1 || true", CMD_TIMEOUT);
+      // 获取当前分支
+      const { stdout: currentBranch } = await safeExec("git rev-parse --abbrev-ref HEAD", CMD_TIMEOUT);
+      const branch = currentBranch.trim();
+
+      // 获取远程默认分支
+      const { stdout: remoteHeadRef } = await safeExec("git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null || echo 'refs/remotes/origin/main'", CMD_TIMEOUT);
+      const remoteDefaultBranch = remoteHeadRef.trim().replace("refs/remotes/origin/", "") || "main";
+
+      // 检测分支不匹配（本地 master 但远程默认是 main）
+      const branchMismatch = branch !== remoteDefaultBranch;
+
+      // fetch 远程默认分支
+      await safeExec(`git fetch origin ${remoteDefaultBranch} --quiet 2>&1 || true`, CMD_TIMEOUT);
 
       // 获取本地 HEAD 信息
       const { stdout: localHead } = await safeExec("git rev-parse HEAD", CMD_TIMEOUT);
@@ -1079,13 +1114,13 @@ echo "DONE" >> "\$LOG"
       const { stdout: localMsg } = await safeExec("git log -1 --format=%s", CMD_TIMEOUT);
 
       // 获取远程 HEAD 信息
-      const { stdout: remoteHead } = await safeExec("git rev-parse origin/main", CMD_TIMEOUT);
-      const { stdout: remoteShort } = await safeExec("git rev-parse --short origin/main", CMD_TIMEOUT);
-      const { stdout: remoteMsg } = await safeExec("git log -1 --format=%s origin/main", CMD_TIMEOUT);
+      const { stdout: remoteHead } = await safeExec(`git rev-parse origin/${remoteDefaultBranch}`, CMD_TIMEOUT);
+      const { stdout: remoteShort } = await safeExec(`git rev-parse --short origin/${remoteDefaultBranch}`, CMD_TIMEOUT);
+      const { stdout: remoteMsg } = await safeExec(`git log -1 --format=%s origin/${remoteDefaultBranch}`, CMD_TIMEOUT);
 
       // 计算落后多少提交
       const { stdout: behindCount } = await safeExec(
-        "git rev-list HEAD..origin/main --count",
+        `git rev-list HEAD..origin/${remoteDefaultBranch} --count`,
         CMD_TIMEOUT
       );
 
@@ -1095,14 +1130,13 @@ echo "DONE" >> "\$LOG"
       let changelog: string[] = [];
       if (hasUpdate) {
         const { stdout: changes } = await safeExec(
-          `git log --oneline HEAD..origin/main --max-count=10`,
+          `git log --oneline HEAD..origin/${remoteDefaultBranch} --max-count=10`,
           CMD_TIMEOUT
         );
         changelog = changes.trim().split("\n").filter(Boolean);
       }
 
-      // 获取分支和远端 URL
-      const { stdout: branch } = await safeExec("git rev-parse --abbrev-ref HEAD", CMD_TIMEOUT);
+      // 获取远端 URL
       const { stdout: remoteUrl } = await safeExec("git config --get remote.origin.url", CMD_TIMEOUT);
 
       return reply.send(
@@ -1114,7 +1148,9 @@ echo "DONE" >> "\$LOG"
           localMessage: localMsg.trim(),
           remoteCommit: remoteShort.trim(),
           remoteMessage: remoteMsg.trim(),
-          branch: branch.trim(),
+          branch,
+          remoteDefaultBranch,
+          branchMismatch,
           remoteUrl: remoteUrl.trim(),
           hasUpdate,
           commitsBehind: parseInt(behindCount.trim()) || 0,
