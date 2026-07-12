@@ -101,7 +101,7 @@ interface UpdateCheckData {
 }
 
 type OperationType =
-  | { kind: "update"; component: "npm-packages" | "pm2" | "system-packages" | "nginx" | "git-pull" }
+  | { kind: "update"; component: "npm-packages" | "pm2" | "system-packages" | "nginx" | "git-pull" | "node" | "npm-runtime" }
   | { kind: "reinstall"; type: "frontend" | "backend" | "all" };
 
 interface RepoStatus {
@@ -139,6 +139,7 @@ export default function Environment() {
 
   // UpdateItem.name → 后端组件名映射（只包含一键更新支持的组件）
   const UPDATEABLE_COMPONENT_MAP: Record<string, { key: string; label: string }> = {
+    node: { key: "node", label: "Node.js 运行时（LTS）" },
     npm: { key: "npm-packages", label: "项目 npm 依赖 + npm 命令行工具" },
     pm2: { key: "pm2", label: "PM2 进程管理器" },
     nginx: { key: "nginx", label: "Nginx 配置重载" },
@@ -264,6 +265,8 @@ export default function Environment() {
           "system-packages": "更新系统软件包",
           "nginx": "重载 Nginx 配置",
           "git-pull": "拉取最新代码并重建",
+          "node": "升级 Node.js",
+          "npm-runtime": "升级 npm",
         }[op.component];
         res = await environmentApi.update(op.component);
       } else {
@@ -945,8 +948,16 @@ export default function Environment() {
                   onClick={() => setConfirmModal({ kind: "update", component: "git-pull" })}
                 />
                 <ActionButton
+                  title="升级 Node.js"
+                  description="切换 NodeSource 源并升级到最新 LTS 版本（需重启服务）"
+                  icon={<Cpu className="w-5 h-5" />}
+                  loading={operating}
+                  danger
+                  onClick={() => setConfirmModal({ kind: "update", component: "node" })}
+                />
+                <ActionButton
                   title="更新项目依赖"
-                  description="更新前端和后端的 npm 依赖包"
+                  description="更新前端和后端的 npm 依赖包，并升级 npm 自身"
                   icon={<Package className="w-5 h-5" />}
                   loading={operating}
                   onClick={() => setConfirmModal({ kind: "update", component: "npm-packages" })}
@@ -1395,6 +1406,8 @@ function ConfirmModal({
         "system-packages": "更新系统软件包",
         "nginx": "重载 Nginx 配置",
         "git-pull": "拉取最新代码",
+        "node": "升级 Node.js",
+        "npm-runtime": "升级 npm",
       }[operation.component]
     : {
         frontend: "重装前端环境",
@@ -1403,7 +1416,11 @@ function ConfirmModal({
       }[operation.type];
 
   const description = operation.kind === "update"
-    ? "此操作将更新组件，可能会短暂影响服务。"
+    ? operation.component === "node"
+      ? "此操作将切换 NodeSource 源并升级 Node.js 到最新 LTS 版本。升级后 API 服务会自动重启。请确保项目代码兼容新版 Node.js。"
+      : operation.component === "git-pull"
+      ? "此操作将从 GitHub 拉取最新代码，自动安装依赖并重新编译构建，服务会短暂中断。"
+      : "此操作将更新组件，可能会短暂影响服务。"
     : operation.type === "all"
     ? "此操作将清除所有 node_modules 并重新安装，服务会中断几分钟。数据库和配置文件会保留。"
     : operation.type === "backend"

@@ -440,8 +440,9 @@ async function getNodeLatestLTS(): Promise<string> {
     );
     const list = JSON.parse(stdout);
     if (Array.isArray(list)) {
-      // 找到最新的 LTS 版本
-      const lts = list.find((item: any) => item.lts !== false);
+      // index.json 中 LTS 版本的 lts 字段是代号字符串（如 "Krypton"），非 LTS 是 false
+      // 用 typeof 严格检查，避免 null/undefined 被误判
+      const lts = list.find((item: any) => typeof item.lts === "string" && item.lts);
       if (lts) return extractVersion(lts.version);
     }
     return "未知";
@@ -551,6 +552,70 @@ export default async function environmentRoutes(app: FastifyInstance) {
               log += `\n--- 后端依赖 ---\n${apiOut}${apiErr ? `\n${apiErr}` : ""}`;
             }
             break;
+
+          case "node": {
+            // 升级 Node.js 到最新 LTS（通过 NodeSource 源切换）
+            message = "升级 Node.js";
+            // 1. 获取当前 Node.js 主版本号
+            const { stdout: currentVer } = await safeExec("node --version", CMD_TIMEOUT);
+            const currentMajor = parseInt(currentVer.replace("v", "").split(".")[0]) || 0;
+
+            // 2. 获取最新 LTS 版本号
+            const latestLts = await getNodeLatestLTS();
+            const targetMajor = parseInt(latestLts.split(".")[0]) || 0;
+
+            if (targetMajor <= currentMajor) {
+              log = `当前 Node.js ${currentVer} 已是最新 LTS 或更新，无需升级。`;
+              break;
+            }
+
+            log = `当前: ${currentVer.trim()} → 目标: v${latestLts} (LTS)\n`;
+
+            // 3. 切换 NodeSource 源到目标主版本
+            log += `--- 切换 NodeSource 源到 node_${targetMajor}.x ---\n`;
+            {
+              const { stdout: srcOut, stderr: srcErr } = await safeExec(
+                `curl -fsSL https://deb.nodesource.com/setup_${targetMajor}.x | bash - 2>&1`,
+                LONG_TIMEOUT
+              );
+              log += srcOut + (srcErr ? `\n${srcErr}` : "");
+            }
+
+            // 4. apt 安装新版 Node.js
+            log += `\n--- apt 安装 nodejs ---\n`;
+            {
+              const { stdout: instOut, stderr: instErr } = await safeExec(
+                "apt-get install -y nodejs 2>&1",
+                LONG_TIMEOUT
+              );
+              log += instOut + (instErr ? `\n${instErr}` : "");
+            }
+
+            // 5. 验证版本
+            const { stdout: newVer } = await safeExec("node --version", CMD_TIMEOUT);
+            log += `\n--- 验证 ---\n新版本: ${newVer.trim()}\n`;
+
+            // 6. 延迟重启 PM2（Node.js 升级后必须重启进程）
+            spawn("sh", ["-c", "sleep 2 && cd /opt/examhub && pm2 restart examhub-api 2>&1"], {
+              detached: true,
+              stdio: "ignore",
+              cwd: PROJECT_ROOT,
+            }).unref();
+            log += `\n--- PM2 将在 2 秒后重启（应用新 Node.js）---`;
+            break;
+          }
+
+          case "npm-runtime": {
+            // 升级 npm 到最新版（全局）
+            message = "升级 npm";
+            {
+              const { stdout, stderr } = await safeExec(`${NPM_BIN} install -g npm@latest`, LONG_TIMEOUT);
+              log = stdout + (stderr ? `\n${stderr}` : "");
+            }
+            const { stdout: newNpm } = await safeExec("npm --version", CMD_TIMEOUT);
+            log += `\n--- 验证 ---\n新版本: ${newNpm.trim()}`;
+            break;
+          }
 
           case "pm2":
             // 更新 PM2
@@ -682,37 +747,53 @@ export default async function environmentRoutes(app: FastifyInstance) {
   }>();
 
   // 组件对应的脚本步骤生成器
+  // 注意：不使用 set -e，因为我们需要记录每个命令的退出码并继续执行
+  // 改为每步用 `|| echo "EXIT_X=failed"` 模式捕获错误，最后统一判断
   const COMPONENT_STEPS: Record<string, { label: string; script: string }> = {
     "npm-packages": {
       label: "更新项目 npm 依赖 + 升级 npm 自身",
       script: `{
-  cd ${PROJECT_ROOT} && npm update 2>&1
-  echo "EXIT_FE=\\$?"
-  cd ${PROJECT_ROOT}/api && npm update 2>&1
-  echo "EXIT_BE=\\$?"
+  cd ${PROJECT_ROOT} && npm update 2>&1 || echo "WARN: 前端 npm update 失败"
+  cd ${PROJECT_ROOT}/api && npm update 2>&1 || echo "WARN: 后端 npm update 失败"
   # 升级 npm 到最新稳定版
-  npm install -g npm@latest 2>&1
-  echo "EXIT_NPM=\\$?"
+  npm install -g npm@latest 2>&1 || echo "WARN: npm 自身升级失败"
+} >> "\$LOG" 2>&1`,
+    },
+    node: {
+      label: "升级 Node.js 到最新 LTS",
+      script: `{
+  CURRENT_MAJOR=\$(node -p "process.versions.node.split('.')[0]")
+  # 获取最新 LTS 版本号
+  LATEST=\$(curl -s "https://nodejs.org/dist/index.json" --max-time 10 2>/dev/null | node -p "const d=require('fs').readFileSync(0,'utf8');const j=JSON.parse(d);const l=j.find(x=>typeof x.lts==='string');l?l.version.replace('v',''):''" 2>/dev/null)
+  LATEST_MAJOR=\$(echo "\$LATEST" | cut -d. -f1)
+  if [ -z "\$LATEST_MAJOR" ] || [ "\$LATEST_MAJOR" -le "\$CURRENT_MAJOR" ]; then
+    echo "Node.js 已是最新 LTS，跳过升级（当前主版本: \$CURRENT_MAJOR）"
+  else
+    echo "升级 Node.js: \$CURRENT_MAJOR.x → \$LATEST_MAJOR.x (\$LATEST)"
+    curl -fsSL "https://deb.nodesource.com/setup_\${LATEST_MAJOR}.x" | bash - 2>&1 || echo "WARN: NodeSource setup 失败"
+    apt-get install -y nodejs 2>&1 || echo "WARN: apt install nodejs 失败"
+    echo "新版本: \$(node --version)"
+  fi
 } >> "\$LOG" 2>&1`,
     },
     pm2: {
       label: "更新 PM2",
       script: `{
-  npm install -g pm2@latest 2>&1
-  pm2 save 2>&1
-  pm2 reload all 2>&1
+  npm install -g pm2@latest 2>&1 || echo "WARN: PM2 升级失败"
+  pm2 save 2>&1 || true
+  pm2 reload all 2>&1 || echo "WARN: PM2 reload 失败"
 } >> "\$LOG" 2>&1`,
     },
     nginx: {
       label: "重载 Nginx",
       script: `{
-  nginx -t 2>&1 && systemctl reload nginx 2>&1
+  nginx -t 2>&1 && systemctl reload nginx 2>&1 || echo "WARN: Nginx 重载失败"
 } >> "\$LOG" 2>&1`,
     },
   };
 
-  // 推荐的一键更新组件列表（依次执行，PM2 必须最后更新）
-  const RECOMMENDED_COMPONENTS = ["npm-packages", "pm2", "nginx"] as const;
+  // 推荐的一键更新组件列表（依次执行，Node.js 必须在 npm-packages 前，PM2 最后）
+  const RECOMMENDED_COMPONENTS = ["node", "npm-packages", "pm2", "nginx"] as const;
 
   app.post(
     "/update-all",
@@ -749,7 +830,8 @@ echo "[$(date -Iseconds)] 步骤${stepIndex}完成" >> "\$LOG"`;
         const componentListStr = components.join(",");
 
         const script = `#!/bin/bash
-set -e
+# 不使用 set -e，允许单个步骤失败后继续执行后续步骤
+# 错误通过日志中的 WARN 标记识别
 LOG="${logFile}"
 echo "COMPONENTS=${componentListStr}" >> "\$LOG"
 echo "[$(date -Iseconds)] === 一键更新开始（${components.length} 个组件）===" >> "\$LOG"
