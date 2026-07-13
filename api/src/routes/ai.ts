@@ -277,6 +277,18 @@ export default async function aiRoutes(fastify: FastifyInstance) {
   });
 
   // ---------- POST /upload：上传图片/文档（base64），返回 data URL ----------
+  // 安全修复：MIME 类型白名单 + 魔术字节校验，防止恶意文件伪装
+  const ALLOWED_MIME = new Set([
+    "image/jpeg", "image/png", "image/webp", "image/gif",
+  ]);
+  // 图片魔术字节签名（前几字节）
+  const MAGIC_BYTES: Record<string, number[]> = {
+    "image/jpeg": [0xff, 0xd8, 0xff],
+    "image/png": [0x89, 0x50, 0x4e, 0x47],
+    "image/gif": [0x47, 0x49, 0x46],
+    "image/webp": [0x52, 0x49, 0x46, 0x46], // RIFF（webp 基于 RIFF 容器）
+  };
+
   fastify.post("/upload", async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { mimeType, base64Data, filename } = request.body as {
@@ -294,7 +306,31 @@ export default async function aiRoutes(fastify: FastifyInstance) {
         return reply.status(413).send(errorResponse("文件过大（最大 10MB）"));
       }
 
-      const type = mimeType || "application/octet-stream";
+      // 安全修复：MIME 类型白名单校验
+      const type = mimeType || "";
+      if (!ALLOWED_MIME.has(type)) {
+        return reply.status(400).send(errorResponse(
+          `不支持的文件类型: ${type || "未指定"}。仅支持: ${Array.from(ALLOWED_MIME).join(", ")}`
+        ));
+      }
+
+      // 安全修复：魔术字节校验，防止伪装文件类型
+      try {
+        const buf = Buffer.from(base64Data, "base64");
+        const expected = MAGIC_BYTES[type];
+        if (expected && buf.length >= expected.length) {
+          for (let i = 0; i < expected.length; i++) {
+            if (buf[i] !== expected[i]) {
+              return reply.status(400).send(errorResponse(
+                "文件内容与声明的类型不匹配（魔术字节校验失败）"
+              ));
+            }
+          }
+        }
+      } catch {
+        return reply.status(400).send(errorResponse("base64 解码失败"));
+      }
+
       const dataUrl = `data:${type};base64,${base64Data}`;
 
       logAdminAction((request as any).user.id, (request as any).user.username, "ai_tool_execute", {

@@ -8,6 +8,17 @@
 import type { FastifyRequest } from "fastify";
 import { pool } from "../config/database.js";
 
+/**
+ * 安全获取客户端真实 IP
+ * 安全修复：使用 request.ip（依赖 Fastify trustProxy 配置），
+ * 不再直接信任 X-Forwarded-For 头（可被客户端伪造）
+ */
+function getClientIpSafe(request: FastifyRequest): string {
+  // trustProxy=true 时，Fastify 会正确解析 X-Forwarded-For 并取最右侧可信代理之前的 IP
+  // 这比手动取 X-Forwarded-For[0] 更安全，因为后者可被客户端伪造
+  return request.ip || "";
+}
+
 export type LogAction =
   | "admin_login"
   | "exam_create"
@@ -83,18 +94,8 @@ export async function logAdminAction(
   request?: FastifyRequest
 ) {
   try {
-    // 优先从 request 中解析真实客户端 IP，未传则保持空字符串（向后兼容）
-    let ip = "";
-    if (request) {
-      const forwarded = request.headers["x-forwarded-for"];
-      if (typeof forwarded === "string") {
-        ip = forwarded.split(",")[0].trim();
-      } else if (Array.isArray(forwarded) && forwarded.length > 0) {
-        ip = forwarded[0].toString().split(",")[0].trim();
-      } else if (request.ip) {
-        ip = request.ip;
-      }
-    }
+    // 安全修复：使用 request.ip 获取真实 IP，不再直接信任 X-Forwarded-For
+    const ip = request ? getClientIpSafe(request) : "";
     await pool.execute(
       `INSERT INTO admin_logs (admin_id, admin_username, action, details, ip_address)
        VALUES (?, ?, ?, ?, ?)`,

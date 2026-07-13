@@ -20,17 +20,56 @@ interface MarkdownProps {
   streaming?: boolean;
 }
 
+/**
+ * 安全的 HTML 转义：转义所有可能破坏 HTML 上下文的字符（含引号，防属性注入）
+ */
 function escapeHtml(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/**
+ * URL 安全协议白名单：只允许 http(s)、mailto、tel、相对路径、锚点
+ * 阻止 javascript:、data:、vbscript: 等危险协议
+ */
+const SAFE_URL = /^(https?:|mailto:|tel:|\/|\.\/|\.\.\/|#)/i;
+
+/**
+ * 校验 URL 是否安全，不安全则返回空字符串
+ */
+function sanitizeUrl(url: string): string {
+  const trimmed = url.trim();
+  if (!trimmed) return "";
+  // 解码可能的 HTML 实体（防双重编码绕过）
+  const decoded = trimmed
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, "&");
+  // 去除控制字符（防 javascript:\talert 等绕过）
+  const cleaned = decoded.replace(/[\x00-\x20\x7f]/g, "");
+  if (SAFE_URL.test(cleaned)) return trimmed;
+  return "";
 }
 
 function renderInline(text: string): string {
   let s = escapeHtml(text);
   s = s.replace(/`([^`]+)`/g, '<code class="px-1 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-[0.9em] font-mono">$1</code>');
   s = s.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-semibold text-zinc-900 dark:text-white">$1</strong>');
+  // 链接：URL 必须通过协议白名单校验，否则只显示文本不生成 <a> 标签
   s = s.replace(
     /\[([^\]]+)\]\(([^)\s]+)\)/g,
-    '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 underline">$1</a>'
+    (match, linkText: string, url: string) => {
+      const safeUrl = sanitizeUrl(url);
+      if (!safeUrl) {
+        // 不安全的 URL：只返回文本，不生成可点击链接
+        return linkText;
+      }
+      return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 underline">${linkText}</a>`;
+    }
   );
   return s;
 }

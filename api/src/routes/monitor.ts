@@ -195,13 +195,9 @@ function getNetworkInterfaces() {
   return result;
 }
 
-// 在生产环境中过滤敏感字段(MAC 地址、netmask、私网 IP)
+// 安全修复：不论环境，统一过滤 MAC 地址和 netmask 等敏感字段
+// 之前的实现仅在 NODE_ENV=production 时过滤，若环境变量未设置则泄露网卡信息
 function filterSensitiveNetworkInfo(networks: ReturnType<typeof getNetworkInterfaces>) {
-  const includeNetworkInfo = process.env.NODE_ENV !== "production";
-  if (includeNetworkInfo) {
-    return networks;
-  }
-  // 生产环境:移除 MAC 和 netmask 等敏感字段,仅保留必要信息
   return networks.map((n) => ({
     name: n.name,
     address: n.address,

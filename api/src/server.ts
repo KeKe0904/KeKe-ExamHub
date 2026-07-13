@@ -43,6 +43,10 @@ const app = Fastify({
   logger: {
     level: process.env.NODE_ENV === "production" ? "info" : "debug",
   },
+  // 安全修复：配置 trustProxy，使 request.ip 正确获取客户端真实 IP
+  // 部署在 Nginx 反向代理后时，未配置会导致所有请求 IP 显示为 127.0.0.1
+  // 使限流和 IP 黑名单失效
+  trustProxy: true,
 });
 
 // 启动服务器
@@ -162,7 +166,12 @@ async function start() {
       !WEAK_JWT_SECRETS.has(jwtSecret);
 
     if (isJwtSecretValid) {
-      await app.register(jwt, { secret: jwtSecret as string });
+      // 安全修复：显式锁定 JWT 算法为 HS256，防止算法混淆攻击
+      await app.register(jwt, {
+        secret: jwtSecret as string,
+        sign: { algorithm: "HS256" },
+        verify: { algorithms: ["HS256"] },
+      });
     } else {
       const reason = !jwtSecret
         ? "JWT_SECRET 未配置"
@@ -188,11 +197,11 @@ async function start() {
     await app.register(setupRoutes, { prefix: "/api/setup" });
 
     // 健康检查（在仅安装模式下也可用）
+    // 安全修复：不公开返回 setupMode 状态，防止攻击者探测系统是否未完成安装
     app.get("/api/health", async () => {
       return {
         status: "ok",
         timestamp: new Date().toISOString(),
-        setupMode: !isJwtSecretValid,
       };
     });
 

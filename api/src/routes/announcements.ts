@@ -79,16 +79,17 @@ export default async function announcementRoutes(fastify: FastifyInstance) {
   });
 
   // 获取单个公告详情（公开接口）
+  // 安全修复：只返回已发布（is_active=1）的公告，防止枚举未发布/草稿内容
   fastify.get("/:id", async (request, reply) => {
     try {
       const { id } = request.params as { id: string };
       const [rows] = await pool.execute(
-        "SELECT * FROM announcements WHERE id = ?",
+        "SELECT * FROM announcements WHERE id = ? AND is_active = 1",
         [id]
       );
       const announcements = rows as AnnouncementRow[];
       if (announcements.length === 0) {
-        return reply.status(404).send(errorResponse("公告不存在"));
+        return reply.status(404).send(errorResponse("公告不存在或未发布"));
       }
       return reply.send(successResponse(formatAnnouncement(announcements[0])));
     } catch (error) {

@@ -212,7 +212,15 @@ export default async function setupRoutes(fastify: FastifyInstance) {
           version,
         };
       } catch (error: any) {
-        return { success: false, message: error.message };
+        // 安全修复：不直接返回原始错误消息，防止泄露数据库用户名、主机等信息
+        const msg = error?.code === "ER_ACCESS_DENIED_ERROR"
+          ? "数据库认证失败：用户名或密码错误"
+          : error?.code === "ECONNREFUSED"
+          ? "数据库连接被拒绝：请检查数据库服务是否启动、主机和端口是否正确"
+          : error?.code === "ENOTFOUND"
+          ? "数据库主机无法解析：请检查主机名是否正确"
+          : "数据库连接失败，请检查配置";
+        return { success: false, message: msg };
       }
     }
   );

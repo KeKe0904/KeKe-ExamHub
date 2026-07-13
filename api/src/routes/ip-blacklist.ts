@@ -161,7 +161,7 @@ export default async function ipBlacklistRoutes(fastify: FastifyInstance) {
       clearBlacklistCache(trimmedIp);
 
       // 记录审计日志
-      logAdminActionWithIp(user.id, user.username, "ip_blacklist_add", request.headers["x-forwarded-for"]?.toString().split(",")[0].trim() || request.ip, {
+      logAdminActionWithIp(user.id, user.username, "ip_blacklist_add", request.ip, {
         ipId: insertId,
         ipAddress: trimmedIp,
         reason: reason || "",
@@ -209,7 +209,7 @@ export default async function ipBlacklistRoutes(fastify: FastifyInstance) {
       clearBlacklistCache(oldIp);
 
       // 记录审计日志
-      logAdminActionWithIp(user.id, user.username, "ip_blacklist_update", request.headers["x-forwarded-for"]?.toString().split(",")[0].trim() || request.ip, {
+      logAdminActionWithIp(user.id, user.username, "ip_blacklist_update", request.ip, {
         ipId: id,
         ipAddress: oldIp,
         reason: reason || "",
@@ -245,7 +245,7 @@ export default async function ipBlacklistRoutes(fastify: FastifyInstance) {
       clearBlacklistCache(ipAddress);
 
       // 记录审计日志
-      logAdminActionWithIp(user.id, user.username, "ip_blacklist_delete", request.headers["x-forwarded-for"]?.toString().split(",")[0].trim() || request.ip, {
+      logAdminActionWithIp(user.id, user.username, "ip_blacklist_delete", request.ip, {
         ipId: id,
         ipAddress,
       });
@@ -417,7 +417,7 @@ export default async function ipBlacklistRoutes(fastify: FastifyInstance) {
       }
 
       // 记录审计日志
-      logAdminActionWithIp(user.id, user.username, "abnormal_login_review", request.headers["x-forwarded-for"]?.toString().split(",")[0].trim() || request.ip, {
+      logAdminActionWithIp(user.id, user.username, "abnormal_login_review", request.ip, {
         logId: id,
         action,
         ipAddress: log.ip_address,

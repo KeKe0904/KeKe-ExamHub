@@ -12,6 +12,60 @@ import { successResponse, errorResponse } from "../utils/response.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { logAdminAction } from "../utils/audit-log.js";
 
+/**
+ * 安全修复：校验 base64 图片数据是否为合法图片（防止 SVG XSS 和恶意文件）
+ * 支持 data:image/xxx;base64,... 和纯 base64 两种格式
+ * 拒绝 image/svg+xml（可内嵌 <script>）
+ */
+const ALLOWED_IMAGE_MIME = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+const IMAGE_MAGIC: Record<string, number[]> = {
+  "image/jpeg": [0xff, 0xd8, 0xff],
+  "image/png": [0x89, 0x50, 0x4e, 0x47],
+  "image/gif": [0x47, 0x49, 0x46],
+  "image/webp": [0x52, 0x49, 0x46, 0x46],
+};
+
+function validateBase64Image(data: string): { ok: boolean; error?: string } {
+  if (!data) return { ok: false, error: "数据为空" };
+  // 解析 data URL 格式：data:image/png;base64,xxxx
+  let mime = "";
+  let base64 = data;
+  const dataUrlMatch = data.match(/^data:([a-zA-Z0-9/+.-]+);base64,(.+)$/);
+  if (dataUrlMatch) {
+    mime = dataUrlMatch[1];
+    base64 = dataUrlMatch[2];
+  }
+  // 如果带 MIME，校验白名单；如果纯 base64，尝试通过魔术字节推断
+  if (mime) {
+    if (!ALLOWED_IMAGE_MIME.has(mime)) {
+      return { ok: false, error: `不支持的图片类型: ${mime}（仅支持 JPEG/PNG/WebP/GIF）` };
+    }
+  }
+  // 魔术字节校验
+  try {
+    const buf = Buffer.from(base64, "base64");
+    if (buf.length < 4) return { ok: false, error: "数据过短" };
+    // 尝试匹配已知魔术字节
+    let matched = false;
+    for (const [expectedMime, magic] of Object.entries(IMAGE_MAGIC)) {
+      if (buf.length >= magic.length && magic.every((b, i) => buf[i] === b)) {
+        // 如果声明了 MIME，检查是否与魔术字节一致
+        if (mime && mime !== expectedMime) {
+          return { ok: false, error: "文件内容与声明的类型不匹配" };
+        }
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) {
+      return { ok: false, error: "无法识别的图片格式" };
+    }
+  } catch {
+    return { ok: false, error: "base64 解码失败" };
+  }
+  return { ok: true };
+}
+
 export default async function settingsRoutes(fastify: FastifyInstance) {
   // 获取当前管理员信息
   fastify.get("/profile", {
@@ -48,8 +102,13 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
       if (!oldPassword || !newPassword) {
         return reply.status(400).send(errorResponse("请输入旧密码和新密码"));
       }
-      if (newPassword.length < 6) {
-        return reply.status(400).send(errorResponse("新密码至少6位"));
+      // 安全修复：管理员密码复杂度对齐学生/教师要求
+      // 至少 8 位，必须同时包含字母和数字
+      if (newPassword.length < 8) {
+        return reply.status(400).send(errorResponse("新密码至少8位"));
+      }
+      if (!/[a-zA-Z]/.test(newPassword) || !/\d/.test(newPassword)) {
+        return reply.status(400).send(errorResponse("新密码必须同时包含字母和数字"));
       }
 
       // 查询当前密码
@@ -99,6 +158,12 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
       // 限制头像大小（base64 约 2MB）
       if (avatar.length > 2 * 1024 * 1024) {
         return reply.status(400).send(errorResponse("头像文件过大，请上传小于2MB的图片"));
+      }
+
+      // 安全修复：校验图片类型和魔术字节，防止 SVG XSS 等攻击
+      const imgCheck = validateBase64Image(avatar);
+      if (!imgCheck.ok) {
+        return reply.status(400).send(errorResponse(`头像校验失败: ${imgCheck.error}`));
       }
 
       await pool.execute(
@@ -210,6 +275,13 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
         // favicon 限制为 1MB（base64）
         if (siteFavicon && siteFavicon.length > 1 * 1024 * 1024) {
           return reply.status(400).send(errorResponse("图标文件过大，请上传小于1MB的图片"));
+        }
+        // 安全修复：校验 favicon 图片类型（非空时）
+        if (siteFavicon) {
+          const favCheck = validateBase64Image(siteFavicon);
+          if (!favCheck.ok) {
+            return reply.status(400).send(errorResponse(`图标校验失败: ${favCheck.error}`));
+          }
         }
         updates.push({ key: "site_favicon", value: siteFavicon });
       }

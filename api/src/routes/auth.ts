@@ -80,6 +80,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
   });
 
   // 验证 token 是否有效
+  // 安全修复：校验 role === "admin"，防止其他端 token 通过管理员验证接口
   fastify.get("/verify", {
     preHandler: async (request, reply) => {
       try {
@@ -91,7 +92,12 @@ export default async function authRoutes(fastify: FastifyInstance) {
         const decoded = fastify.jwt.verify(token) as {
           id: number;
           username: string;
+          role?: string;
         };
+        // 校验角色：此端点仅供管理员使用
+        if (decoded.role !== "admin") {
+          return reply.status(403).send(errorResponse("无权访问此接口"));
+        }
         (request as any).user = { id: decoded.id, username: decoded.username };
       } catch (error) {
         return reply.status(401).send(errorResponse("认证令牌无效或已过期"));
