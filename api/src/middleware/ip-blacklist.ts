@@ -85,6 +85,69 @@ export function clearBlacklistCache(ip?: string) {
   }
 }
 
+// ==================== 登录失败自动封禁 ====================
+// 内存计数器：IP → 失败次数和首次失败时间
+interface FailRecord {
+  count: number;
+  firstFailAt: number;
+}
+const loginFailRecords = new Map<string, FailRecord>();
+
+// 封禁阈值：5 次失败后封禁 15 分钟
+const FAIL_THRESHOLD = 5;
+const BAN_DURATION_MS = 15 * 60 * 1000; // 15 分钟
+
+/**
+ * 记录一次登录失败。达到阈值时自动将 IP 加入黑名单（临时封禁）。
+ * 调用方：登录路由（admin/teacher/student/classroom）在密码错误时调用。
+ */
+export async function recordLoginFailure(ip: string, username?: string): Promise<void> {
+  // 本地回环不封禁（避免开发环境自锁）
+  if (ip === "127.0.0.1" || ip === "::1") return;
+
+  const now = Date.now();
+  const record = loginFailRecords.get(ip);
+
+  if (!record) {
+    loginFailRecords.set(ip, { count: 1, firstFailAt: now });
+    return;
+  }
+
+  record.count += 1;
+
+  // 达到阈值，加入黑名单
+  if (record.count >= FAIL_THRESHOLD) {
+    try {
+      const expiresAt = new Date(now + BAN_DURATION_MS);
+      const reason = `登录失败自动封禁（${record.count} 次失败，用户名: ${username || "未知"}）`;
+
+      // 使用 INSERT ... ON DUPLICATE KEY UPDATE 处理已存在记录
+      await pool.execute(
+        `INSERT INTO ip_blacklist (ip_address, reason, expires_at, created_at)
+         VALUES (?, ?, ?, NOW())
+         ON DUPLICATE KEY UPDATE reason = VALUES(reason), expires_at = VALUES(expires_at), created_at = NOW()`,
+        [ip, reason, expiresAt]
+      );
+
+      // 清除缓存使新封禁立即生效
+      clearBlacklistCache(ip);
+      console.warn(`[security] IP ${ip} 因连续 ${record.count} 次登录失败被自动封禁 15 分钟`);
+
+      // 重置计数
+      loginFailRecords.delete(ip);
+    } catch (error) {
+      console.error("[security] 自动封禁写入失败:", error);
+    }
+  }
+}
+
+/**
+ * 登录成功时清除该 IP 的失败计数。
+ */
+export function clearLoginFailure(ip: string): void {
+  loginFailRecords.delete(ip);
+}
+
 // IP 黑名单中间件 — 用于全局拦截，被封禁的 IP 返回 404
 export async function ipBlacklistMiddleware(
   request: FastifyRequest,

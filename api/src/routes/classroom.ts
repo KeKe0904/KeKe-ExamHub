@@ -15,7 +15,7 @@ import {
   type ExamRow,
 } from "../utils/response.js";
 import { classroomAuthMiddleware } from "../middleware/auth.js";
-import { getClientIp } from "../middleware/ip-blacklist.js";
+import { getClientIp, recordLoginFailure, clearLoginFailure } from "../middleware/ip-blacklist.js";
 import { logAdminAction } from "../utils/audit-log.js";
 
 export default async function classroomRoutes(fastify: FastifyInstance) {
@@ -236,10 +236,14 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
           "failed",
           false
         );
+        await recordLoginFailure(clientIp, `${buildingId}-${roomNumber}`);
         return reply
           .status(401)
           .send(errorResponse("教室号或密码错误"));
       }
+
+      // 登录成功前先清除失败计数（此处可能还有审核状态判断，但密码已验证）
+      clearLoginFailure(clientIp);
 
       // 检查审核状态
       if (classroom.status === "pending") {
@@ -266,7 +270,8 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
       // ========== 异常 IP 检测 ==========
       // 安全修复：恢复 IP 信任检测，防止教室端账号从任意 IP 登录
       // 通过环境变量 SKIP_IP_TRUST=true 可在开发/演示环境跳过检测
-      const skipIpCheck = process.env.SKIP_IP_TRUST === "true";
+      // 生产环境强制启用 IP 信任检测，SKIP_IP_TRUST 仅在非生产环境生效
+      const skipIpCheck = process.env.SKIP_IP_TRUST === "true" && process.env.NODE_ENV !== "production";
       const trusted = skipIpCheck || await isTrustedIp(classroom.id, clientIp);
 
       if (!trusted) {

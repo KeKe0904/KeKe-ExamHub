@@ -10,6 +10,7 @@ import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import bcrypt from "bcryptjs";
 import { pool } from "../config/database.js";
 import { successResponse, errorResponse } from "../utils/response.js";
+import { likePattern } from "../utils/db.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { logAdminAction } from "../utils/audit-log.js";
 
@@ -81,7 +82,8 @@ export default async function studentRoutes(fastify: FastifyInstance) {
 
       if (search) {
         conditions.push("(s.name LIKE ? OR s.student_no LIKE ?)");
-        params.push(`%${search}%`, `%${search}%`);
+        const p = likePattern(search);
+        params.push(p, p);
       }
 
       if (classId) {

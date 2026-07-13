@@ -10,6 +10,7 @@ import { pool } from "../config/database.js";
 import { successResponse, errorResponse, formatExam, formatClassroom, type ExamRow, type ClassroomRow } from "../utils/response.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { sanitizeText } from "../utils/xss.js";
+import { likePattern } from "../utils/db.js";
 import { logAdminAction } from "../utils/audit-log.js";
 
 export default async function examRoutes(fastify: FastifyInstance) {
@@ -49,7 +50,7 @@ export default async function examRoutes(fastify: FastifyInstance) {
       // 搜索条件
       if (search) {
         conditions.push("(subject LIKE ? OR location LIKE ? OR invigilator LIKE ?)");
-        const searchPattern = `%${search}%`;
+        const searchPattern = likePattern(search);
         params.push(searchPattern, searchPattern, searchPattern);
       }
 

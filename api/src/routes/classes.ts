@@ -9,6 +9,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { pool } from "../config/database.js";
 import { successResponse, errorResponse } from "../utils/response.js";
+import { likePattern } from "../utils/db.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { logAdminAction } from "../utils/audit-log.js";
 
@@ -62,7 +63,7 @@ export default async function classRoutes(fastify: FastifyInstance) {
 
       if (search) {
         conditions.push("c.name LIKE ?");
-        params.push(`%${search}%`);
+        params.push(likePattern(search));
       }
 
       if (grade) {

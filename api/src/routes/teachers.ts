@@ -10,6 +10,7 @@ import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import bcrypt from "bcryptjs";
 import { pool } from "../config/database.js";
 import { successResponse, errorResponse } from "../utils/response.js";
+import { likePattern } from "../utils/db.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { logAdminAction } from "../utils/audit-log.js";
 
@@ -231,7 +232,8 @@ export default async function teacherRoutes(fastify: FastifyInstance) {
 
       if (search) {
         conditions.push("(t.name LIKE ? OR t.phone LIKE ? OR t.teacher_no LIKE ?)");
-        params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+        const p = likePattern(search);
+        params.push(p, p, p);
       }
 
       if (roleId) {

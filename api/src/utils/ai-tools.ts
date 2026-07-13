@@ -10,6 +10,7 @@ import bcrypt from "bcryptjs";
 import os from "os";
 import { pool } from "../config/database.js";
 import { sanitizeText, sanitizeHtml } from "./xss.js";
+import { likePattern, safeInt } from "./db.js";
 import { localizeMysqlError } from "./localize-error.js";
 
 // ==================== 风险分级 ====================
@@ -661,13 +662,13 @@ async function toolQueryExams(args: {
   const { search, status } = args;
   // 安全修复：强制转换为整数，防止 AI 传入字符串/浮点数导致
   // prepared statement 参数类型不匹配（Incorrect arguments to mysqld_stmt_execute）
-  const limit = Math.min(Number(args.limit) || 50, 200);
+  const limit = safeInt(args.limit, 50, 200);
   const conditions: string[] = [];
   const params: any[] = [];
 
   if (search) {
     conditions.push("(subject LIKE ? OR location LIKE ? OR invigilator LIKE ?)");
-    const p = `%${search}%`;
+    const p = likePattern(search);
     params.push(p, p, p);
   }
 
@@ -705,13 +706,13 @@ async function toolQueryExams(args: {
 
 async function toolQueryTeachers(args: { search?: string; limit?: number }) {
   const { search } = args;
-  const limit = Math.min(Number(args.limit) || 50, 200);
+  const limit = safeInt(args.limit, 50, 200);
   const conditions: string[] = [];
   const params: any[] = [];
 
   if (search) {
     conditions.push("(name LIKE ? OR teacher_no LIKE ?)");
-    const p = `%${search}%`;
+    const p = likePattern(search);
     params.push(p, p);
   }
 
@@ -743,14 +744,14 @@ async function toolQueryStudents(args: {
 }) {
   const { search, classId } = args;
   // 强制整数转换，避免 prepared statement 类型问题
-  const pageSize = Math.min(Number(args.pageSize) || 20, 200);
-  const page = Math.max(Number(args.page) || 1, 1);
+  const pageSize = safeInt(args.pageSize, 20, 200);
+  const page = Math.max(safeInt(args.page, 1, 10000), 1);
   const conditions: string[] = [];
   const params: any[] = [];
 
   if (search) {
     conditions.push("(s.name LIKE ? OR s.student_no LIKE ?)");
-    const p = `%${search}%`;
+    const p = likePattern(search);
     params.push(p, p);
   }
   if (classId) {
@@ -806,7 +807,7 @@ async function toolQueryClasses(args: { search?: string }) {
 
   if (search) {
     conditions.push("(c.name LIKE ? OR c.grade LIKE ?)");
-    const p = `%${search}%`;
+    const p = likePattern(search);
     params.push(p, p);
   }
 
@@ -887,7 +888,7 @@ async function toolQueryAuditLogs(args: {
   limit?: number;
 }) {
   const { action, adminId, startDate, endDate } = args;
-  const limit = Math.min(Number(args.limit) || 30, 100);
+  const limit = safeInt(args.limit, 30, 100);
   const conditions: string[] = [];
   const params: any[] = [];
 
@@ -929,7 +930,7 @@ async function toolQueryAbnormalLogins(args: {
   limit?: number;
 }) {
   const reviewStatus = args.reviewStatus ?? "pending";
-  const limit = Math.min(Number(args.limit) || 30, 100);
+  const limit = safeInt(args.limit, 30, 100);
   const conditions: string[] = ["is_abnormal = 1"];
   const params: any[] = [];
 

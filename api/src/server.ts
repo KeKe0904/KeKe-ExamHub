@@ -46,7 +46,8 @@ const app = Fastify({
   // 安全修复：配置 trustProxy，使 request.ip 正确获取客户端真实 IP
   // 部署在 Nginx 反向代理后时，未配置会导致所有请求 IP 显示为 127.0.0.1
   // 使限流和 IP 黑名单失效
-  trustProxy: true,
+  // 信任 1 层代理（Nginx），避免信任所有代理带来的 IP 伪造风险
+  trustProxy: 1,
 });
 
 // 启动服务器

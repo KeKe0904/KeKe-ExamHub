@@ -9,6 +9,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { pool } from "../config/database.js";
 import { successResponse, errorResponse } from "../utils/response.js";
+import { likePattern } from "../utils/db.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { clearBlacklistCache } from "../middleware/ip-blacklist.js";
 import { logAdminActionWithIp } from "../utils/audit-log.js";
@@ -71,7 +72,7 @@ export default async function ipBlacklistRoutes(fastify: FastifyInstance) {
 
       if (search) {
         conditions.push("ip_address LIKE ?");
-        params.push(`%${search}%`);
+        params.push(likePattern(search));
       }
 
       if (status === "active") {

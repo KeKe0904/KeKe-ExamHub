@@ -443,7 +443,18 @@ async function getNodeLatestLTS(): Promise<string> {
       // index.json 中 LTS 版本的 lts 字段是代号字符串（如 "Krypton"），非 LTS 是 false
       // 用 typeof 严格检查，避免 null/undefined 被误判
       const lts = list.find((item: any) => typeof item.lts === "string" && item.lts);
-      if (lts) return extractVersion(lts.version);
+      if (lts) {
+        const version = extractVersion(lts.version);
+        // 白名单校验：仅允许已知的 Node.js LTS 主版本号
+        // 防止上游被劫持时返回异常版本号导致 curl|bash 执行恶意代码
+        const major = parseInt(version.split(".")[0]);
+        const KNOWN_LTS_MAJORS = [18, 20, 22, 24]; // Iron, Hydrogen, Jod, Krypton
+        if (!KNOWN_LTS_MAJORS.includes(major)) {
+          console.error(`[security] 检测到未知 LTS 主版本: ${major}，拒绝升级`);
+          return "未知";
+        }
+        return version;
+      }
     }
     return "未知";
   } catch {

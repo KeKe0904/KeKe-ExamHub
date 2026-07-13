@@ -10,6 +10,7 @@ import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import bcrypt from "bcryptjs";
 import { pool } from "../config/database.js";
 import { successResponse, errorResponse } from "../utils/response.js";
+import { getClientIp, recordLoginFailure, clearLoginFailure } from "../middleware/ip-blacklist.js";
 
 // 时序攻击防护用的固定 dummy hash（账号不存在时仍执行 bcrypt 比较以均衡响应时间）
 const DUMMY_PASSWORD_HASH =
@@ -156,6 +157,7 @@ export default async function studentAuthRoutes(fastify: FastifyInstance) {
       if (students.length === 0) {
         // 时序攻击防护：账号不存在时也执行一次 bcrypt 比较，避免响应时间差异泄露账号是否存在
         await bcrypt.compare(password, DUMMY_PASSWORD_HASH);
+        await recordLoginFailure(getClientIp(request), studentNo);
         return reply.status(401).send(errorResponse("学号或密码错误"));
       }
 
@@ -167,8 +169,12 @@ export default async function studentAuthRoutes(fastify: FastifyInstance) {
 
       const isPasswordValid = await bcrypt.compare(password, student.password);
       if (!isPasswordValid) {
+        await recordLoginFailure(getClientIp(request), studentNo);
         return reply.status(401).send(errorResponse("学号或密码错误"));
       }
+
+      // 登录成功，清除失败计数
+      clearLoginFailure(getClientIp(request));
 
       const token = fastify.jwt.sign(
         {
