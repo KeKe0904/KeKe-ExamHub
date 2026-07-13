@@ -230,7 +230,7 @@ export default function Setup() {
               访问首页
             </a>
             <a
-              href="/admin/login"
+              href="/login?role=admin"
               className="border border-zinc-300 dark:border-zinc-600 text-black dark:text-white px-6 py-3 rounded-lg font-medium hover:border-black dark:hover:border-white transition-colors"
             >
               管理后台登录
@@ -389,7 +389,7 @@ export default function Setup() {
               访问首页
             </a>
             <a
-              href="/admin/login"
+              href="/login?role=admin"
               className={`px-6 py-3 rounded-lg font-medium transition-colors ${
                 isRestarting
                   ? "border border-zinc-300 dark:border-zinc-700 text-zinc-400 dark:text-zinc-500 cursor-not-allowed pointer-events-none"

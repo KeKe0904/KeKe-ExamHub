@@ -12,21 +12,18 @@ import ExamDetail from "@/pages/ExamDetail";
 import Monitor from "@/pages/Monitor";
 import SchoolInfo from "@/pages/SchoolInfo";
 import Setup from "@/pages/Setup";
+// 统一登录入口（管理员 / 教师 / 学生 / 教室端 同一页面切换）
+import Login from "@/pages/Login";
 // 学生端页面
-import StudentLogin from "@/pages/student/Login";
 import StudentHome from "@/pages/student/Home";
 // 教师端页面
-import TeacherLogin from "@/pages/teacher/Login";
 import TeacherHome from "@/pages/teacher/Home";
 import TeacherStudents from "@/pages/teacher/Students";
 import TeacherExams from "@/pages/teacher/Exams";
 // 教室端页面
-import ClassroomLogin from "@/pages/classroom/Login";
-import ClassroomRegister from "@/pages/classroom/Register";
 import ClassroomHome from "@/pages/classroom/Home";
 import ClassroomInvigilation from "@/pages/classroom/Invigilation";
 // 管理后台页面
-import Login from "@/pages/admin/Login";
 import Dashboard from "@/pages/admin/Dashboard";
 import DataDashboard from "@/pages/admin/DataDashboard";
 import ExamList from "@/pages/admin/ExamList";
@@ -68,8 +65,18 @@ export default function App() {
         <Route path="/exam/:id/monitor" element={<Monitor />} />
         <Route path="/school-info" element={<SchoolInfo />} />
 
+        {/* ============ 统一登录入口 ============ */}
+        {/* 所有端共用一个登录页面，通过 ?role=admin|teacher|student|classroom 切换 */}
+        <Route path="/login" element={<Login />} />
+
+        {/* 旧的分散入口重定向到统一入口（保持外部链接兼容） */}
+        <Route path="/admin/login" element={<Navigate to="/login?role=admin" replace />} />
+        <Route path="/teacher/login" element={<Navigate to="/login?role=teacher" replace />} />
+        <Route path="/student/login" element={<Navigate to="/login?role=student" replace />} />
+        <Route path="/classroom/login" element={<Navigate to="/login?role=classroom" replace />} />
+        <Route path="/classroom/register" element={<Navigate to="/login?role=classroom&mode=register" replace />} />
+
         {/* ============ 学生端 ============ */}
-        <Route path="/student/login" element={<StudentLogin />} />
         <Route
           path="/student"
           element={
@@ -80,7 +87,6 @@ export default function App() {
         />
 
         {/* ============ 教师端 ============ */}
-        <Route path="/teacher/login" element={<TeacherLogin />} />
         <Route
           path="/teacher"
           element={
@@ -107,8 +113,6 @@ export default function App() {
         />
 
         {/* ============ 教室端 ============ */}
-        <Route path="/classroom/login" element={<ClassroomLogin />} />
-        <Route path="/classroom/register" element={<ClassroomRegister />} />
         <Route
           path="/classroom"
           element={
@@ -127,9 +131,6 @@ export default function App() {
         />
 
         {/* ============ 管理后台 ============ */}
-        {/* 登录（公开） */}
-        <Route path="/admin/login" element={<Login />} />
-
         {/* 概览 */}
         <Route
           path="/admin"

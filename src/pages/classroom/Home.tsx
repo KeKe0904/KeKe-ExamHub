@@ -68,7 +68,7 @@ export default function ClassroomHome() {
 
   const handleLogout = () => {
     logout();
-    navigate("/classroom/login");
+    navigate("/login?role=classroom");
   };
 
   const timeStr = currentTime.toLocaleTimeString("zh-CN", { hour12: false });

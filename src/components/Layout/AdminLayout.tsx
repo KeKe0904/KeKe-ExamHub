@@ -239,7 +239,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   const handleLogout = () => {
     logout();
-    navigate("/admin/login");
+    navigate("/login?role=admin");
   };
 
   return (

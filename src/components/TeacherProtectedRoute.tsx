@@ -52,7 +52,7 @@ export default function TeacherProtectedRoute({
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/teacher/login" replace />;
+    return <Navigate to="/login?role=teacher" replace />;
   }
 
   return <>{children}</>;

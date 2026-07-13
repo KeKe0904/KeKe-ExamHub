@@ -6,7 +6,7 @@
  * @license MIT
  */
 import { Link, useLocation } from "react-router-dom";
-import { GraduationCap, Menu, X, Monitor, User, BookOpen, Home, Info, Shield } from "@/components/MathIcon";
+import { GraduationCap, Menu, X, Home, Info, LogIn } from "@/components/MathIcon";
 import { useSidebar } from "@/hooks/useSidebar";
 import { cn } from "@/lib/utils";
 import { useSiteConfig } from "@/hooks/useSchoolName";
@@ -25,14 +25,11 @@ export default function UserLayout({ children }: UserLayoutProps) {
   // 统一使用侧边栏 Hook（路由切换时自动关闭）
   const { isOpen, close, toggle } = useSidebar(location.pathname);
 
-  // 顶部导航：按重要性排序，公开信息 → 各端入口 → 管理后台
+  // 顶部导航：公开信息 + 统一登录入口
   const navLinks = [
     { href: "/", label: "首页", icon: Home },
     { href: "/school-info", label: "学校信息", icon: Info },
-    { href: "/student/login", label: "学生端", icon: User },
-    { href: "/teacher/login", label: "教师端", icon: BookOpen },
-    { href: "/classroom/login", label: "教室端", icon: Monitor },
-    { href: "/admin/login", label: "管理后台", icon: Shield },
+    { href: "/login", label: "登录", icon: LogIn },
   ];
 
   const isActiveLink = (href: string) => {

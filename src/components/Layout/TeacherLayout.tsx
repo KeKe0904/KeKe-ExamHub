@@ -31,7 +31,7 @@ export default function TeacherLayout({ children }: TeacherLayoutProps) {
 
   const handleLogout = () => {
     logout();
-    navigate("/teacher/login");
+    navigate("/login?role=teacher");
   };
 
   const menuItems = [

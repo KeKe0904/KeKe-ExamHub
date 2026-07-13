@@ -22,7 +22,7 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
 
   const handleLogout = () => {
     logout();
-    navigate("/student/login");
+    navigate("/login?role=student");
   };
 
   return (
