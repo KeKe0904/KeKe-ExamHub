@@ -1,5 +1,22 @@
 /**
  * KeKe ExamHub - 考试信息管理系统
+ * 后端服务入口（Fastify）
+ *
+ * 启动流程：
+ *   1. 加载 .env 环境变量
+ *   2. 注册 CORS / rate-limit / JWT 插件
+ *   3. 注册全局中间件：IP 黑名单、域名访问控制
+ *   4. 测试数据库连接
+ *   5. 注册业务路由（23 个模块）
+ *   6. 监听端口（默认 3000）
+ *
+ * 安全机制（启动时校验）：
+ *   - JWT_SECRET 必须由环境变量提供，长度 ≥ 16 字符
+ *   - 拒绝一组已知的弱密钥（来自开源示例文件）
+ *   - 校验失败时进入"仅安装模式"，仅注册 /api/setup 和 /api/health
+ *   - CORS 生产环境采用 fail-closed 策略（必须配置 SITE_URL）
+ *   - trustProxy=1，正确解析 X-Forwarded-For
+ *
  * @author 落梦陳 (KeKe0904) | B站/抖音: 落梦陳
  * @github https://github.com/KeKe0904/KeKe-ExamHub
  * 本项目使用 Trae IDE 开发

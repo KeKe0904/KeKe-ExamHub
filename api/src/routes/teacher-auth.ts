@@ -1,10 +1,22 @@
 /**
  * KeKe ExamHub - 考试信息管理系统
- * 教师端认证路由
+ * 教师端认证与业务路由（/api/teacher-auth/*）
  * @author 落梦陳 (KeKe0904) | B站/抖音: 落梦陳
  * @github https://github.com/KeKe0904/KeKe-ExamHub
  * 本项目使用 Trae IDE 开发
  * @license MIT
+ *
+ * 路由列表:
+ *   POST /login             教师登录（限流 10 次/分钟，含时序攻击防护 + 自动封禁）
+ *   POST /change-password    修改自己的密码（要求字母+数字组合，至少 6 位）
+ *   GET  /me                获取当前登录教师信息
+ *   GET  /classes           获取自己担任班主任的班级列表
+ *   GET  /students          获取自己班级下的学生列表（支持 classId/search 过滤）
+ *   PUT  /students/:id      修改学生电话和备注（仅限自己班级下的学生）
+ *   GET  /exams             获取自己监考的考试列表（支持 upcoming/ongoing/ended 过滤）
+ *
+ * 鉴权: 除 /login 外均经 teacherAuthMiddleware（教师 JWT，role==="teacher"）保护
+ * 安全: 教师只能操作自己担任班主任的班级下的学生，通过 head_teacher_id 字段实现权限隔离
  */
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import bcrypt from "bcryptjs";
@@ -13,10 +25,14 @@ import { successResponse, errorResponse } from "../utils/response.js";
 import { likePattern } from "../utils/db.js";
 import { getClientIp, recordLoginFailure, clearLoginFailure } from "../middleware/ip-blacklist.js";
 
-// 时序攻击防护用的固定 dummy hash（账号不存在时仍执行 bcrypt 比较以均衡响应时间）
+/**
+ * 时序攻击防护用的固定 dummy hash
+ * 详见 routes/auth.ts 中相同常量的注释
+ */
 const DUMMY_PASSWORD_HASH =
   "$2a$10$p6LuDyKlf9RDKuDF.ZSYOuX7oLc8sOVzfJGvuOCzhd/l5DzmCCNVe";
 
+/** teachers 表行类型（含 LEFT JOIN teacher_roles 得到的 role_name） */
 interface TeacherRow {
   id: number;
   teacher_no: string | null;
@@ -33,6 +49,7 @@ interface TeacherRow {
   updated_at: Date;
 }
 
+/** classes 表行类型（含子查询 COUNT 得到的 student_count） */
 interface ClassRow {
   id: number;
   name: string;
@@ -40,6 +57,7 @@ interface ClassRow {
   student_count: number;
 }
 
+/** students 表行类型（教师视角，不含敏感字段） */
 interface StudentRow {
   id: number;
   student_no: string;
@@ -53,6 +71,7 @@ interface StudentRow {
   created_at: Date;
 }
 
+/** exams 表行类型（教师监考视角） */
 interface ExamRow {
   id: number;
   subject: string;
@@ -62,6 +81,7 @@ interface ExamRow {
   notes: string | null;
 }
 
+/** 将 teachers 表行转换为前端教师对象（不返回 password 字段） */
 function formatTeacher(row: TeacherRow) {
   return {
     id: String(row.id),
@@ -80,6 +100,7 @@ function formatTeacher(row: TeacherRow) {
   };
 }
 
+/** 将 classes 表行转换为前端班级对象 */
 function formatClass(row: ClassRow) {
   return {
     id: String(row.id),
@@ -89,6 +110,7 @@ function formatClass(row: ClassRow) {
   };
 }
 
+/** 将 students 表行转换为前端学生对象（教师视角，不含 id_card 等敏感字段） */
 function formatStudent(row: StudentRow) {
   return {
     id: String(row.id),
@@ -104,6 +126,11 @@ function formatStudent(row: StudentRow) {
   };
 }
 
+/**
+ * 将 exams 表行转换为前端考试对象
+ * 根据 exam_date + duration 动态计算考试状态（upcoming/ongoing/ended），
+ * 避免数据库存储冗余字段，且每次查询时反映最新时间状态。
+ */
 function formatExam(row: ExamRow) {
   const now = new Date();
   const examDate = new Date(row.exam_date);
@@ -127,6 +154,17 @@ function formatExam(row: ExamRow) {
   };
 }
 
+/**
+ * 教师端鉴权中间件
+ *
+ * 校验流程:
+ *   1. 提取 Authorization: Bearer <token> 头
+ *   2. 验证 JWT 签名与有效期
+ *   3. 校验 role === "teacher"（四端互斥认证，详见 middleware/auth.ts）
+ *   4. 将解码后的用户信息挂载到 request.user 供后续路由使用
+ *
+ * 失败返回 401（未提供/无效令牌）或 403（角色不匹配）
+ */
 async function teacherAuthMiddleware(
   request: FastifyRequest,
   reply: FastifyReply
@@ -143,6 +181,7 @@ async function teacherAuthMiddleware(
     const token = authHeader.substring(7);
     const decoded = request.server.jwt.verify(token) as any;
 
+    // 角色校验: 拒绝其他端 token 通过教师端接口
     if (decoded.role !== "teacher") {
       return reply.status(403).send({
         success: false,

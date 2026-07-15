@@ -1,9 +1,24 @@
 /**
  * KeKe ExamHub - 考试信息管理系统
+ * 教室端路由（/api/classroom/*）
  * @author 落梦陳 (KeKe0904) | B站/抖音: 落梦陳
  * @github https://github.com/KeKe0904/KeKe-ExamHub
  * 本项目使用 Trae IDE 开发
  * @license MIT
+ *
+ * 路由列表:
+ *   POST /register  教室端注册（限流 5 次/分钟，需注册码 + 教学楼 + 教室号）
+ *   POST /login     教室端登录（限流 5 次/分钟，含 IP 信任检测 + 异常登录审核）
+ *   GET  /verify    验证 token 是否有效
+ *   GET  /exams     获取分配给该教室的考试列表
+ *   GET  /profile   获取教室端自身信息
+ *
+ * 安全机制:
+ *   - 注册需有效注册码（一次性使用，crypto.randomInt 生成）
+ *   - 登录需通过 IP 信任检测（同一 IP 累计登录 >= 3 次视为可信）
+ *   - 非可信 IP 登录进入"待审核"状态，需管理员在异常登录页面批准
+ *   - 生产环境强制启用 IP 信任检测，开发环境可通过 SKIP_IP_TRUST=true 跳过
+ *   - 密码错误计入 IP 黑名单计数（5 次失败 → 15 分钟封禁）
  */
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import bcrypt from "bcryptjs";
@@ -19,7 +34,18 @@ import { getClientIp, recordLoginFailure, clearLoginFailure } from "../middlewar
 import { logAdminAction } from "../utils/audit-log.js";
 
 export default async function classroomRoutes(fastify: FastifyInstance) {
-  // ==================== 教室端注册 - 严格限流（每 IP 每分钟 5 次）====================
+  /**
+   * 教室端注册
+   * 限流: 每 IP 每分钟 5 次
+   *
+   * 注册流程:
+   *   1. 校验注册码（有效且未使用）
+   *   2. 校验教学楼存在
+   *   3. 检查教室号在该教学楼内是否已注册
+   *   4. bcrypt 加密密码
+   *   5. 创建教室端账号（status="pending"，需管理员审核）
+   *   6. 标记注册码为已使用（防重放）
+   */
   fastify.post("/register", {
     config: {
       rateLimit: {
@@ -82,7 +108,7 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
           .send(errorResponse("该教学楼的此教室号已被注册"));
       }
 
-      // 4. 加密密码
+      // 4. 加密密码（bcrypt cost=10）
       const hashedPassword = await bcrypt.hash(password, 10);
 
       // 5. 创建教室端账号(状态为 pending,等待审核)
@@ -94,7 +120,7 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
 
       const classroomId = (result as any).insertId;
 
-      // 6. 标记注册码为已使用
+      // 6. 标记注册码为已使用（防重放攻击）
       await pool.execute(
         "UPDATE registration_codes SET is_used = TRUE, used_by_classroom_id = ?, used_at = NOW() WHERE id = ?",
         [classroomId, regCode.id]
@@ -112,7 +138,16 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // ==================== 检测 IP 是否为可信 IP ====================
+  /**
+   * 检测指定 IP 是否为该教室的可信 IP
+   *
+   * 可信判定: 同一 IP 累计成功登录 >= 3 次（记录在 classroom_trusted_ips 表）
+   * 用途: 防止教室端账号从陌生 IP 登录（如账号泄露后被外部使用）
+   *
+   * @param classroomId 教室端账号 ID
+   * @param ip 客户端 IP
+   * @returns true 可信 / false 不可信（需管理员审核）
+   */
   async function isTrustedIp(classroomId: number, ip: string): Promise<boolean> {
     try {
       const [rows] = await pool.execute(
@@ -122,14 +157,18 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
         [classroomId, ip]
       );
       const result = rows as any[];
-      // 登录次数 >= 3 次视为可信 IP
+      // 登录次数 >= 3 次视为可信 IP（避免首次更换 IP 即被信任）
       return result.length > 0 && result[0].login_count >= 3;
     } catch {
+      // 查询失败时返回 false（fail-closed，触发审核流程）
       return false;
     }
   }
 
-  // ==================== 更新可信 IP 登录次数 ====================
+  /**
+   * 更新可信 IP 的登录次数
+   * 使用 ON DUPLICATE KEY UPDATE 实现 upsert，避免先查后写的竞态条件
+   */
   async function updateTrustedIp(classroomId: number, ip: string) {
     try {
       await pool.execute(
@@ -145,7 +184,15 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
     }
   }
 
-  // ==================== 记录登录日志 ====================
+  /**
+   * 记录教室端登录日志到 classroom_login_logs 表
+   *
+   * @param status 登录状态: success/failed/pending_review/blocked
+   * @param isAbnormal 是否为异常登录（非常用 IP）
+   * @param abnormalReason 异常原因（如 "非常用 IP 登录"）
+   * @param reviewStatus 审核状态: pending/approved/rejected（仅 pending_review 时使用）
+   * @returns 日志记录 ID，失败返回 null
+   */
   async function recordLoginLog(
     classroomId: number,
     ip: string,
@@ -177,7 +224,21 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
     }
   }
 
-  // ==================== 教室端登录 - 严格限流（每 IP 每分钟 5 次）====================
+  /**
+   * 教室端登录
+   * 限流: 每 IP 每分钟 5 次
+   *
+   * 登录流程:
+   *   1. 查询教室账号（关联教学楼）
+   *   2. 验证密码（失败计入 IP 黑名单计数）
+   *   3. 检查审核状态（pending/rejected 直接返回）
+   *   4. IP 信任检测（非可信 IP 进入待审核状态，需管理员批准）
+   *   5. 可信 IP 正常登录，更新登录次数，签发 JWT
+   *
+   * 安全说明:
+   *   - 生产环境强制启用 IP 信任检测，防止账号泄露后被外部使用
+   *   - 开发/演示环境可通过 SKIP_IP_TRUST=true 跳过（仅非生产环境生效）
+   */
   fastify.post("/login", {
     config: {
       rateLimit: {
@@ -212,7 +273,8 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
 
       const classroomList = rows as any[];
 
-      // 记录失败登录（账号不存在的情况）
+      // 账号不存在（注意: 此处未做时序攻击防护，因教室端需同时匹配 buildingId+roomNumber，
+      // 攻击者需枚举两个维度，难度较高；如需加强可参考 auth.ts 的 DUMMY_PASSWORD_HASH 模式）
       if (classroomList.length === 0) {
         return reply
           .status(401)
@@ -227,7 +289,7 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
         classroom.password
       );
 
-      // 密码错误，记录失败日志
+      // 密码错误，记录失败日志并计入 IP 黑名单计数
       if (!isPasswordValid) {
         await recordLoginLog(
           classroom.id,
@@ -242,10 +304,10 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
           .send(errorResponse("教室号或密码错误"));
       }
 
-      // 登录成功前先清除失败计数（此处可能还有审核状态判断，但密码已验证）
+      // 登录成功前先清除失败计数（避免正常用户偶尔输错密码后被封禁）
       clearLoginFailure(clientIp);
 
-      // 检查审核状态
+      // 检查审核状态（注册后的初始状态为 pending，需管理员批准）
       if (classroom.status === "pending") {
         return reply.send(
           successResponse(
@@ -286,7 +348,8 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
           "pending"
         );
 
-        // 记录到管理员操作日志（提示管理员有异常登录）
+        // 记录到管理员操作日志（admin_id=0, admin_username="system" 表示系统自动事件）
+        // 提示管理员在异常登录页面审核该次登录
         try {
           await pool.execute(
             `INSERT INTO admin_logs (admin_id, admin_username, action, details, ip_address)
@@ -331,10 +394,10 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
         false
       );
 
-      // 更新可信 IP 登录次数
+      // 更新可信 IP 登录次数（达到阈值后该 IP 即被视为可信）
       await updateTrustedIp(classroom.id, clientIp);
 
-      // 审核通过,生成 JWT token
+      // 审核通过,生成 JWT token（payload 含 classroomId/roomNumber/buildingName/role）
       const token = fastify.jwt.sign(
         {
           id: classroom.id,
@@ -364,7 +427,10 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // ==================== 验证 token 是否有效 ====================
+  /**
+   * 验证教室端 JWT token 是否有效
+   * 前端在页面刷新时调用，确认本地存储的 token 仍然有效。
+   */
   fastify.get(
     "/verify",
     {
@@ -385,7 +451,10 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // ==================== 获取该教室的考试信息(需教室端 token) ====================
+  /**
+   * 获取分配给该教室的考试列表
+   * 通过 exam_classrooms 关联表查询，按考试时间升序排列。
+   */
   fastify.get(
     "/exams",
     {
@@ -416,7 +485,10 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // ==================== 获取教室端自身信息 ====================
+  /**
+   * 获取教室端自身信息
+   * 返回教室号、教学楼名称、审核状态等基本信息（不含密码）。
+   */
   fastify.get(
     "/profile",
     {

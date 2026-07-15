@@ -1,13 +1,35 @@
 /**
- * AI 错误本地化工具
- * 将上游（Node fetch / OpenAI API / MySQL / 浏览器）的英文错误信息映射为中文用户友好提示
- * @author 落梦陳 (KeKe0904)
+ * KeKe ExamHub - 考试信息管理系统
+ * 错误信息本地化工具
+ * @author 落梦陳 (KeKe0904) | B站/抖音: 落梦陳
+ * @github https://github.com/KeKe0904/KeKe-ExamHub
+ * 本项目使用 Trae IDE 开发
+ * @license MIT
+ *
+ * 设计说明:
+ *   将上游（Node fetch / OpenAI 兼容协议 / MySQL / 浏览器）抛出的英文错误信息
+ *   映射为中文用户友好提示，避免直接透传英文 stack 给前端用户。
+ *
+ * 模块层次:
+ *   - localizeNetworkError  : 处理 Node 原生网络错误（ETIMEDOUT / ENOTFOUND 等）
+ *   - localizeUpstreamHttpError : 处理 OpenAI 兼容协议返回的 HTTP 错误
+ *   - localizeMysqlError    : 处理 mysql2 抛出的 MySQL 错误（ER_* 系列）
+ *   - localizeError         : 通用入口，根据错误特征自动分派到上述三者
+ *
+ * 调用建议:
+ *   - 在路由 catch 块中，统一调用 localizeError(error, "操作名") 输出错误响应
+ *   - 对 AI 服务调用，单独使用 localizeNetworkError / localizeUpstreamHttpError 以获得更精确的提示
  */
 
 /**
  * 本地化 Node 原生网络错误（fetch failed / ETIMEDOUT / ENOTFOUND 等）
+ *
+ * @param error 任意类型的错误对象（容错处理，会取 .code 和 .message 字段）
+ * @param prefix 前缀，例如 "获取模型列表失败"；传入则结果形如 `${prefix}: ${cn}`
+ * @returns 中文错误提示字符串
  */
 export function localizeNetworkError(error: any, prefix: string = ""): string {
+  // 同时取 code 和 message，因为不同 Node 版本抛错时关键字位置不固定
   const code = String(error?.code || "");
   const message = String(error?.message || "");
   const sysError = code || message;
@@ -30,9 +52,15 @@ export function localizeNetworkError(error: any, prefix: string = ""): string {
 
 /**
  * 本地化 OpenAI / 兼容协议返回的 HTTP 错误
- * @param status HTTP 状态码
- * @param body 上游返回的响应体（文本或 JSON 字符串）
+ *
+ * OpenAI 协议错误体约定:
+ *   { "error": { "message": "...", "type": "...", "code": "..." } }
+ * 也支持简单形式 { "message": "..." }，以及非 JSON 文本响应。
+ *
+ * @param status HTTP 状态码（如 401 / 429 / 500）
+ * @param body 上游返回的响应体原文（文本或 JSON 字符串）
  * @param prefix 前缀，例如 "获取模型列表失败"
+ * @returns 中文错误提示，可能附加上游消息的中文翻译（如 "（API Key 无效）"）
  */
 export function localizeUpstreamHttpError(
   status: number,
@@ -46,16 +74,19 @@ export function localizeUpstreamHttpError(
   try {
     const parsed = JSON.parse(body);
     if (parsed?.error) {
+      // OpenAI 标准错误结构
       upstreamMsg = String(parsed.error.message || "");
       upstreamType = String(parsed.error.type || "");
       upstreamCode = String(parsed.error.code || "");
     } else if (parsed?.message) {
+      // 部分兼容服务使用简单 message 字段
       upstreamMsg = String(parsed.message);
     }
   } catch {
-    // 非 JSON 响应，忽略
+    // 非 JSON 响应（如 Nginx 502 返回的 HTML），忽略
   }
 
+  // 按状态码给出大类提示
   let cn = "";
   if (status === 401) cn = "AI 服务认证失败，请检查 API Key 是否正确";
   else if (status === 403) cn = "AI 服务拒绝访问，可能是 Key 无权限或被禁用";
@@ -67,7 +98,7 @@ export function localizeUpstreamHttpError(
   else if (status >= 500) cn = "AI 服务内部错误，请稍后重试";
   else cn = `AI 服务返回错误（HTTP ${status}）`;
 
-  // 附加原始上游消息的中文翻译（如果是常见英文错误）
+  // 附加原始上游消息的中文翻译（仅常见英文错误，避免未知英文直接透传）
   const extra = translateUpstreamMessage(upstreamMsg, upstreamType, upstreamCode);
   if (extra) cn += `（${extra}）`;
 
@@ -76,6 +107,11 @@ export function localizeUpstreamHttpError(
 
 /**
  * 翻译 OpenAI 风格的上游错误消息为中文（覆盖常见错误）
+ *
+ * 通过正则匹配 message/type/code 三者之一，返回首个命中条目的中文翻译。
+ * 未命中时截断显示原 message（最长 80 字符），避免英文 JSON 完整透传到前端。
+ *
+ * @internal 内部函数，仅供 localizeUpstreamHttpError 调用
  */
 function translateUpstreamMessage(
   msg: string,
@@ -85,7 +121,7 @@ function translateUpstreamMessage(
   if (!msg) return "";
   const m = msg.toLowerCase();
 
-  // 常见错误关键字翻译
+  // 常见错误关键字翻译表（按命中频率大致排序）
   const map: Array<[RegExp, string]> = [
     [/invalid api key/i, "API Key 无效"],
     [/incorrect api key/i, "API Key 不正确"],
@@ -111,19 +147,26 @@ function translateUpstreamMessage(
     [/overloaded/i, "AI 服务过载，请稍后重试"],
   ];
 
+  // 同时检查 message / type / code 三处，命中任意一处即返回翻译
   for (const [re, cn] of map) {
     if (re.test(m) || re.test(type.toLowerCase()) || re.test(code.toLowerCase())) {
       return cn;
     }
   }
 
-  // 未匹配时，截断显示原消息（避免完整英文 JSON 透传）
+  // 未匹配时，截断显示原消息（避免完整英文 JSON 透传到前端）
   if (msg.length > 80) return msg.slice(0, 80) + "…";
   return msg;
 }
 
 /**
- * 本地化 MySQL 错误
+ * 本地化 MySQL 错误（mysql2 驱动抛出的 Error 对象）
+ *
+ * 通过 error.code 匹配 mysql2 标准错误码（ER_* / PROTOCOL_* / ECONN*）
+ *
+ * @param error mysql2 抛出的错误对象
+ * @param prefix 前缀，默认 "数据库操作失败"
+ * @returns 中文错误提示
  */
 export function localizeMysqlError(error: any, prefix: string = "数据库操作失败"): string {
   const code = String(error?.code || "");
@@ -151,12 +194,23 @@ export function localizeMysqlError(error: any, prefix: string = "数据库操作
 }
 
 /**
- * 通用错误本地化：自动识别网络错误、HTTP 错误、MySQL 错误
+ * 通用错误本地化入口
+ *
+ * 调用顺序:
+ *   1. 空值 → 返回 prefix 或 "未知错误"
+ *   2. 已是中文字符串 → 直接加前缀返回（避免二次翻译）
+ *   3. MySQL 错误特征（code 以 ER_ / PROTOCOL_ / ECONNREFUSED / ETIMEDOUT 开头）→ localizeMysqlError
+ *   4. Node fetch / 网络错误特征 → localizeNetworkError
+ *   5. 兜底 → 取 .message 或 String(error) 显示
+ *
+ * @param error 任意类型的错误（Error 对象 / 字符串 / undefined 等）
+ * @param prefix 前缀，传入则结果形如 `${prefix}: ${cn}`
+ * @returns 中文错误提示字符串
  */
 export function localizeError(error: any, prefix: string = ""): string {
   if (!error) return prefix || "未知错误";
 
-  // 已是中文字符串，直接返回
+  // 已是中文字符串，直接返回，避免对二次包装的错误做无意义的翻译
   if (typeof error === "string" && /[\u4e00-\u9fa5]/.test(error)) {
     return prefix ? `${prefix}: ${error}` : error;
   }
@@ -176,7 +230,7 @@ export function localizeError(error: any, prefix: string = ""): string {
     return localizeNetworkError(error, prefix);
   }
 
-  // 通用兜底
+  // 通用兜底：取 .message 或 String(error)，避免直接打印 [object Object]
   const msg = String(error?.message || error || "未知错误");
   return prefix ? `${prefix}: ${msg}` : msg;
 }

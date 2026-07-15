@@ -1,10 +1,22 @@
 /**
  * KeKe ExamHub - 考试信息管理系统
- * 学生管理路由
+ * 学生管理路由（/api/students/*，管理员使用）
  * @author 落梦陳 (KeKe0904) | B站/抖音: 落梦陳
  * @github https://github.com/KeKe0904/KeKe-ExamHub
  * 本项目使用 Trae IDE 开发
  * @license MIT
+ *
+ * 路由列表:
+ *   GET    /                     分页查询学生列表（支持 search/classId/status 过滤）
+ *   GET    /:id                  获取学生详情
+ *   POST   /                     新增单个学生（默认密码取学号后 6 位）
+ *   PUT    /:id                  更新学生信息
+ *   DELETE /:id                  删除学生
+ *   POST   /batch                批量导入学生（事务，部分失败不影响其他记录）
+ *   PUT    /:id/reset-password    重置学生密码为默认值（学号后 6 位）
+ *
+ * 鉴权: 全部接口经 authMiddleware（管理员 JWT）保护
+ * 审计: 增删改操作均通过 logAdminAction 写入 admin_logs 表
  */
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import bcrypt from "bcryptjs";
@@ -14,6 +26,9 @@ import { likePattern } from "../utils/db.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { logAdminAction } from "../utils/audit-log.js";
 
+/**
+ * students 表行类型（含 LEFT JOIN classes 得到的 class_name）
+ */
 interface StudentRow {
   id: number;
   student_no: string;
@@ -31,6 +46,10 @@ interface StudentRow {
   updated_at: Date;
 }
 
+/**
+ * 将 students 表行转换为前端学生对象
+ * 注意: 不返回 password 字段，避免密码哈希泄露到前端
+ */
 function formatStudent(row: StudentRow) {
   return {
     id: String(row.id),
@@ -50,10 +69,17 @@ function formatStudent(row: StudentRow) {
   };
 }
 
+/**
+ * 根据学号生成默认密码（取学号后 6 位）
+ * 注意: 此密码仅作为初始密码，学生首次登录后应强制修改（is_first_login=TRUE）
+ */
 function getDefaultPassword(studentNo: string): string {
   return studentNo.slice(-6);
 }
 
+/**
+ * 使用 bcrypt 哈希密码（cost=10，与项目其他端保持一致）
+ */
 async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10);
 }
@@ -111,6 +137,9 @@ export default async function studentRoutes(fastify: FastifyInstance) {
       );
       const total = (countRows as any[])[0].total;
 
+      // 注意: 此处使用 pool.query 而非 pool.execute
+      // 原因: mysql2 的 prepared statements 协议不支持 LIMIT ? OFFSET ? 参数化
+      // size/offset 来自 parseInt 后的数字（已通过 || 1/20 兜底为整数），无注入风险
       const [rows] = await pool.query(
         `SELECT s.*, c.name as class_name
          FROM students s
