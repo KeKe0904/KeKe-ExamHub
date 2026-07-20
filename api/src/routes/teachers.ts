@@ -13,6 +13,7 @@ import { successResponse, errorResponse } from "../utils/response.js";
 import { likePattern } from "../utils/db.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { logAdminAction } from "../utils/audit-log.js";
+import { generateRandomPassword } from "../utils/password.js";
 
 interface TeacherRow {
   id: number;
@@ -361,13 +362,14 @@ export default async function teacherRoutes(fastify: FastifyInstance) {
 
       let hashedPassword: string | null = null;
       let initialPassword = password;
-      
+
       if (password && password.trim()) {
         hashedPassword = await bcrypt.hash(password.trim(), 10);
-      } else if (teacherNo && teacherNo.trim()) {
-        const defaultPwd = teacherNo.trim().slice(-6);
-        hashedPassword = await bcrypt.hash(defaultPwd, 10);
-        initialPassword = defaultPwd;
+      } else {
+        // 安全修复：未指定密码时随机生成 6 位数字，不再使用工号后 6 位等可推导信息
+        const randomPwd = generateRandomPassword();
+        hashedPassword = await bcrypt.hash(randomPwd, 10);
+        initialPassword = randomPwd;
       }
 
       const [result] = await pool.execute(
@@ -520,11 +522,9 @@ export default async function teacherRoutes(fastify: FastifyInstance) {
 
       if (newPassword && newPassword.trim()) {
         resetPassword = newPassword.trim();
-      } else if (teacher.teacher_no) {
-        resetPassword = teacher.teacher_no.slice(-6);
       } else {
-        // 安全修复：无工号时随机生成 6 位数字，不再使用弱默认值 "123456"
-        resetPassword = Math.floor(100000 + Math.random() * 900000).toString();
+        // 安全修复：未指定新密码时统一随机生成 6 位数字，不再使用工号后 6 位等可推导信息
+        resetPassword = generateRandomPassword();
       }
 
       const hashedPassword = await bcrypt.hash(resetPassword, 10);

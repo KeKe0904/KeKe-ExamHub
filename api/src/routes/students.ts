@@ -13,6 +13,7 @@ import { successResponse, errorResponse } from "../utils/response.js";
 import { likePattern } from "../utils/db.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { logAdminAction } from "../utils/audit-log.js";
+import { generateRandomPassword } from "../utils/password.js";
 
 interface StudentRow {
   id: number;
@@ -50,10 +51,8 @@ function formatStudent(row: StudentRow) {
   };
 }
 
-function getDefaultPassword(studentNo: string): string {
-  return studentNo.slice(-6);
-}
-
+// 安全修复：默认密码改为随机 6 位数字，不再使用学号后 6 位等可推导信息
+// 配合"首次登录强制改密"中间件，杜绝默认密码被长期使用
 async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10);
 }
@@ -197,8 +196,9 @@ export default async function studentRoutes(fastify: FastifyInstance) {
         return reply.status(400).send(errorResponse("该学号已存在"));
       }
 
-      const defaultPassword = getDefaultPassword(studentNo.trim());
-      const hashedPassword = await hashPassword(defaultPassword);
+      // 安全修复：随机生成 6 位数字作为初始密码，返回给管理员线下下发给学生
+      const initialPassword = generateRandomPassword();
+      const hashedPassword = await hashPassword(initialPassword);
 
       const [result] = await pool.execute(
         `INSERT INTO students (student_no, name, password, class_id, gender, phone, id_card, notes)
@@ -224,7 +224,7 @@ export default async function studentRoutes(fastify: FastifyInstance) {
 
       return reply.status(201).send(
         successResponse(
-          { id: String(id) },
+          { id: String(id), initialPassword },
           "添加成功"
         )
       );
@@ -364,7 +364,7 @@ export default async function studentRoutes(fastify: FastifyInstance) {
       try {
         await conn.beginTransaction();
 
-        const results: { id: string; studentNo: string; name: string }[] = [];
+        const results: { id: string; studentNo: string; name: string; initialPassword: string }[] = [];
         const errors: string[] = [];
 
         for (const stu of students) {
@@ -386,8 +386,9 @@ export default async function studentRoutes(fastify: FastifyInstance) {
             continue;
           }
 
-          const defaultPassword = getDefaultPassword(stu.studentNo.trim());
-          const hashedPassword = await hashPassword(defaultPassword);
+          // 安全修复：每个学生随机生成独立的初始密码
+          const initialPassword = generateRandomPassword();
+          const hashedPassword = await hashPassword(initialPassword);
 
           const [result] = await conn.execute(
             `INSERT INTO students (student_no, name, password, class_id, gender, phone, id_card, notes)
@@ -408,6 +409,7 @@ export default async function studentRoutes(fastify: FastifyInstance) {
             id: String(id),
             studentNo: stu.studentNo.trim(),
             name: stu.name.trim(),
+            initialPassword,
           });
         }
 
@@ -455,8 +457,9 @@ export default async function studentRoutes(fastify: FastifyInstance) {
         return reply.status(404).send(errorResponse("学生不存在"));
       }
 
-      const defaultPassword = getDefaultPassword(studentRows[0].student_no);
-      const hashedPassword = await hashPassword(defaultPassword);
+      // 安全修复：重置密码改为随机 6 位数字，返回给管理员线下下发给学生
+      const newPassword = generateRandomPassword();
+      const hashedPassword = await hashPassword(newPassword);
 
       await pool.execute(
         "UPDATE students SET password = ?, is_first_login = TRUE WHERE id = ?",
@@ -468,7 +471,7 @@ export default async function studentRoutes(fastify: FastifyInstance) {
         name: studentRows[0].name,
       });
 
-      return reply.send(successResponse(null, "密码重置成功"));
+      return reply.send(successResponse({ newPassword }, "密码重置成功"));
     } catch (error) {
       console.error("重置密码失败:", error);
       return reply.status(500).send(errorResponse("重置密码失败"));

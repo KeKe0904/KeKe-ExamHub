@@ -1,5 +1,33 @@
 # CHANGELOG
 
+## [1.2.1] - 2026-07-20（安全补丁版本）
+
+本次版本为安全补丁版本，针对周期性安全审计中发现的中等严重度漏洞（MED-01）进行修复。漏洞根因为：学生与教师账号使用学号/工号后 6 位作为可预测的默认密码，且后端未强制首次登录改密，构成可端到端利用的账号接管路径。
+
+### 安全漏洞修复
+
+#### P1 级（高）—— 默认密码可预测 + 缺失首次登录强制改密（MED-01）
+
+- **问题**：
+  - `api/src/routes/students.ts` 的 `getDefaultPassword()` 返回 `studentNo.slice(-6)`，学生创建、批量创建、重置密码时均使用该值作为初始密码
+  - `api/src/routes/teachers.ts` 创建教师时 `defaultPwd = teacherNo.trim().slice(-6)`，重置密码时 `resetPassword = teacher.teacher_no.slice(-6)`
+  - `api/src/utils/ai-tools.ts` 中 6 处工具实现（`import_teachers` / `import_students` / `create_teacher` / `create_student` / `reset_teacher_password` / `reset_student_password`）同样使用 `slice(-6)` 生成默认密码
+  - `is_first_login` 标志虽在创建/重置时设为 `TRUE`，在 `/change-password` 时设为 `FALSE`，但学生/教师登录端点和所有业务接口均未检查该标志，默认密码可被无限期使用
+- **攻击路径**：外部未认证用户获取（或猜测）有效学号/工号 → 计算 `slice(-6)` 得到默认密码 → 调用 `/api/student-auth/login` 或 `/api/teacher-auth/login` 成功登录 → 持 token 访问业务接口获取考试安排、座位号、成绩、PII（手机号、身份证号）等敏感数据。由于每次登录都成功，IP 黑名单永不触发
+- **修复**：
+  1. **随机默认密码**：新增 `api/src/utils/password.ts`，提供 `generateRandomPassword()`（基于 `crypto.randomInt` 生成密码学安全的 6 位数字）。`students.ts` / `teachers.ts` / `ai-tools.ts` 中所有 `slice(-6)` 调用统一替换为 `generateRandomPassword()`，初始密码通过接口响应返回给管理员线下下发
+  2. **首次登录强制改密**：学生/教师登录端点在 JWT payload 中携带 `isFirstLogin` 字段，并在响应中返回 `mustChangePassword` 标志；`studentAuthMiddleware` / `teacherAuthMiddleware` 检查 `isFirstLogin`，为 true 时仅允许访问 `/change-password` 和 `/me`，其余业务接口返回 403 + `mustChangePassword: true`；改密成功后重签 JWT（`isFirstLogin: false`）返回给客户端，解除限制
+- **涉及文件**：
+  - `api/src/utils/password.ts`（新增）
+  - `api/src/routes/students.ts`（移除 `getDefaultPassword`，创建/批量创建/重置密码改用随机生成，响应返回 `initialPassword` / `newPassword`）
+  - `api/src/routes/teachers.ts`（创建/重置密码改用随机生成）
+  - `api/src/routes/student-auth.ts`（JWT 添加 `isFirstLogin`，中间件强制改密，改密后重签 token）
+  - `api/src/routes/teacher-auth.ts`（同上）
+  - `api/src/utils/ai-tools.ts`（6 处 `slice(-6)` 替换为 `generateRandomPassword()`）
+- **验证**：TypeScript 编译通过（`tsc --noEmit` 0 错误）；全代码库 `slice(-6)` 已清除
+
+---
+
 ## [1.2.0] - 2026-07-10（正式发布版本）
 
 本次版本为正式发布版本，进行了全面的功能测试（81 项测试）、代码安全审计和漏洞修复。修复了多个严重 bug 和安全漏洞，确保系统可以稳定投入生产环境。

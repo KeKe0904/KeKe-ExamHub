@@ -9,7 +9,7 @@
 | GitHub | https://github.com/KeKe0904/KeKe-ExamHub |
 | 开发工具 | Trae IDE |
 | License | MIT |
-| 当前版本 | **v1.2.0** |
+| 当前版本 | **v1.2.1** |
 
 ---
 
@@ -805,6 +805,8 @@ AI 模型（GPT/Claude/通义/DeepSeek 等）
 | XSS 过滤 | `sanitizeText` / `sanitizeHtml`（基于 isomorphic-dompurify） |
 | SQL 注入防护 | 全部使用 mysql2 参数化查询 |
 | 密码加密 | bcryptjs，10 轮 salt |
+| 随机初始密码 | 学生/教师创建或重置密码时使用 `crypto.randomInt` 生成随机 6 位数字，不再使用学号/工号后 6 位等可推导信息 |
+| 首次登录强制改密 | 学生/教师 JWT 中携带 `isFirstLogin` 标记，首次登录后仅允许访问 `/change-password` 与 `/me`，改密成功后重签 token 解除限制 |
 | 敏感字段保护 | 公开接口 `GET /api/settings/` 黑名单过滤 `ai_api_key` 等 |
 | CORS | 生产环境基于 `SITE_URL` 白名单 |
 | 全局错误处理 | 500 错误在生产环境隐藏内部细节 |
@@ -985,6 +987,13 @@ pm2 save
 ## 十六、更新日志
 
 完整更新日志见 [CHANGELOG.md](./CHANGELOG.md)。以下为近期版本摘要：
+
+### v1.2.1（2026-07-20，安全补丁版本）
+
+**安全漏洞修复**：
+- 修复学生/教师默认密码可预测漏洞（MED-01）：默认密码改为 `crypto.randomInt` 生成的随机 6 位数字，不再使用学号/工号后 6 位等可推导信息
+- 新增首次登录强制改密机制：学生/教师 JWT 中携带 `isFirstLogin` 标记，首次登录后仅允许访问 `/change-password` 和 `/me`，改密成功后重签 token 解除限制
+- 涉及文件：`api/src/utils/password.ts`（新增）、`students.ts`、`teachers.ts`、`student-auth.ts`、`teacher-auth.ts`、`ai-tools.ts`
 
 ### v1.2.0（2026-07-10，正式发布版本）
 

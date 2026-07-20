@@ -155,7 +155,22 @@ async function teacherAuthMiddleware(
       teacherNo: decoded.teacherNo,
       name: decoded.name,
       role: "teacher" as const,
+      isFirstLogin: Boolean(decoded.isFirstLogin),
     };
+
+    // 安全修复：首次登录强制改密
+    // 仅允许访问 /change-password 和 /me，其余业务接口一律拒绝
+    if (decoded.isFirstLogin) {
+      const url = request.url.split("?")[0];
+      const allowed = url.endsWith("/change-password") || url.endsWith("/me");
+      if (!allowed) {
+        return reply.status(403).send({
+          success: false,
+          message: "首次登录需要先修改密码",
+          mustChangePassword: true,
+        });
+      }
+    }
   } catch (error) {
     return reply.status(401).send({
       success: false,
@@ -225,6 +240,7 @@ export default async function teacherAuthRoutes(fastify: FastifyInstance) {
           teacherNo: teacher.teacher_no,
           name: teacher.name,
           role: "teacher",
+          isFirstLogin: Boolean(teacher.is_first_login),
         },
         { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
       );
@@ -243,6 +259,7 @@ export default async function teacherAuthRoutes(fastify: FastifyInstance) {
           {
             token,
             teacher: formatTeacher(teacher as TeacherRow),
+            mustChangePassword: Boolean(teacher.is_first_login),
           },
           "登录成功"
         )
@@ -299,7 +316,19 @@ export default async function teacherAuthRoutes(fastify: FastifyInstance) {
         [hashedPassword, user.id]
       );
 
-      return reply.send(successResponse(null, "密码修改成功"));
+      // 改密成功后重签 JWT（isFirstLogin: false），替换旧的受限 token
+      const newToken = fastify.jwt.sign(
+        {
+          id: user.id,
+          teacherNo: user.teacherNo,
+          name: user.name,
+          role: "teacher",
+          isFirstLogin: false,
+        },
+        { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
+      );
+
+      return reply.send(successResponse({ token: newToken }, "密码修改成功"));
     } catch (error) {
       console.error("修改密码失败:", error);
       return reply.status(500).send(errorResponse("修改密码失败"));

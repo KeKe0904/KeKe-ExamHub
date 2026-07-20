@@ -12,6 +12,7 @@ import { pool } from "../config/database.js";
 import { sanitizeText, sanitizeHtml } from "./xss.js";
 import { likePattern, safeInt } from "./db.js";
 import { localizeMysqlError } from "./localize-error.js";
+import { generateRandomPassword } from "./password.js";
 
 // ==================== 风险分级 ====================
 
@@ -1114,8 +1115,9 @@ async function toolImportTeachers(args: {
         }
       }
 
-      const rawPwd = t.password || (teacherNo ? teacherNo.slice(-6) : null);
-      const hashedPwd = rawPwd ? await bcrypt.hash(rawPwd, 10) : null;
+      // 安全修复：未指定密码时随机生成，不再使用工号后 6 位
+      const rawPwd = t.password || generateRandomPassword();
+      const hashedPwd = await bcrypt.hash(rawPwd, 10);
 
       await pool.execute(
         `INSERT INTO teachers (teacher_no, password, name, phone, email, notes)
@@ -1199,7 +1201,8 @@ async function toolImportStudents(args: {
         continue;
       }
 
-      const defaultPwd = studentNo.slice(-6);
+      // 安全修复：随机生成初始密码，不再使用学号后 6 位
+      const defaultPwd = generateRandomPassword();
       const hashedPwd = await bcrypt.hash(defaultPwd, 10);
 
       const gender: string = ["male", "female", "unknown"].includes(s.gender || "")
@@ -1289,9 +1292,8 @@ async function toolCreateTeacher(args: {
       return { success: false, error: `工号 ${teacherNo} 已存在` };
     }
   }
-  // 密码优先级：用户指定 > 工号后 6 位 > 随机 6 位数字
-  // 安全修复：移除 "123456" 弱默认值，改为随机生成
-  const rawPwd = args.password || (teacherNo ? teacherNo.slice(-6) : Math.floor(100000 + Math.random() * 900000).toString());
+  // 安全修复：未指定密码时随机生成 6 位数字，不再使用工号后 6 位等可推导信息
+  const rawPwd = args.password || generateRandomPassword();
   const hashedPwd = await bcrypt.hash(rawPwd, 10);
   const [result] = await pool.execute(
     `INSERT INTO teachers (teacher_no, password, name, phone, email, notes)
@@ -1345,7 +1347,8 @@ async function toolCreateStudent(args: {
     classIdNum = Number(args.classId);
   }
 
-  const defaultPwd = studentNo.slice(-6);
+  // 安全修复：随机生成初始密码，不再使用学号后 6 位
+  const defaultPwd = generateRandomPassword();
   const hashedPwd = await bcrypt.hash(defaultPwd, 10);
   const gender: string = ["male", "female", "unknown"].includes(args.gender || "")
     ? (args.gender as string)
@@ -1382,10 +1385,8 @@ async function toolResetTeacherPassword(args: { teacherId: string }) {
     return { success: false, error: `教师 ID ${args.teacherId} 不存在` };
   }
   const t = teachers[0];
-  // 有工号 → 工号后 6 位；无工号 → 随机 6 位数字
-  // 安全修复：移除 "123456" 弱默认值，改为随机生成
-  const newPwd = t.teacher_no ? t.teacher_no.slice(-6) : Math.floor(100000 + Math.random() * 900000).toString();
-  const pwdDesc = t.teacher_no ? "工号后 6 位" : "随机 6 位数字（请通知教师本人）";
+  // 安全修复：统一随机生成 6 位数字，不再使用工号后 6 位等可推导信息
+  const newPwd = generateRandomPassword();
   const hashed = await bcrypt.hash(newPwd, 10);
   await pool.execute(
     "UPDATE teachers SET password = ?, is_first_login = 1 WHERE id = ?",
@@ -1393,7 +1394,7 @@ async function toolResetTeacherPassword(args: { teacherId: string }) {
   );
   return {
     success: true,
-    message: `教师「${t.name}」密码已重置为${pwdDesc}`,
+    message: `教师「${t.name}」密码已重置为随机 6 位数字：${newPwd}（请通知教师本人并在首次登录后修改）`,
   };
 }
 
@@ -1407,10 +1408,8 @@ async function toolResetStudentPassword(args: { studentId: string }) {
     return { success: false, error: `学生 ID ${args.studentId} 不存在` };
   }
   const s = students[0];
-  // 有学号 → 学号后 6 位；无学号 → 随机 6 位数字
-  // 安全修复：移除 "123456" 弱默认值，改为随机生成
-  const newPwd = s.student_no ? s.student_no.slice(-6) : Math.floor(100000 + Math.random() * 900000).toString();
-  const pwdDesc = s.student_no ? "学号后 6 位" : "随机 6 位数字（请通知学生本人）";
+  // 安全修复：统一随机生成 6 位数字，不再使用学号后 6 位等可推导信息
+  const newPwd = generateRandomPassword();
   const hashed = await bcrypt.hash(newPwd, 10);
   await pool.execute(
     "UPDATE students SET password = ?, is_first_login = 1 WHERE id = ?",
@@ -1418,7 +1417,7 @@ async function toolResetStudentPassword(args: { studentId: string }) {
   );
   return {
     success: true,
-    message: `学生「${s.name}」密码已重置为${pwdDesc}`,
+    message: `学生「${s.name}」密码已重置为随机 6 位数字：${newPwd}（请通知学生本人并在首次登录后修改）`,
   };
 }
 
