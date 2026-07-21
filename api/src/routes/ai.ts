@@ -18,6 +18,7 @@ import {
   localizeUpstreamHttpError,
   localizeError,
 } from "../utils/localize-error.js";
+import { encrypt, decrypt } from "../utils/crypto.js";
 
 // ==================== 配置读取 ====================
 
@@ -40,7 +41,8 @@ async function loadAiConfig(): Promise<AiConfig> {
   });
   return {
     apiUrl: map.ai_api_url || "",
-    apiKey: map.ai_api_key || "",
+    // 安全修复：读取时解密（兼容历史明文数据）
+    apiKey: decrypt(map.ai_api_key || ""),
     model: map.ai_model || "",
     enabled: map.ai_enabled === "true",
     systemPrompt: map.ai_system_prompt || "",
@@ -135,7 +137,8 @@ export default async function aiRoutes(fastify: FastifyInstance) {
       }
       if (apiKey !== undefined && !apiKey.includes("****")) {
         if (apiKey.length > 500) return reply.status(400).send(errorResponse("AI API Key 过长"));
-        updates.push({ key: "ai_api_key", value: apiKey });
+        // 安全修复：写入前加密存储（AES-256-GCM）
+        updates.push({ key: "ai_api_key", value: encrypt(apiKey) });
       }
       if (model !== undefined) {
         if (model.length > 200) return reply.status(400).send(errorResponse("AI 模型名称过长"));

@@ -264,8 +264,13 @@ export default async function teacherAuthRoutes(fastify: FastifyInstance) {
           "登录成功"
         )
       );
-    } catch (error) {
-      console.error("教师登录失败:", error);
+    } catch (error: any) {
+      // 安全修复：生产环境仅记录错误类型与消息，避免泄露 SQL/连接串/堆栈
+      if (process.env.NODE_ENV === "production") {
+        console.error("教师登录失败:", error?.code || error?.name || "未知错误类型");
+      } else {
+        console.error("教师登录失败:", error);
+      }
       return reply.status(500).send(errorResponse("服务器内部错误"));
     }
   });

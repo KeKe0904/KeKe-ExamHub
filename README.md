@@ -9,7 +9,7 @@
 | GitHub | https://github.com/KeKe0904/KeKe-ExamHub |
 | 开发工具 | Trae IDE |
 | License | MIT |
-| 当前版本 | **v1.2.1** |
+| 当前版本 | **v1.2.2** |
 
 ---
 
@@ -808,6 +808,9 @@ AI 模型（GPT/Claude/通义/DeepSeek 等）
 | 随机初始密码 | 学生/教师创建或重置密码时使用 `crypto.randomInt` 生成随机 6 位数字，不再使用学号/工号后 6 位等可推导信息 |
 | 首次登录强制改密 | 学生/教师 JWT 中携带 `isFirstLogin` 标记，首次登录后仅允许访问 `/change-password` 与 `/me`，改密成功后重签 token 解除限制 |
 | 敏感字段保护 | 公开接口 `GET /api/settings/` 黑名单过滤 `ai_api_key` 等 |
+| 敏感配置加密存储 | AI API Key 等敏感配置使用 AES-256-GCM 加密后存入数据库（`api/src/utils/crypto.ts`），密钥派生自 `SETTINGS_ENCRYPTION_KEY` 或 `JWT_SECRET`，兼容历史明文数据自动解密 |
+| 日志脱敏 | 生产环境下登录失败日志仅记录错误类型（`error.code` / `error.name`），不再打印完整 error 对象，避免泄露 SQL/连接串/堆栈 |
+| 登录失败封禁 | 全 IP（含 localhost）5 次失败后封禁 15 分钟；非生产环境豁免本地回环避免开发自锁 |
 | CORS | 生产环境基于 `SITE_URL` 白名单 |
 | 全局错误处理 | 500 错误在生产环境隐藏内部细节 |
 
@@ -987,6 +990,14 @@ pm2 save
 ## 十六、更新日志
 
 完整更新日志见 [CHANGELOG.md](./CHANGELOG.md)。以下为近期版本摘要：
+
+### v1.2.2（2026-07-21，安全补丁版本）
+
+**安全漏洞修复**：
+- 修复 AI API Key 明文存储漏洞（MED-02）：新增 `api/src/utils/crypto.ts` 工具（AES-256-GCM 加密），`ai.ts` 在写入数据库前加密、读取时解密，兼容历史明文数据
+- 修复日志敏感信息泄露（MED-03）：`auth.ts` / `student-auth.ts` / `teacher-auth.ts` / `classroom.ts` 登录失败日志在生产环境仅记录错误类型（`error.code` / `error.name`），不再打印完整 error 对象
+- 修复生产环境 localhost IP 豁免漏洞（MED-04）：`ip-blacklist.ts` 中 `recordLoginFailure` 改为仅非生产环境豁免本地回环，生产环境同样对 localhost 进行登录失败跟踪，防止反向代理或 SSRF 漏洞被利用后无封禁触发
+- 涉及文件：`api/src/utils/crypto.ts`（新增）、`api/src/routes/ai.ts`、`api/src/routes/auth.ts`、`api/src/routes/student-auth.ts`、`api/src/routes/teacher-auth.ts`、`api/src/routes/classroom.ts`、`api/src/middleware/ip-blacklist.ts`
 
 ### v1.2.1（2026-07-20，安全补丁版本）
 

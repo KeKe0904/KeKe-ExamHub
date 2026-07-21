@@ -102,8 +102,12 @@ const BAN_DURATION_MS = 15 * 60 * 1000; // 15 分钟
  * 调用方：登录路由（admin/teacher/student/classroom）在密码错误时调用。
  */
 export async function recordLoginFailure(ip: string, username?: string): Promise<void> {
-  // 本地回环不封禁（避免开发环境自锁）
-  if (ip === "127.0.0.1" || ip === "::1") return;
+  // 安全修复：仅非生产环境豁免本地回环（避免开发环境自锁）；
+  // 生产环境同样需要对 localhost 进行登录失败跟踪，
+  // 防止反向代理或本地 SSRF 漏洞被利用后无封禁触发。
+  if (process.env.NODE_ENV !== "production") {
+    if (ip === "127.0.0.1" || ip === "::1") return;
+  }
 
   const now = Date.now();
   const record = loginFailRecords.get(ip);

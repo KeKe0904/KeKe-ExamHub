@@ -1,5 +1,112 @@
 # CHANGELOG
 
+## [1.2.2] - 2026-07-21（安全补丁版本）
+
+本次版本为安全补丁版本，针对周期性安全审计中发现的中等严重度漏洞（MED-02 / MED-03 / MED-04）进行修复。三个漏洞均具备可论证的端到端利用路径，分别涉及敏感配置明文存储、日志敏感信息泄露、生产环境 IP 豁免逻辑缺陷。
+
+### 安全漏洞修复
+
+#### P1 级（高）—— AI API Key 明文存储（MED-02）
+
+- **问题**：
+  - `api/src/routes/ai.ts` 的 `loadAiConfig()` 直接从 `settings` 表读取 `ai_api_key` 字段并以明文形式返回给内存使用
+  - `PUT /config` 端点将管理员提交的 API Key 以明文直接写入 `settings.setting_value` 字段
+  - 数据库被泄露（备份外泄、SQL 注入、内部人员越权访问等）后，攻击者可直接读取到 AI 服务的 API Key，进而以系统身份调用上游 AI 服务、消耗额度甚至发起越权操作
+- **攻击路径**：数据库备份/快照/SQL 注入 → 读取 `settings` 表 `ai_api_key` 行 → 拿到真实 API Key → 调用上游 AI 服务消耗额度、获取历史对话信息或越权调用其他绑定该 Key 的服务
+- **修复**：
+  1. 新增 `api/src/utils/crypto.ts`：基于 `aes-256-gcm` 提供 `encrypt()` / `decrypt()` / `isEncrypted()` 三个工具函数
+     - 密钥派生：优先使用环境变量 `SETTINGS_ENCRYPTION_KEY`，未配置时从 `JWT_SECRET` 经 SHA-256 派生（32 字节）
+     - 存储格式：`enc:<iv(12B hex)>:<authTag(16B hex)>:<ciphertext(hex)>`
+     - 兼容性：`decrypt()` 自动识别 `enc:` 前缀，未加密的历史明文数据原样返回，支持灰度迁移
+  2. 修改 `api/src/routes/ai.ts`：
+     - `loadAiConfig()` 读取时调用 `decrypt(map.ai_api_key)`
+     - `PUT /config` 写入前调用 `encrypt(apiKey)`，对 `****` 占位符跳过加密（保持前端掩码回填逻辑不变）
+- **涉及文件**：
+  - `api/src/utils/crypto.ts`（新增）
+  - `api/src/routes/ai.ts`（`loadAiConfig` + `PUT /config`）
+
+#### P2 级（中）—— 日志敏感信息泄露（MED-03）
+
+- **问题**：
+  - `api/src/routes/auth.ts` 管理员登录失败时 `console.error("登录失败:", error)`
+  - `api/src/routes/student-auth.ts` 学生登录失败时 `console.error("学生登录失败:", error)`
+  - `api/src/routes/teacher-auth.ts` 教师登录失败时 `console.error("教师登录失败:", error)`
+  - `api/src/routes/classroom.ts` 教室端登录失败时 `console.error("教室端登录失败:", error)`
+  - 上述 4 处直接打印完整 `error` 对象，可能包含：
+    - MySQL 错误对象（含完整 SQL 语句、`sqlMessage`、`sqlState`）
+    - 数据库连接配置（`ER_ACCESS_DENIED_ERROR` 时可能附带用户名）
+    - 完整堆栈跟踪（暴露文件路径、内部模块结构）
+  - 攻击者通过日志聚合系统、容器日志泄露、`pm2 logs` 命令输出等方式获取到这些信息后，可进一步构造攻击
+- **攻击路径**：登录接口触发数据库异常（如断连、连接池耗尽、SQL 语法错误）→ `console.error` 打印完整 error 对象 → 日志被收集/泄露 → 攻击者获取 SQL 模板、数据库结构、连接信息
+- **修复**：
+  - 生产环境（`NODE_ENV === "production"`）：仅记录 `error.code` 或 `error.name`（如 `ER_ACCESS_DENIED_ERROR`、`TypeError`），不打印完整 error 对象
+  - 开发环境：保留完整 error 对象便于调试
+- **涉及文件**：
+  - `api/src/routes/auth.ts`
+  - `api/src/routes/student-auth.ts`
+  - `api/src/routes/teacher-auth.ts`
+  - `api/src/routes/classroom.ts`
+
+#### P2 级（中）—— 生产环境 localhost IP 豁免漏洞（MED-04）
+
+- **问题**：
+  - `api/src/middleware/ip-blacklist.ts` 的 `recordLoginFailure()` 函数中 `if (ip === "127.0.0.1" || ip === "::1") return;` 无条件豁免本地回环地址
+  - 该豁免本意是避免开发环境自锁，但生产环境同样生效
+  - 攻击者通过反向代理（Nginx 未正确配置 `X-Forwarded-For`）、SSRF 漏洞、本地命令注入等方式从服务器本机发起登录请求时，不会触发登录失败封禁机制，可无限次尝试暴力破解
+- **攻击路径**：攻击者获取本机任意代码执行/SSRF 能力 → 通过 localhost 调用 `/api/auth/login` 等登录端点 → 无封禁阈值限制 → 暴力破解管理员/学生/教师密码
+- **修复**：
+  ```typescript
+  // 修复前
+  if (ip === "127.0.0.1" || ip === "::1") return;
+  
+  // 修复后
+  if (process.env.NODE_ENV !== "production") {
+    if (ip === "127.0.0.1" || ip === "::1") return;
+  }
+  ```
+  - 生产环境：localhost 同样计入登录失败计数，达到 5 次阈值后封禁 15 分钟
+  - 非生产环境：保留豁免，避免开发环境自锁
+- **涉及文件**：
+  - `api/src/middleware/ip-blacklist.ts`
+
+### 变更文件清单
+
+| 文件 | 变更内容 |
+|------|---------|
+| `api/src/utils/crypto.ts` | **新增**：AES-256-GCM 加密工具（encrypt / decrypt / isEncrypted） |
+| `api/src/routes/ai.ts` | `loadAiConfig` 读取时解密；`PUT /config` 写入前加密 |
+| `api/src/routes/auth.ts` | 登录失败日志生产环境脱敏 |
+| `api/src/routes/student-auth.ts` | 同上 |
+| `api/src/routes/teacher-auth.ts` | 同上 |
+| `api/src/routes/classroom.ts` | 同上 |
+| `api/src/middleware/ip-blacklist.ts` | `recordLoginFailure` 仅非生产环境豁免 localhost |
+| `api/.env.example` | 新增 `SETTINGS_ENCRYPTION_KEY` 字段说明（可选） |
+| `README.md` | 版本号升级至 v1.2.2，安全机制表新增 3 项，新增 v1.2.2 更新摘要 |
+| `CHANGELOG.md` | 新增 v1.2.2 条目 |
+
+### 升级指南
+
+从 v1.2.1 升级：
+
+```bash
+git pull origin main
+cd api && npm install && npm run build && cd ..
+npm run build
+pm2 restart examhub-api
+```
+
+升级后：
+
+- AI API Key 在下次通过 `PUT /api/ai/config` 保存时自动加密；存量明文数据在读取时自动解密兼容（建议管理员主动重新保存一次 API Key 触发加密落库）
+- 日志脱敏与 localhost 封禁逻辑在重启后立即生效，无需额外配置
+- 如需使用独立的加密密钥（与 JWT_SECRET 隔离），可在 `api/.env` 中设置 `SETTINGS_ENCRYPTION_KEY`（推荐 `openssl rand -hex 32` 生成 32 字节随机值）
+
+### 验证
+
+- ✅ 后端 `tsc --noEmit` 类型检查通过（0 错误）
+
+---
+
 ## [1.2.1] - 2026-07-20（安全补丁版本）
 
 本次版本为安全补丁版本，针对周期性安全审计中发现的中等严重度漏洞（MED-01）进行修复。漏洞根因为：学生与教师账号使用学号/工号后 6 位作为可预测的默认密码，且后端未强制首次登录改密，构成可端到端利用的账号接管路径。
