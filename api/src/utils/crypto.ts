@@ -8,8 +8,9 @@
  * 安全说明：
  *   使用 AES-256-GCM 算法对敏感数据进行加密存储，
  *   密钥来源于环境变量 SETTINGS_ENCRYPTION_KEY（32 字节 hex）。
- *   若环境变量未配置，则回退到 JWT_SECRET 派生密钥，
- *   确保即使数据库泄露，攻击者也无法直接读取敏感配置。
+ *   安全修复：强烈推荐配置独立的 SETTINGS_ENCRYPTION_KEY，
+ *   未配置时回退到 JWT_SECRET 派生密钥（兼容旧版），
+ *   但会输出安全警告，因为 JWT 密钥泄露将导致敏感配置可被解密。
  */
 import crypto from "crypto";
 
@@ -19,14 +20,30 @@ const IV_LENGTH = 12; // GCM 推荐 12 字节 IV
 // 加密前缀，用于判断字段是否已加密
 const ENCRYPTED_PREFIX = "enc:";
 
+// 标记是否已输出过密钥回退警告，避免日志刷屏
+let keyFallbackWarned = false;
+
 /**
  * 获取加密密钥（32 字节）
- * 优先使用 SETTINGS_ENCRYPTION_KEY，未配置时从 JWT_SECRET 派生
+ * 优先使用 SETTINGS_ENCRYPTION_KEY，未配置时从 JWT_SECRET 派生（会输出安全警告）
  */
 function getEncryptionKey(): Buffer {
-  const rawKey =
-    process.env.SETTINGS_ENCRYPTION_KEY || process.env.JWT_SECRET || "";
-  // 使用 SHA-256 派生固定长度的密钥
+  const encryptionKey = process.env.SETTINGS_ENCRYPTION_KEY;
+  if (encryptionKey) {
+    return crypto.createHash("sha256").update(encryptionKey).digest();
+  }
+
+  // 回退到 JWT_SECRET（兼容旧版部署）
+  if (!keyFallbackWarned) {
+    keyFallbackWarned = true;
+    console.warn(
+      "⚠ [安全警告] SETTINGS_ENCRYPTION_KEY 未配置，回退使用 JWT_SECRET 派生加密密钥。\n" +
+      "  这意味着 JWT 密钥泄露将导致数据库中所有加密的敏感配置（如 AI API Key）可被解密。\n" +
+      "  请使用 `openssl rand -hex 32` 生成独立密钥并写入 api/.env 的 SETTINGS_ENCRYPTION_KEY 后重启服务。"
+    );
+  }
+
+  const rawKey = process.env.JWT_SECRET || "";
   return crypto.createHash("sha256").update(rawKey).digest();
 }
 

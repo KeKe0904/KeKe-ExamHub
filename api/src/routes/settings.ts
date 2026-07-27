@@ -11,6 +11,7 @@ import { pool } from "../config/database.js";
 import { successResponse, errorResponse } from "../utils/response.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { logAdminAction } from "../utils/audit-log.js";
+import { encrypt } from "../utils/crypto.js";
 
 /**
  * 安全修复：校验 base64 图片数据是否为合法图片（防止 SVG XSS 和恶意文件）
@@ -384,7 +385,8 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
       if (aiApiKey !== undefined) {
         if (aiApiKey.length > 500)
           return reply.status(400).send(errorResponse("AI API Key 过长"));
-        updates.push({ key: "ai_api_key", value: aiApiKey });
+        // 安全修复：AI API Key 加密存储（AES-256-GCM），防止数据库泄露导致凭证暴露
+        updates.push({ key: "ai_api_key", value: encrypt(aiApiKey) });
       }
       if (aiModel !== undefined) {
         if (aiModel.length > 200)

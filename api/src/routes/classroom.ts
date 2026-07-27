@@ -268,11 +268,9 @@ export default async function classroomRoutes(fastify: FastifyInstance) {
       }
 
       // ========== 异常 IP 检测 ==========
-      // 安全修复：恢复 IP 信任检测，防止教室端账号从任意 IP 登录
-      // 通过环境变量 SKIP_IP_TRUST=true 可在开发/演示环境跳过检测
-      // 生产环境强制启用 IP 信任检测，SKIP_IP_TRUST 仅在非生产环境生效
-      const skipIpCheck = process.env.SKIP_IP_TRUST === "true" && process.env.NODE_ENV !== "production";
-      const trusted = skipIpCheck || await isTrustedIp(classroom.id, clientIp);
+      // 安全修复：强制启用 IP 信任检测，防止教室端账号从任意 IP 登录
+      // 移除 SKIP_IP_TRUST 环境变量，所有环境均执行 IP 信任检测
+      const trusted = await isTrustedIp(classroom.id, clientIp);
 
       if (!trusted) {
         // 非常用 IP，标记为异常登录，需要管理员审核
