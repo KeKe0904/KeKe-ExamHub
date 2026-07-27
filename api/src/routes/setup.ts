@@ -342,6 +342,8 @@ export default async function setupRoutes(fastify: FastifyInstance) {
 
       // 5. 生成 .env 文件
       const jwtSecret = generateSecret();
+      // 安全修复：生成独立的加密密钥，避免与 JWT_SECRET 耦合
+      const settingsEncryptionKey = generateSecret();
       const dbConfigSection = usingSocket
         ? `# 数据库配置（使用 socket 连接）
 DB_SOCKET=${socketPath}
@@ -362,6 +364,10 @@ ${dbConfigSection}
 
 # JWT 密钥
 JWT_SECRET=${jwtSecret}
+
+# 敏感配置加密密钥（用于加密数据库中存储的 AI API Key 等，AES-256-GCM）
+# 安全修复：独立于 JWT_SECRET，防止 JWT 泄露导致敏感配置可被解密
+SETTINGS_ENCRYPTION_KEY=${settingsEncryptionKey}
 
 # 管理员账号（密码已加密存入数据库，此处仅记录用户名）
 ADMIN_USERNAME=${admin.username}

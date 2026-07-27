@@ -199,7 +199,15 @@ async function start() {
 
     // 健康检查（在仅安装模式下也可用）
     // 安全修复：不公开返回 setupMode 状态，防止攻击者探测系统是否未完成安装
-    app.get("/api/health", async () => {
+    // 安全修复：对健康检查接口实施独立速率限制，防止被封禁 IP 持续探测
+    app.get("/api/health", {
+      config: {
+        rateLimit: {
+          max: 30,
+          timeWindow: "1 minute",
+        },
+      },
+    }, async () => {
       return {
         status: "ok",
         timestamp: new Date().toISOString(),

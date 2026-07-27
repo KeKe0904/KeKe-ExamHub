@@ -853,15 +853,18 @@ echo "[$(date -Iseconds)] === 一键更新完成 ===" >> "\$LOG"
 echo "DONE" >> "\$LOG"
 `;
 
-        // 写入脚本并执行
-        await safeExec(`cat > ${scriptFile} << 'SCRIPT_EOF'\n${script}\nSCRIPT_EOF\n`, CMD_TIMEOUT);
-        await safeExec(`chmod +x ${scriptFile}`, CMD_TIMEOUT);
+        // 安全修复：使用 fs.writeFileSync 替代 cat heredoc 写入脚本文件，
+        // 避免脚本内容经过 shell 解析导致的命令注入风险
+        fs.writeFileSync(scriptFile, script, { mode: 0o755 });
 
-        // 后台执行（nohup 确保不随请求结束而终止）
-        const { exec } = await import("child_process");
-        exec(`nohup bash ${scriptFile} > /dev/null 2>&1 &`, {
+        // 安全修复：使用 execFile 替代 exec 执行脚本，避免 shell 解析
+        const { execFile } = await import("child_process");
+        const child = execFile("bash", [scriptFile], {
           cwd: PROJECT_ROOT,
+          detached: true,
+          stdio: "ignore",
         });
+        child.unref();
 
         // 存储任务状态（记录实际要更新的组件列表）
         updateTasks.set(taskId, {
